@@ -1,0 +1,3 @@
+Some usefule commands::
+
+  echo "__pycache__" >> .gitignore 
