@@ -11,9 +11,10 @@ Welcome to eroML's documentation!
    :caption: Contents:
 
    cheat_sheet.rst
-   ensemble.rst
    
-.. .. automodule:: ensemble
+   argh <\.ensemble/ensemble2.rst>
+   
+.. .. automodule:: ensemble   .. include::    ../ensemble/ensemble2.rst
 ..     :members:
 
 Result of doctest:
