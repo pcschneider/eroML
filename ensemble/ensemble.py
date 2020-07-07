@@ -2,7 +2,7 @@ import copy
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 import numpy as np
-from . import Astro_object
+from .astro_object import Astro_object
 
 class Ensemble():
     """
