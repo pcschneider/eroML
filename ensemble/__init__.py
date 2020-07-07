@@ -1,6 +1,10 @@
-from .astro_object import Astro_object
-from .ensemble import Ensemble
+from .astro_object import Astro_Object
+from .astro_ensemble import Ensemble
 
-def test(level=1, verbosity=1):
-    from numpy.testing import Tester
-    return Tester().test(level, verbosity)
+def test():
+    import unittest
+    tl = unittest.TestLoader()
+    tests = tl.discover(".")
+    testRunner = unittest.runner.TextTestRunner()
+    r = testRunner.run(tests)
+    print(r)

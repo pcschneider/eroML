@@ -3,7 +3,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import numpy as np
 
-class Astro_object():
+class Astro_Object():
     """
     A basic and flexible class that holds the properties of an astrophysical object.
     The minimum requirement is that the object has a source ID (srcID). Most importantly,
@@ -12,7 +12,7 @@ class Astro_object():
     
     Example
     -------
-    >>> a = Astro_object({"srcID":"a",\ 
+    >>> a = Astro_Object({"srcID":"a",\ 
                           "coord":SkyCoord(ra=150*u.degree, dec=45*u.degree),\
                           "pm":(10,-20)}, pm_name="pm")
     >>> a.srcID = "b"
@@ -27,7 +27,7 @@ class Astro_object():
         """
         
         The minimal object creation is        
-        >>> a = Astro_object({"srcID":"test"})
+        >>> a = Astro_Object({"srcID":"test"})
         >>> a.srcID
         'test'
     
@@ -48,7 +48,7 @@ class Astro_object():
         self.id_name = id_name
         
         if id_name not in dct.keys():
-            raise LookupError("Each AstroObject must have an id")
+            raise LookupError("Each Astro_Object must have an id")
         
         if deepcopy:
             self.dct = copy.deepcopy(dct)
@@ -93,9 +93,9 @@ class Astro_object():
         """
         dt = float(epoch - self.coord_epoch)
         if self.pm_name is None:
-            raise LookupError("AstroObject has no entry for proper motion.")
+            raise LookupError("Astro_Object has no entry for proper motion.")
         
-        px  = self.dct[self.pm_name][0]/1000 * dt
+        px  = self.dct[self.pm_name][0]/1000 * dt #/ np.cos(self.coord.dec.degree)
         py = self.dct[self.pm_name][1]/1000 * dt
         
         offset = np.sqrt(px**2+py**2)
@@ -108,6 +108,6 @@ if __name__ == "__main__":
     
     import doctest
     #doctest.testmod()
-    doctest.testmod(extraglobs={'a': Astro_object({"srcID":"a", "coord":SkyCoord(ra=150.0*u.degree, dec=20.0*u.degree), "pm":(10,-50)}, pm_name="pm")})
+    doctest.testmod(extraglobs={'a': Astro_Object({"srcID":"a", "coord":SkyCoord(ra=150.0*u.degree, dec=20.0*u.degree), "pm":(10,-50)}, pm_name="pm")})
     
   
