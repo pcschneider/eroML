@@ -12,9 +12,7 @@ class Astro_Object():
     
     Example
     -------
-    >>> a = Astro_Object({"srcID":"a",\ 
-                          "coord":SkyCoord(ra=150*u.degree, dec=45*u.degree),\
-                          "pm":(10,-20)}, pm_name="pm")
+    >>> a = Astro_Object({"srcID":"a","coord":SkyCoord(ra=150*u.degree, dec=45*u.degree),"pm":(10,-20)}, pm_name="pm")
     >>> a.srcID = "b"
     >>> print(a.srcID)
     b
@@ -23,7 +21,7 @@ class Astro_Object():
     
     """
     
-    def __init__(self, dct, id_name = "srcID", coord_epoch=2000, coord_name="coord", pm_name=None, deepcopy=True):
+    def __init__(self, dct, id_name = "srcID", ref_epoch=2000, coord_name="coord", pm_name=None, deepcopy=True):
         """
         
         The minimal object creation is        
@@ -42,7 +40,7 @@ class Astro_Object():
           describe the dictionary entries containing the relevant property
     
         """
-        self.coord_epoch = coord_epoch
+        self.ref_epoch = ref_epoch
         self.coord_name = coord_name
         self.pm_name = pm_name
         self.id_name = id_name
@@ -54,7 +52,10 @@ class Astro_Object():
             self.dct = copy.deepcopy(dct)
         else:    
             self.dct = dct
-            
+     
+    def __str__(self):
+        return self.srcID
+    
     @property
     def srcID(self):
         return self.dct[self.id_name]        
@@ -67,7 +68,17 @@ class Astro_Object():
     def coord(self):
         return self.dct[self.coord_name]        
     
-    def coord_tuple(self, ra_unit="degree", dec_unit="degree", epoch=2000):
+    @property
+    def ra(self):
+        tmp = self.coord_tuple()
+        return tmp[0]
+    
+    @property
+    def dec(self):
+        tmp = self.coord_tuple()
+        return tmp[1]
+    
+    def coord_tuple(self, ra_unit="degree", dec_unit="degree", epoch=None):
         """
         
         Example
@@ -83,7 +94,7 @@ class Astro_Object():
         c = self.coord4epoch(epoch=epoch)
         return getattr(c.ra, ra_unit),  getattr(c.dec, dec_unit)
         
-    def coord4epoch(self, epoch=2000):
+    def coord4epoch(self, epoch=None):
         """
         Calculate the coordinate for a different epoch
         
@@ -91,7 +102,12 @@ class Astro_Object():
         -------
         new coordinate : SkyCoord
         """
-        dt = float(epoch - self.coord_epoch)
+        if epoch is None:
+            epoch = self.ref_epoch
+            dt = 0
+        else:
+            dt = float(epoch - self.ref_epoch)
+            
         if self.pm_name is None:
             raise LookupError("Astro_Object has no entry for proper motion.")
         
@@ -102,8 +118,46 @@ class Astro_Object():
         angle = np.arctan2(px, py) / np.pi*180.
     
         return self.dct[self.coord_name].directional_offset_by(angle*u.degree, offset*u.arcsec)
-               
+
+def from_Simbad(name, verbose=1):
+    """
+      Generate `Astro_Object` by querying Simbad
+      
+      Coordinates, and if available, proper motion as well as the parallax (plx) 
+      are then available for the `Astro_Object` 
+      
+      Parameters
+      ----------
+      name : str
+        Name as to be found in Simbad
         
+      Returns
+      -------
+      Astro_Object
+      
+      Example
+      -------
+      >>> star = from_Simbad("AU Mic")
+      >>> star.srcID
+      'AU Mic'
+    """
+    from astroquery.simbad import Simbad
+    Simbad.add_votable_fields('pmra')
+    Simbad.add_votable_fields('pmdec')
+    Simbad.add_votable_fields('plx')
+    Simbad.add_votable_fields('ids')
+    if verbose>5:
+        print("Querying %s in Simbad..." % name)
+    r = Simbad.query_object(name)
+    ra, dec = r[0]["RA"], r[0]["DEC"]
+    pmra, pmdec = r[0]["PMRA"]/1000, r[0]["PMDEC"]/1000
+    plx = r[0]["PLX_VALUE"]
+    if verbose>5:
+        print("    Found ", len(r), "entries, using entry '0' with Coords=",ra, dec, ", pm=",pmra,pmdec," and plx=",plx)
+    tmp = Astro_Object({"srcID":name, "coord":SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.degree)), "pm":(pmra,pmdec), "plx":plx}, pm_name="pm")
+    return tmp
+    
+
 if __name__ == "__main__":
     
     import doctest

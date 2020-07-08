@@ -1,5 +1,5 @@
 import unittest
-from eroML.ensemble import Astro_Object
+from eroML.ensemble import Astro_Object, from_Simbad
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 import numpy as np
@@ -15,5 +15,8 @@ class TestAstro_Object(unittest.TestCase):
         tmp = a.coord_tuple(epoch=2021)
         self.assertTrue(np.allclose(tmp, (311.29164037, -31.34299987), rtol=1e-9), "Should be True, because the difference should be small.")
 
+    def test_Simbad(self):
+        a = from_Simbad("AU Mic")
+        
 if __name__ == '__main__':
     unittest.main()
