@@ -5,7 +5,8 @@ def test():
     x = []
     for m in modules:
         mod = __import__(m, globals(), locals(), ['test'])
-        tstfunc = getattr(mod, 'test')
         print(mod)
+        tstfunc = getattr(mod, 'test')
+        tstfunc()
         x.append(m)
     print(x)    
