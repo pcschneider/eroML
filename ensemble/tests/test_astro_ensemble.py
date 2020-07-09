@@ -23,12 +23,19 @@ class TestEnsemble(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.e.add_object("1")
 
-    
+    def test_remove_non_existing_object(self):
+        with self.assertRaises(IndexError):
+            self.e.del_object("1")
+
+    def test_remove_existing_object(self):
+        self.e.del_object("a")
+        self.assertEqual(len(self.e), 2)
+
     def test_init(self):
         self.assertEqual(self.e.N,3,"Should be 3.")
     
     def test_columns(self):
-        xx = self.e.columns(colnames=("ra","dec"))
+        xx = self.e.array(colnames=("ra","dec"))
         self.assertTrue(np.allclose(np.shape(xx), (2,3)))
         
         

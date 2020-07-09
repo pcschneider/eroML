@@ -5,8 +5,10 @@ def test():
     x = []
     for m in modules:
         mod = __import__(m, globals(), locals(), ['test'])
-        print(mod)
+        print("running test() from ",mod)
+        
         tstfunc = getattr(mod, 'test')
         tstfunc()
         x.append(m)
+        print()
     print(x)    

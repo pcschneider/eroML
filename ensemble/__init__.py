@@ -1,17 +1,29 @@
 from .astro_object import Astro_Object
 from .astro_object import from_Simbad
 from .astro_ensemble import Ensemble
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 def test():
+    import doctest
+    
+    import eroML.ensemble.astro_object
+    r = doctest.testmod(astro_object,   extraglobs={'a': Astro_Object({"srcID":"a", "coord":SkyCoord(ra=150.0*u.degree, dec=20.0*u.degree), "pm":(10,-50)}, pm_name="pm")})
+    print("Result of doctest for `astro_object`:", r)
+    
+    import eroML.ensemble.astro_ensemble
+    r = doctest.testmod(astro_ensemble)
+    print("Result of doctest for `astro_ensemble`:", r)
+    
     import unittest
     tl = unittest.TestLoader()
     test_suits = tl.discover(".")
-    print("tests:", test_suits)
     for i, t in enumerate(test_suits):
-        print(i,t)
-        #print(len(t))
-        print()
+        for j, tt in enumerate(t):
+            for ttt in tt._tests:
+                print("Discovered test functions:", ttt._testMethodName)
+                print("   ",ttt.id())
+            print()
     testRunner = unittest.runner.TextTestRunner()
     r = testRunner.run(test_suits)
-    print(r)
     return tests

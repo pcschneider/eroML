@@ -18,12 +18,17 @@ The corresponding path should be then added to PYTHONPATH::
 python
 ------
 
+Testing::
+
+  p37 -c "import eroML ; eroML.test()"
+
 ::
 
     from importlib import reload
     reload(vo)
 
 
+    
 ::
 
   echo "__pycache__" >> .gitignore 

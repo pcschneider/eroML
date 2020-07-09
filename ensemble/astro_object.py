@@ -140,6 +140,7 @@ def from_Simbad(name, verbose=1):
       >>> star = from_Simbad("AU Mic")
       >>> star.srcID
       'AU Mic'
+   
     """
     from astroquery.simbad import Simbad
     Simbad.add_votable_fields('pmra')
