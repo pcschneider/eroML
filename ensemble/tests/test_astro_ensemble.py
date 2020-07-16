@@ -26,13 +26,23 @@ class TestEnsemble(unittest.TestCase):
     def test_remove_non_existing_object(self):
         with self.assertRaises(IndexError):
             self.e.del_object("1")
+            
+    def test_add_existing_object_no_auto_resolve(self):
+        a = Astro_Object({"srcID":"a", "coord":SkyCoord(ra=1.0*u.degree, dec=-1.0*u.degree), "pm":(10,-10)}, pm_name="pm")
+        with self.assertRaises(KeyError):
+            self.e.add_object(a, auto_resolve=False)
+
+    def test_add_existing_object(self):
+        a = Astro_Object({"srcID":"a", "coord":SkyCoord(ra=1.0*u.degree, dec=-1.0*u.degree), "pm":(10,-10)}, pm_name="pm")
+        self.assertEqual(self.e.add_object(a), "a_2")
+
 
     def test_remove_existing_object(self):
         self.e.del_object("a")
         self.assertEqual(len(self.e), 2)
 
     def test_init(self):
-        self.assertEqual(self.e.N,3,"Should be 3.")
+        self.assertEqual(len(self.e),3,"Should be 3.")
     
     def test_columns(self):
         xx = self.e.array(colnames=("ra","dec"))

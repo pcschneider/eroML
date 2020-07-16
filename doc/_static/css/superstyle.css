@@ -1,0 +1,26 @@
+/** css/superstyle.css **/
+
+/* This line is theme specific - it includes the base theme CSS */
+/* @import 'alabaster.css';  /* for Alabaster */ */
+/* @import 'pyramid.css';       /* for the Read the Docs theme */
+
+/* body { */
+    /* ... */
+/* } */
+
+body {
+    background-color: #393900;
+    color: #ff55ff;
+}
+
+dl.field-list {
+    flex-basis: 20%;
+    font-weight: normal;
+    word-break: break-word;
+}
+
+dl.field-list > dt {
+    flex-basis: 20%;
+    font-weight: normal;
+    word-break: break-word;
+}

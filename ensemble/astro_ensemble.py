@@ -15,17 +15,38 @@ class Ensemble():
         self._N = 0
         self.deepcopy = deepcopy
         
-    def add_object(self, obj):
+    def add_object(self, obj, auto_resolve=True):
         """
         Add an object to `Ensemble`
         
         Parameters
         ----------
         obj : Astro_Object
+        auto_resolve : Boolean
+            Append 
+        
+        Returns
+        -------
+        uid : ID for object as stored, needed to retrieve exactly this object 
+            if `auto_resolve` == True
         """
+        def create_alternate_ID(name):
+            for i in range(1, 100):
+                an = str("%s_%i" % (name, i+1))
+                if an not in self.mapper:
+                    return an
+        
         if type(obj) != Astro_Object:
             raise TypeError("`Ensemble`::add_object - `obj` must be `Astro_Object` instance!")
         
+        if obj.srcID in self.mapper:
+          if auto_resolve: 
+              sID = create_alternate_ID(obj.srcID)
+          else:
+              raise KeyError(str("`Ensemble`::add_object - An object with srcID=%s already in Ensemble." % obj.srcID))
+        else:
+          sID = obj.srcID
+          
         uid = self._N + 1
         if self.deepcopy:
             self.objects[uid] = copy.deepcopy(obj)
@@ -33,6 +54,8 @@ class Ensemble():
             self.objects[uid] = obj
         self.mapper[obj.srcID] = uid    
         self._N+=1
+        
+        return sID
 
     def __len__(self):
         """
@@ -75,7 +98,34 @@ class Ensemble():
             ra.append(c[0])
             dec.append(c[1])
         return SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree))
+    
+    def fromArray(self, array, verbose=1, clean=True):
+        """
+        Standardized population of `Ensemble`. 
         
+        In particular, the array shall contain the following columns:
+          - srcID
+          - RA in degree
+          - Dec in degree
+        Proper motion is optional, but if they exist, all the following three column must exist:
+          - pm_RA in mas/year
+          - pm_Dec in mas/year
+          - ref_epoch, e.g., 2000.0
+        Paralllax is option, but if it exists, the naming is:
+          - plx in mas
+          
+        Parameters
+        ----------
+        array : ndarray
+        """
+        pass
+    
+    
+    def _export(self, verbose=1):
+        """
+        """
+        
+    
     def array(self, colnames=(), make_array=True):
         """
         Usually used to get a numpy.array from given `colnames`.
