@@ -45,7 +45,9 @@ class TestEnsemble(unittest.TestCase):
         self.assertEqual(len(self.e),3,"Should be 3.")
     
     def test_columns(self):
-        xx = self.e.array(colnames=("ra","dec"))
+        xx = self.e.array(colnames=("ra","dec"), array_type="array")
+        #print("xxx",xx, np.shape(xx), type(xx))
+        #print(np.array(xx), xx.shape)
         self.assertTrue(np.allclose(np.shape(xx), (2,3)))
         
         

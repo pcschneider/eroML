@@ -20,8 +20,6 @@ Welcome to eroML's documentation!
 Testing
 -------
 
-f
-
 Result of doctest:
 
 .. doctest::

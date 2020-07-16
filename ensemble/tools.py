@@ -3,9 +3,9 @@ Collection of Tools for handling Ensembles.
 
 Example
 -------
->>> e = from_fits("../eFEDS/SrcCat_V2T.fits", mapper={"detUID":"srcID"}, maxN=100)")
->>> e["MLML00001"]["srcID"].strip()
-"ML00001"
+>>> e = from_fits("../eFEDS/SrcCat_V2T.fits", mapper={"detUID":"srcID"}, maxN=100, verbose=0)
+>>> e["ML00001"]["srcID"].strip()
+'ML00001'
 """
 
 from .astro_object import Astro_Object
@@ -16,6 +16,21 @@ import numpy as np
 def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     """
     Generate Astro_Ensemble from fits-file
+    
+    Parameters
+    ----------
+    fn : str
+      Filename
+    mapper : dictionary
+      Mapping between column-names in fits-file and property-name in Ensemlbe
+    extension : int
+      Fits-extension to use
+    maxN : int
+      Maximum number of rows to read from fits-file
+      
+    Returns
+    -------
+    ensemble of objects : Ensemble
     """
 
     col_mapper = lambda x:mapper[x] if x in mapper else x
@@ -39,7 +54,8 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
             
     names =     ",".join(names)    
     a = np.core.records.fromarrays(col_data,names=names)
-    if verbose>1: print("ensemble.tools::from_fits - Read ",np.shape(a), " entries with ",len(names.split(","))," properties from ",fn)
+    if verbose>1: 
+        print("ensemble.tools::from_fits - Read ",np.shape(a), " entries with ",len(names.split(","))," properties from ",fn)
     
     e = Ensemble().from_array(a)
     if verbose>0:
@@ -49,6 +65,21 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
 def to_fits(ensemble, ofn, overwrite=False, verbose=1, mapper={}, maxN=None):
     """
     Write Ensemble-data to fits-file
+    
+    Parameters
+    ----------
+    ensemble : Ensemble
+      The data
+    ofn : str
+      Filename
+    overwrite : boolean
+      Overwrite file if exists
+    verbose : int
+      Verbosity
+    maxN : int
+      Maximum number of rows to write
+    mapper : dictionary
+      Mapping between property-name in Ensemble and in fits-file; `x` if nothing in `mapper` for property `x` and `mapper` [`x`] otherwise.
     """
     fmt_mapper = {"i":"I","u":"I","U":"32A","f":"D"}
     col_mapper = lambda x:mapper[x] if x in mapper else x
