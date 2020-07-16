@@ -14,6 +14,7 @@ class Ensemble():
         self.uid_name = "uid"
         self._N = 0
         self.deepcopy = deepcopy
+        self.known_cols = []
         
     def add_object(self, obj, auto_resolve=True):
         """
@@ -28,7 +29,7 @@ class Ensemble():
         Returns
         -------
         uid : ID for object as stored, needed to retrieve exactly this object 
-            if `auto_resolve` == True
+    if `auto_resolve` == True
         """
         def create_alternate_ID(name):
             for i in range(1, 100):
@@ -39,11 +40,11 @@ class Ensemble():
         if type(obj) != Astro_Object:
             raise TypeError("`Ensemble`::add_object - `obj` must be `Astro_Object` instance!")
         
-        if obj.srcID in self.mapper:
+        if obj.srcID.strip() in self.mapper:
           if auto_resolve: 
-              sID = create_alternate_ID(obj.srcID)
+              sID = create_alternate_ID(obj.srcID.strip())
           else:
-              raise KeyError(str("`Ensemble`::add_object - An object with srcID=%s already in Ensemble." % obj.srcID))
+              raise KeyError(str("`Ensemble`::add_object - An object with srcID=%s already in Ensemble." % obj.srcID.strip()))
         else:
           sID = obj.srcID
           
@@ -52,8 +53,12 @@ class Ensemble():
             self.objects[uid] = copy.deepcopy(obj)
         else:
             self.objects[uid] = obj
-        self.mapper[obj.srcID] = uid    
+        self.mapper[obj.srcID.strip()] = uid    
         self._N+=1
+        
+        for c in obj.dct.keys():
+            if c not in self.known_cols:
+                self.known_cols.append(c)
         
         return sID
 
@@ -68,8 +73,8 @@ class Ensemble():
         Remove object from `Ensemble`
         """
         if obj_name in self.mapper:
-            del self.objects[self.mapper[obj_name]]
-            del self.mapper[obj_name]
+            del self.objects[self.mapper[obj_name.strip()]]
+            del self.mapper[obj_name.strip()]
         else:
             raise IndexError(str("%s not in Ensemble." % obj_name))
 
@@ -99,7 +104,7 @@ class Ensemble():
             dec.append(c[1])
         return SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree))
     
-    def fromArray(self, array, verbose=1, clean=True):
+    def from_array(self, array, verbose=1, clean=True):
         """
         Standardized population of `Ensemble`. 
         
@@ -116,37 +121,61 @@ class Ensemble():
           
         Parameters
         ----------
-        array : ndarray
+        array : ndarray 
+            shape: NxM with N being the number of objects and M the number of properties
         """
-        pass
+        
+        names = array.dtype.names
+        self.known_cols = names
+        for o in array:
+            dct = {n:o[n] for n in names}
+            #print(dct.keys())
+            #print()
+            tmp = Astro_Object(dct)
+            self.add_object(tmp)
+        return self    
     
+    
+    def __getitem__(self, name, verbose=1):
+        """
+        """
+        return self.objects[self.mapper[name]]
     
     def _export(self, verbose=1):
         """
         """
-        
+        pass
     
-    def array(self, colnames=(), make_array=True):
+    def array(self, colnames=(), array_type="recarray"):
         """
         Usually used to get a numpy.array from given `colnames`.
         
         Returns
         -------
-        array if `make_array` == True else dictionary
+        array if `array_type` == "recarray" else dictionary
             array shape is (len(colnames), N) with N being the number of objects in Ensemble
         """
         dct = {}
         for c in colnames:
             dct[c] = []
-            print(c)
             for o in self.objects.values():
-                tmp = getattr(o,c)
+                tmp = o[c]
                 #print(o,c,tmp)
                 dct[c].append(tmp)
-        if make_array:
-            return np.array(list([dct[c] for c in colnames]))
-        else:
+        if array_type=="recarray":
+            cc = np.core.records.fromarrays([dct[n] for n in dct], names=",".join(dct.keys()))
+            return cc #np.array(list([dct[c] for c in colnames]))
+        elif array_type=="array":
+            arr = []
+            for c in dct.keys():
+                arr.append(np.array(dct[c]).astype(float))
+            return np.array(arr)    
+        elif array_type=="dict":
             return dct
+        else:
+            raise LookupError("Ensemble::array - `array_type` must be in [recarray, array, dict], but is " +str(array_type))
+        
+         
         
 if __name__ == "__main__":
     pass

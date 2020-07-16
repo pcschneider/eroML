@@ -46,7 +46,7 @@ class Astro_Object():
         self.id_name = id_name
         
         if id_name not in dct.keys():
-            raise LookupError("Each Astro_Object must have an id")
+            raise LookupError("Each Astro_Object must have an id, i.e., a dictionary entry named `id_name` (typically 'srcID').")
         
         if deepcopy:
             self.dct = copy.deepcopy(dct)
@@ -55,6 +55,13 @@ class Astro_Object():
      
     def __str__(self):
         return self.srcID
+    
+    def __getitem__(self, k):
+        if k=="ra":
+            return self[self.coord_name].ra.degree
+        elif k=="dec":
+            return self[self.coord_name].dec.degree
+        return self.dct[k]
     
     @property
     def srcID(self):
