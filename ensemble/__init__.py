@@ -1,6 +1,11 @@
+"""
+This module handles Ensembles, i.e., collections of astronomical objects, which are mainly characterized by a srcID and coordinates.    
+"""
+
 from .astro_object import Astro_Object
 from .astro_object import from_Simbad
 from .astro_ensemble import Ensemble
+from .tools import from_fits, to_fits
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
@@ -14,6 +19,11 @@ def test():
     import eroML.ensemble.astro_ensemble
     r = doctest.testmod(astro_ensemble)
     print("Result of doctest for `astro_ensemble`:", r)
+    
+    import eroML.ensemble.tools
+    r = doctest.testmod(tools)
+    print("Result of doctest for `tools`:", r)
+    
     
     import unittest
     tl = unittest.TestLoader()

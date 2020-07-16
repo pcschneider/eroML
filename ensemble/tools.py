@@ -1,3 +1,13 @@
+"""
+Collection of Tools for handling Ensembles.
+
+Example
+-------
+>>> e = from_fits("../eFEDS/SrcCat_V2T.fits", mapper={"detUID":"srcID"}, maxN=100)")
+>>> e["MLML00001"]["srcID"].strip()
+"ML00001"
+"""
+
 from .astro_object import Astro_Object
 from .astro_ensemble import Ensemble
 from astropy.io import fits as pyfits
