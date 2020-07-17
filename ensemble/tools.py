@@ -88,7 +88,7 @@ def to_fits(ensemble, ofn, overwrite=False, verbose=1, mapper={}, maxN=None):
 
     outcols = ensemble.known_cols
     outcols.remove("coord")
-    print(*outcols, *ensemble.known_cols)
+    #print(*outcols, *ensemble.known_cols)
 
     if verbose>1:
         print("ensemble.tools::to_fits - Using cols: ",outcols)
@@ -101,7 +101,7 @@ def to_fits(ensemble, ofn, overwrite=False, verbose=1, mapper={}, maxN=None):
     cols = []
     for c in array.dtype.names:
         if c=="coord": continue
-        print(c)
+        #print(c)    
         fmt = fmt_mapper[array[c].dtype.kind]
         if verbose>5: print("ensemble.tools::to_fits - Using column ",c, "with dtype=",array[c].dtype, " and fits-format=",fmt)
         col = pyfits.Column(name=col_mapper(c), array=array[c][0:maxN], format=fmt)

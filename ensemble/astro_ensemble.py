@@ -153,8 +153,27 @@ class Ensemble():
         """
         return list(self.mapper.values())
     
-    def merge_add(self, other, cols=None, conflict_resolution="append", col_postfix="_NN", criterium="distance", verbose=10, **kwargs):
+    def merge_add(self, other, conflict_resolution="append", col_postfix="_NN", criterium="distance", verbose=10, **kwargs):
         """
+        Add properties of another Ensemble to this Ensemble
+        
+        Parameters
+        ----------
+        other : Ensemble
+          The other Ensemble
+        conflict_resolution : str
+          How to handle columns with the same name. Options are ["append", "left", "right"]
+            - append : append `col_postfix` to column-name and append column
+            - left : use column in this Ensemble
+            - right : use column in other Ensemble
+        col_postfix : str
+          Append this to column name in case `conflict_resolution` == 'append'
+        criterium : str
+          Must be "distance" at the moment.
+          
+          Additional `kwargs`: 
+            - "NN" : int, nth nearest neighbor
+            - "epoch" : float, epoch to match
         """
         if criterium != "distance":
             raise NotImplementedError("Ensemble::merge_add - `criterium` must be `distance` at the moment.")
@@ -178,7 +197,7 @@ class Ensemble():
         idx, d2d,d3d = coord0.match_to_catalog_sky(coord1, nthneighbor=NN) 
         cols = other.known_cols
         for c in cols:
-            print(c)
+            #print(c)
             if c=="coord": continue
             if c in self.known_cols:
                 if conflict_resolution=="append":
@@ -189,7 +208,7 @@ class Ensemble():
                 elif conflict_resolution=="left":
                     continue
                 for j, k in enumerate(self.mapper.keys()):
-                    print(j, idx[j], oIDs[idx[j]])
+                    #print(j, idx[j], oIDs[idx[j]])
                     self.objects[self.mapper[k]].dct[ow] = other.objects[oIDs[idx[j]]][c]
 
         if NN>1:
@@ -199,7 +218,7 @@ class Ensemble():
 
         self.known_cols.append(ow)
         for j, k in enumerate(self.mapper.keys()):
-            print(j, idx[j], oIDs[idx[j]])
+            #print(j, idx[j], oIDs[idx[j]])
             self.objects[self.mapper[k]].dct[ow] = d2d[j].arcsec
             
                         
