@@ -6,14 +6,17 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import numpy as np
 from .astro_object import Astro_Object
+from collections import OrderedDict
 
 class Ensemble():
     """
     Holds a number of  `Astro_Objects`
+    
+    
     """
     def __init__(self, deepcopy=True):
-        self.objects = {}
-        self.mapper = {}
+        self.objects = OrderedDict()
+        self.mapper = OrderedDict()
         self.uid_name = "uid"
         self._N = 0
         self.deepcopy = deepcopy
@@ -80,7 +83,7 @@ class Ensemble():
         else:
             raise IndexError(str("%s not in Ensemble." % obj_name))
 
-    def skyCoords(self, srcIDs=None, epoch=2000, verbose=5):
+    def skyCoords(self, srcIDs=None, epoch=2000, verbose=1):
         """
         The SkyCoords for the objects in the `Ensemble`
         
@@ -128,15 +131,78 @@ class Ensemble():
         """
         
         names = array.dtype.names
-        self.known_cols = names
+        self.known_cols = list(names)
         for o in array:
             dct = {n:o[n] for n in names}
+            ra, dec = o["RA"], o["Dec"]
+            coord = SkyCoord(ra, dec, unit=(u.degree, u.degree))
+            dct["coord"] = coord
             #print(dct.keys())
             #print()
             tmp = Astro_Object(dct)
             self.add_object(tmp)
         return self    
+   
+    def srcIDs(self):
+        """
+        The source IDs
+        
+        Returns
+        -------
+        srcIDs - list
+        """
+        return list(self.mapper.values())
     
+    def merge_add(self, other, cols=None, conflict_resolution="append", col_postfix="_NN", criterium="distance", verbose=10, **kwargs):
+        """
+        """
+        if criterium != "distance":
+            raise NotImplementedError("Ensemble::merge_add - `criterium` must be `distance` at the moment.")
+        
+        if "NN" in kwargs:
+            NN = kwargs["NN"]
+        else:
+            NN = 1
+        
+        if "epoch" in kwargs:
+            epoch = kwargs["epoch"]
+        else:
+            epoch=None
+        
+        coord0 = self.skyCoords(epoch=epoch)
+        coord1 = other.skyCoords(epoch=epoch)
+        oIDs = other.srcIDs()
+        
+        if verbose>1: print("Ensemble::merge_add - NN:",NN) 
+        
+        idx, d2d,d3d = coord0.match_to_catalog_sky(coord1, nthneighbor=NN) 
+        cols = other.known_cols
+        for c in cols:
+            print(c)
+            if c=="coord": continue
+            if c in self.known_cols:
+                if conflict_resolution=="append":
+                    ow = c+col_postfix
+                    self.known_cols.append(ow)
+                elif conflict_resolution=="right":    
+                    ow = c
+                elif conflict_resolution=="left":
+                    continue
+                for j, k in enumerate(self.mapper.keys()):
+                    print(j, idx[j], oIDs[idx[j]])
+                    self.objects[self.mapper[k]].dct[ow] = other.objects[oIDs[idx[j]]][c]
+
+        if NN>1:
+            ow = "match_dist_"+str(NN)
+        else:
+            ow = "match_dist"
+
+        self.known_cols.append(ow)
+        for j, k in enumerate(self.mapper.keys()):
+            print(j, idx[j], oIDs[idx[j]])
+            self.objects[self.mapper[k]].dct[ow] = d2d[j].arcsec
+            
+                        
     
     def __getitem__(self, name, verbose=1):
         """

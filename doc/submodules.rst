@@ -1,6 +1,10 @@
 Description of individual submodules
 ====================================
 
+.. automodule:: eroML.ensemble
+    :members:
+    
+
 Tools
 -----
 

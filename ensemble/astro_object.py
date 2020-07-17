@@ -119,13 +119,14 @@ class Astro_Object():
             dt = float(epoch - self.ref_epoch)
             
         if self.pm_name is None:
-            raise LookupError("Astro_Object has no entry for proper motion.")
+            #raise LookupError("Astro_Object has no entry for proper motion.")
+            offset, angle = 0, 0 
+        else:    
+            px  = self.dct[self.pm_name][0]/1000 * dt #/ np.cos(self.coord.dec.degree)
+            py = self.dct[self.pm_name][1]/1000 * dt
         
-        px  = self.dct[self.pm_name][0]/1000 * dt #/ np.cos(self.coord.dec.degree)
-        py = self.dct[self.pm_name][1]/1000 * dt
-        
-        offset = np.sqrt(px**2+py**2)
-        angle = np.arctan2(px, py) / np.pi*180.
+            offset = np.sqrt(px**2+py**2)
+            angle = np.arctan2(px, py) / np.pi*180.
     
         return self.dct[self.coord_name].directional_offset_by(angle*u.degree, offset*u.arcsec)
 

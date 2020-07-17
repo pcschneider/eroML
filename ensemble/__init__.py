@@ -1,5 +1,10 @@
 """
 This module handles Ensembles, i.e., collections of astronomical objects, which are mainly characterized by a srcID and coordinates.    
+
+This implementation of an Ensemble handles
+  - coordinates 
+  - (multiple) names 
+  - properties existing only for few objects in the Ensemble
 """
 
 from .astro_object import Astro_Object
