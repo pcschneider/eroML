@@ -10,6 +10,9 @@ class Test_Fits_IO(unittest.TestCase):
         x = from_fits("../eFEDS/SrcCat_V2T.fits", mapper={"detUID":"srcID", "DEC":"Dec"}, maxN=100)
         to_fits(x, "test.fits", overwrite=True, maxN = 10)
         y = from_fits("test.fits")
+        #print("yyy")
+        xx = y["ML00001"]
+        #print("xx",xx)
         self.assertEqual(y["ML00001"]["srcID"].strip(), "ML00001")
         
 if __name__ == '__main__':

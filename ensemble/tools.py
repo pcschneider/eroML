@@ -87,12 +87,15 @@ def to_fits(ensemble, ofn, overwrite=False, verbose=1, mapper={}, maxN=None):
     col_mapper = lambda x:mapper[x] if x in mapper else x
 
     outcols = ensemble.known_cols
-    outcols.remove("coord")
+    try:
+        outcols.remove("coord")
+    except:
+        pass
     #print(*outcols, *ensemble.known_cols)
 
     if verbose>1:
         print("ensemble.tools::to_fits - Using cols: ",outcols)
-    array = ensemble.array(colnames=outcols)
+    array = ensemble.to_array(colnames=outcols)
     if maxN is None:
         maxN = len(array)
     else:
