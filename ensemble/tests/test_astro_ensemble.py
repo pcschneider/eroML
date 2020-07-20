@@ -56,7 +56,14 @@ class TestEnsemble(unittest.TestCase):
         #print(np.array(xx), xx.shape)
         self.assertTrue(np.allclose(np.shape(xx), (2,4)))
         
-        
+    def test_add_cols(self):
+        yy = np.arange(1,len(self.e)+1)
+        self.e.add_col("yy",yy)
+        new_known_cols = self.e.known_cols
+        self.assertEqual(new_known_cols,['srcID', 'RA', 'Dec', 'yy'])
+        y = self.e.to_array(colnames="yy", array_type='array').astype(int)
+        self.assertTrue(np.allclose(y,yy))
+
         
 if __name__ == '__main__':
     unittest.main()

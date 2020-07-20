@@ -19,12 +19,20 @@ class Ensemble():
       - pm_RA (float, unit mas/year)
       - pm_Dec (float, unit mas/year)
       - ref_epoch (float, decimal year)
+      
+    The data structure is organized in an array, which contains the data available for all 
+    objects and is kept up-to-date when adding or removing objects (may take time). Only if
+    objects contain properties not generally available (check `known_cols`-attribute), 
+    a copy of the object is stored and can be retrieved.
+    With this approach, access to the `known_cols`-properties is fast.
     """
     def __init__(self, deepcopy=True):
         self.objects = OrderedDict()
         self.mapper = OrderedDict()
+        self.row_mapper = OrderedDict()
         self.uid_name = "uid"
         self._N = 0
+        self._Nrow = 0
         self.deepcopy = deepcopy
         self.known_cols = ["srcID","RA", "Dec"]
         
@@ -93,7 +101,8 @@ class Ensemble():
             else:
                 array_entry.append(obj.dct[c])
         array_entry = tuple(array_entry)
-        self.array.resize(len(self)+1)
+        NRows = len(self)
+        self.array.resize(NRows+1)
         self.array[-1] = array_entry
                 
         if len(self) != self._N:
@@ -107,12 +116,13 @@ class Ensemble():
               self.objects[uid] = obj
           self._N+=1
           
-        self.mapper[obj.srcID] = uid    
+        self.mapper[obj.srcID] = uid
+        self.row_mapper[obj.srcID] = NRows
         
         #print(sID, self.mapper)
         return sID
     
-    def add_col(self, array, name=None):
+    def add_col(self, colname, array):
         """
         Add or overwrite column (if a column with this name already exists)
         
@@ -121,29 +131,93 @@ class Ensemble():
         array : array, must be same length as len(Ensemble)
         name : str, Name of the column
         """
-        for i,o in enumerate(self.mapper.values()):
-            self.objects[o].dct[name] = array[i]
-        if name not in self.known_cols: self.known_cols.append(name)
+        import numpy.lib.recfunctions as rfn
+        if colname in self.known_cols: 
+            raise ValueError(str("Ensemble::add_col - Column with name %s alrady known." % colname))
+        
+        
+            
+        import numpy.lib.recfunctions as rfn
+        #a = rfn.append_fields(a, 'USNG', np.empty(a.shape[0], dtype='|S100'), dtypes='|S100')
+        dt = array.dtype
+        self.array = rfn.append_fields(self.array, colname, array, dtypes=dt)
+        self.known_cols.append(colname)
+        
+        
+    def set_col(self, colname, array):
+        """
+        """
+        import numpy.lib.recfunctions as rfn
         
     def __len__(self):
         """
         Number of objects in `Ensemble`
         """
         return len(self.objects)
+
+    def shift_array(self, dN, n0=None, n1=None):
+        """
+        
+        
+        Parameters
+        ----------
+        dN : int
+            The step-width, i.e., shift
+        n0, n1 : int
+            The start and end indices for shifting
+        """
+        
+        N = len(self.array)
+        
+        if n0 is not None:
+            i0 = n0+dN
+            if n1 is not None:
+                i1 = n0+dN, n1+dN
+            else:
+                n1 = N
+                i1 = n1+dN
+        else:
+            i0=0
+            i1 = N
+            n0 = 0
+            n1 = N
+            
+        self.array[i0:i1] = np.roll(self.array, dN)[n0:n1]        
+        self.array.resize(N+dN)
+            
+            
+        
+        
+    def rebuild_row_mapper(self, dN, n0=None):
+        """
+        Make sure that the row_mapper reflects the array.
+        
+        Parameters
+        ----------
+        n0 : int
+            if provided, the array is assumed to correct up to uid `n`
+        """
+        if n0 is None:
+            n0 = -1
+        N = len(self.mapper)
+        srcIDs = self.srcIDs()
+        for si in srcIDs:
+            if self.row_mapper[si] > n0:
+                self.row_mapper[si]+=dN
         
     def del_object(self, obj_name):
         """
         Remove object from `Ensemble`
         """
         if obj_name in self.mapper:
-            N = self.mapper[obj_name.strip()]
-            srcIDs = self.srcIDs()
-            #for i in range(self._N - N):
-                #self.mapper[srcIDs[i+N]]-=1
-            del self.objects[self.mapper[obj_name.strip()]]
+            N = len(self)            
+            uid = self.mapper[obj_name.strip()]
             del self.mapper[obj_name.strip()]
-            #print(self.mapper)
-            #self._N-=1
+            if uid in self.objects:
+                del self.objects[uid]
+            n0 = self.row_mapper[obj_name]
+            self.shift_array(-1, n0=n0)
+            self.rebuild_row_mapper(-1, n0=n0)
         else:
             raise IndexError(str("%s not in Ensemble." % obj_name))
         print("del",self.mapper)
@@ -219,7 +293,6 @@ class Ensemble():
         names = array.dtype.names
         N0 = len(self)
         N1 = len(array)
-        
         
         if clean: 
             self.array = array
@@ -390,7 +463,6 @@ class Ensemble():
         
         else:
             return None
-                
                 
         if array_type=="recarray":
             cc = np.core.records.fromarrays([dct[n] for n in dct], names=",".join(dct.keys()))
