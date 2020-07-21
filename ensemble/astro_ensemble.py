@@ -37,6 +37,22 @@ class Ensemble():
         self.known_cols = ["srcID","RA", "Dec"]
         
         self.array = np.recarray((0,),dtype=[("srcID",str), ("RA",float), ("Dec",float)])
+     
+    def filter_array_for_srcIDs(self, array, srcIDs, verbose=10):
+        """
+        Restrict array to those entries that match the given srcIDs
+        
+        Parameters
+        ----------
+        array - array, to be filtered
+        srcIDs - list/np.array, the srcIDs
+        
+        Returns
+        -------
+        array, restricted to srcIDs
+        """
+        idx = list([self.row_mapper[s] for s in srcIDs])
+        return array[idx]
         
     def add_one_object(self, obj, auto_resolve=True, verbose=1):
         """
@@ -134,26 +150,26 @@ class Ensemble():
         import numpy.lib.recfunctions as rfn
         if colname in self.known_cols: 
             raise ValueError(str("Ensemble::add_col - Column with name %s alrady known." % colname))
-        
-        
-            
-        import numpy.lib.recfunctions as rfn
         #a = rfn.append_fields(a, 'USNG', np.empty(a.shape[0], dtype='|S100'), dtypes='|S100')
         dt = array.dtype
         self.array = rfn.append_fields(self.array, colname, array, dtypes=dt)
         self.known_cols.append(colname)
         
-        
     def set_col(self, colname, array):
         """
         """
-        import numpy.lib.recfunctions as rfn
+        if colname not in self.known_cols:
+            raise IndexError(str("Ensemble::set_col - Column with name %s alrady known." % colname))
+        if len(array) != len(self):
+            raise ValueError(str("Ensemble::set_col - Column with name %s  should have %i instead of %i entries." % (colname, len(self), len(array))))
+                             
+        self.array[colname] = array
         
     def __len__(self):
         """
         Number of objects in `Ensemble`
         """
-        return len(self.objects)
+        return len(self.row_mapper)
 
     def shift_array(self, dN, n0=None, n1=None):
         """
@@ -185,9 +201,6 @@ class Ensemble():
         self.array[i0:i1] = np.roll(self.array, dN)[n0:n1]        
         self.array.resize(N+dN)
             
-            
-        
-        
     def rebuild_row_mapper(self, dN, n0=None):
         """
         Make sure that the row_mapper reflects the array.
@@ -205,10 +218,11 @@ class Ensemble():
             if self.row_mapper[si] > n0:
                 self.row_mapper[si]+=dN
         
-    def del_object(self, obj_name):
+    def del_object(self, obj_name, verbose=1):
         """
         Remove object from `Ensemble`
         """
+        if verbose>5: print("Ensemble::del_object - Removing ",obj_name)
         if obj_name in self.mapper:
             N = len(self)            
             uid = self.mapper[obj_name.strip()]
@@ -216,11 +230,16 @@ class Ensemble():
             if uid in self.objects:
                 del self.objects[uid]
             n0 = self.row_mapper[obj_name]
+            if verbose>6:
+                print("Ensemble::del_object - Removing ",obj_name," which has row index: ",n0, " and uid: ",uid)
+            del self.row_mapper[obj_name]    
             self.shift_array(-1, n0=n0)
             self.rebuild_row_mapper(-1, n0=n0)
+            if verbose>6:
+                print("Ensemble::del_object - Now len(self)= ", len(self))
         else:
             raise IndexError(str("%s not in Ensemble." % obj_name))
-        print("del",self.mapper)
+        #print("del",self.mapper)
 
     def keep(self, srcIDs, verbose=10):
         """
@@ -231,15 +250,22 @@ class Ensemble():
         srcIDs : array of str
         """
         n_mapper = OrderedDict()
+        n_row_mapper = OrderedDict()
         n_objects = OrderedDict()
         n_old = len(self)
-        
+        #print(self.mapper)
+        narr = np.zeros(len(srcIDs), dtype=self.array.dtype)
         for i, si in enumerate(srcIDs):
-            
-            n_objects[i+1] = self.objects[self.mapper[si]]
-            n_mapper[si] = i+1
+            #print(i, si)
+            narr[i] = self.array[self.row_mapper[si]]
+            n_row_mapper[si] = i
+            if si in self.mapper:
+                n_objects[i+1] = self.objects[self.mapper[si]]
+                n_mapper[si] = i+1
         self.mapper = n_mapper
+        self.row_mapper = n_row_mapper
         self.objects = n_objects
+        self.array = narr
         
         if verbose>1: print("Ensemble::keep - Keeping only ",len(self), " from ",n_old," objects.")
         
@@ -262,11 +288,8 @@ class Ensemble():
         if srcIDs is None:
             srcIDs = self.mapper.keys()
         if verbose>3: print("astro_ensemble::Ensemble::skyCoords - Getting coords for ",srcIDs)    
-        ra, dec = [], []
-        for o in srcIDs:
-            c = self.objects[self.mapper[o]].coord_tuple(ra_unit="degree", dec_unit="degree",epoch=epoch)
-            ra.append(c[0])
-            dec.append(c[1])
+        ra, dec = self.to_array(colnames=["RA","Dec"], array_type="array")
+        if verbose>5: print("astro_ensemble::Ensemble::skyCoords - #coords",len(ra))    
         return SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree))
     
     def from_array(self, array, verbose=1, clean=True):
@@ -298,7 +321,9 @@ class Ensemble():
             self.array = array
             self.known_cols = list(names)
             for i, srcID in enumerate(self.array["srcID"]):
-                self.mapper[srcID.strip()] = i
+                sid = str(srcID).strip()
+                #self.mapper[sid] = i
+                self.row_mapper[sid] = i
         else:
             self.array.resize(N0+N1)    
             self.array[N0:N1] = array
@@ -309,20 +334,6 @@ class Ensemble():
             self.known_cols = new_known
             for i, srcID in enumerate(array["srcID"]):
                 self.mapper[srcID.strip()] = self._N+i+1
-  
-        #print(self.mapper)
-            
-            
-        #for o in array:
-            #dct = {n:o[n] for n in names}
-            #ra, dec = o["RA"], o["Dec"]
-            #coord = SkyCoord(ra, dec, unit=(u.degree, u.degree))
-            #dct["coord"] = coord
-            ##print(dct.keys())
-            ##print()
-            #tmp = Astro_Object(dct)
-            #self.add_one_object(tmp)
-            
         return self    
    
     def srcIDs(self):
@@ -333,7 +344,7 @@ class Ensemble():
         -------
         srcIDs - list
         """
-        return list(self.mapper.keys())
+        return list(self.row_mapper.keys())
     
     def merge_add(self, other, conflict_resolution="append", col_postfix="_NN", criterium="distance", verbose=10, **kwargs):
         """
@@ -357,6 +368,8 @@ class Ensemble():
             - "NN" : int, nth nearest neighbor
             - "epoch" : float, epoch to match
         """
+        import numpy.lib.recfunctions as rfn
+
         if criterium != "distance":
             raise NotImplementedError("Ensemble::merge_add - `criterium` must be `distance` at the moment.")
         
@@ -377,10 +390,27 @@ class Ensemble():
         if verbose>1: print("Ensemble::merge_add - NN:",NN) 
         
         idx, d2d,d3d = coord0.match_to_catalog_sky(coord1, nthneighbor=NN) 
+        #aa = other.array[idx]
+        #print(np.shape(self.array), np.shape(aa))
+        #xx = np.vstack((self.array, aa))
+        
         cols = other.known_cols
+        merge_cols = []
+        ows = []
+        
         for c in cols:
-            #print(c)
+            #print(c)            
             if c=="coord": continue
+        
+            if c == "srcID":
+                cc = "srcID"+col_postfix
+                oa = other.to_array(colnames=c)[idx]
+                dt = oa.dtype[0]
+                #print("srcID dtype: ",dt)
+                self.array = rfn.append_fields(self.array, cc, oa, dtypes=dt)
+                self.known_cols.append(cc)                
+                continue
+        
             if c in self.known_cols:
                 if conflict_resolution=="append":
                     ow = c+col_postfix
@@ -389,19 +419,69 @@ class Ensemble():
                     ow = c
                 elif conflict_resolution=="left":
                     continue
-                for j, k in enumerate(self.mapper.keys()):
-                    #print(j, idx[j], oIDs[idx[j]])
-                    self.objects[self.mapper[k]].dct[ow] = other.objects[oIDs[idx[j]]][c]
-
+            else:
+                ow = c
+                
+            ows.append(ow)
+            merge_cols.append(c)
+        
+        #print("merge_cols: ",merge_cols)
+    
+        oa = other.to_array(colnames=merge_cols, array_type='recarray')[idx]
+        
+        dt = oa.dtype
+        #print("AA")
+        #print(type(oa), oa.shape)
+        #print(dt)
+        ca = []
+        for i in range(len(ows)):
+            
+            #print(i, ows[i], dt[i])
+            ca.append(oa[merge_cols[i]])
+        fdt = []
+        #print(len(self.array.dtype))
+        #print(self.array.dtype.names    )
+        #ldtype = list(self.array.dtype)
+        for i in range(len(self.array.dtype)):
+            #print(i, ldtype[i][0])
+            fdt.append((self.array.dtype.names[i], str(self.array.dtype[i])))
+        for i in range(len(dt)):
+            fdt.append((ows[i], str(dt[i])))
+        #print(fdt, len(fdt))    
+        xxx = np.zeros(len(self), dtype=fdt)
+        
+        for j, c in enumerate(self.array.dtype.names):
+            #print(j, c)
+            #if c in self.array.dtype.names:
+            xxx[c] = self.array[c]
+            #else:
+                #xxx[c] = oa[c]
+        
+        for j, c in enumerate(oa.dtype.names):
+            #print(j, c)
+            xxx[ows[j]] = oa[c]
+        
+        
+        self.array = xxx
+        #self.array = rfn.rec_append_fields(self.array, ows, ca, dtypes=dt)
+        #print("BB")
+        #self.known_cols.append(c)
+        #else:
+                #raise NotImplementedError(str("Ensemble::merge_add - Trying to append \"%s\", but appending not known cols is currently not implemented." % c))
+                                    
         if NN>1:
             ow = "match_dist_"+str(NN)
         else:
             ow = "match_dist"
 
+        
+        self.array = rfn.append_fields(self.array, ow, d2d.arcsec, dtypes=["f4"])
+
         self.known_cols.append(ow)
-        for j, k in enumerate(self.mapper.keys()):
-            #print(j, idx[j], oIDs[idx[j]])
-            self.objects[self.mapper[k]].dct[ow] = d2d[j].arcsec
+        ##self.
+        #for j, k in enumerate(self.mapper.keys()):
+            ##print(j, idx[j], oIDs[idx[j]])
+            #self.array[self.row_mapper[k]] = d2d[j].arcsec
             
     def __getitem__(self, name, verbose=1):
         """
@@ -409,28 +489,46 @@ class Ensemble():
         #print("Getting",name)
         #print("Name: ",name)
         #print(self.mapper.keys())
-        idx = self.mapper[name]
+        row_idx = self.row_mapper[name]
+        if name in self.mapper:
+            idx = self.mapper[name]
+        else:
+            idx = None
         #print("idx: ",idx)
         #print("XX", self.objects.keys())
         #return 1
         if idx not in self.objects.keys():
-            print("__getitem__ - Creating Astro_Object", name," -> ",idx)
+            if verbose>5: print("__getitem__ - Creating Astro_Object", name," -> ",idx)
             dct = {}
             for c in self.known_cols:
                 if c=="RA": continue
                 if c=="Dec": continue
-                dct[c] = self.array[c][idx]
+                dct[c] = self.array[c][row_idx]
+            
+            if idx is not None:
+                for c in self.objects[idx].dct.keys():
+                    #print("key: ",c)
+                    dct[c] = self.objects[idx][c]
+            
             coord = SkyCoord(ra=self.array["RA"][idx], dec=self.array["Dec"][idx], unit=(u.degree, u.degree))
             dct["coord"] = coord
             aa = Astro_Object(dct, id_name='srcID', ref_epoch=2000, coord_name='coord', pm_name=None)
             return aa
         else:    
-            print("__getitem__ - returning Astro_Object", name," -> ",idx)
+            if verbose>5: print("__getitem__ - returning Astro_Object", name," -> ",idx)
             return self.objects[idx]
     
-    def to_array(self, colnames=(), array_type="recarray", verbose=1):
+    def to_array(self, colnames=(), srcIDs=None, array_type="recarray", verbose=1):
         """
         Usually used to get a numpy.array or np.recarray from given `colnames`.
+        
+        Parameters
+        ----------
+        colnames : str, or list/tuple
+            The column names from which to construct the array
+        srcIDs : list (iterable in general)
+            If not None: Return only values for given srcIDs
+        array_type : str, in ["recarray", "array", "dict"]    
         
         Returns
         -------
@@ -443,26 +541,79 @@ class Ensemble():
         for c in colnames:
             if c not in self.known_cols:
                 non_array_cols.append(c)
-        if verbose>5: print("to_array: non_array_cols:",non_array_cols)        
+        
+        if verbose>4: print("Ensemble::to_array: Getting data for cols=",colnames)
+        if verbose>5: print("Ensemble::to_array: non_array_cols:",non_array_cols)        
+        
         if len(non_array_cols)==0:
-            if array_type=="recarray":
-                return copy.deepcopy(self.array)
-            elif array_type=="array":
+            #if array_type=="recarray":
+                #if srcIDs is not None:
+                    #return self.filter_array_for_srcIDs(copy.deepcopy(self.array), srcIDs)
+                #else:
+                    #print("XX")
+                    #aa = self.array[colnames]
+                    #r = copy.copy(aa    )
+                    #print("yy")
+                    #return r
+            if array_type=="array" or array_type=="recarray":
                 arr = []
+                dts = []
+                #print("XXXXXXXXXXXXX")
                 for c in colnames:
-                    arr.append(self.array[c].astype(float))
-                if len(colnames)==1: return np.array(arr).flatten()    
-                return np.array(arr)    
+                    tmp = self.array[c]
+                    #print("len(tmp)", len(tmp))
+                    dt = (c, str(tmp.dtype))
+                    if "i" not in dt[1] and "f" not in dt[1]: 
+                        #print(c, type(tmp), dt)
+                        tmp = np.array(tmp).astype(str)
+                        dt = (c, '<U10')
+                    elif "f" in dt[1]:
+                        idx = np.isfinite(tmp)
+                        #print(idx)
+                        tmp[idx == False] = np.nan
+                    elif "i" in dt[1]:
+                        pass
+                    
+                    #if c=="astrometric_excess_noise": continue
+                    #print(c, dt)
+                    arr.append(np.array(tmp).astype(dt[1]))
+                    #dt.name = c
+                    dts.append(dt)
+                #print()    
+                if array_type=="recarray":
+                    #print(dts, np.shape(arr))
+                    if len(colnames)>1:
+                        xxx = np.transpose(arr)
+                        xxx = np.zeros(len(self), dtype=dts)
+                        for i, c in enumerate(colnames):
+                            xxx[c] = arr[i]
+                        return xxx
+                    return np.array(np.array(arr).flatten(), dtype=dts)
+                
+                if len(colnames)==1: 
+                    if srcIDs is not None:
+                        self.filter_array_for_srcIDs(np.array(arr), srcIDs).flatten()
+                    else:
+                        return np.array(arr).flatten()
+                if srcIDs is not None:
+                    return self.filter_array_for_srcIDs(np.array(arr), srcIDs)
+                else:
+                    return np.array(arr)
+                
             elif array_type=="dict":
                 dct = {}
+                if srcIDs is not None:
+                    idx = list([self.row_mapper[x] for x in srcIDs])
+                else:
+                    idx = range(len(self))
                 for c in colnames:
-                    dct[c] = self.array[c]
+                    dct[c] = self.array[c][idx]
                 return dct    
             else:
                 raise LookupError("Ensemble::array - `array_type` must be in [recarray, array, dict], but is " +str(array_type))
         
         else:
-            return None
+            raise LookupError("Ensemble::array -cannot find columns %s in array." % str(non_array_cols))
                 
         if array_type=="recarray":
             cc = np.core.records.fromarrays([dct[n] for n in dct], names=",".join(dct.keys()))

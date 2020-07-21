@@ -56,6 +56,8 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
             
     names =     ",".join(names)    
     a = np.core.records.fromarrays(col_data,names=names)
+    a = np.array(a)
+    
     if verbose>1: 
         print("ensemble.tools::from_fits - Read ",np.shape(a), " entries with ",len(names.split(","))," properties from ",fn)
     

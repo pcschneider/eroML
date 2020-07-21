@@ -43,7 +43,7 @@ class TestEnsemble(unittest.TestCase):
 
     def test_remove_existing_object(self):
         self.assertEqual(self.e["c"]["srcID"],"c")
-        self.e.del_object("b")
+        self.e.del_object("b", verbose=1)
         self.assertEqual(len(self.e), 3)
         self.assertEqual(self.e["c"]["srcID"],"c")
 
