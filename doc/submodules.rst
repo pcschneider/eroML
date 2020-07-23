@@ -1,40 +1,49 @@
 Description of individual submodules
 ====================================
 
-.. automodule:: eroML.ensemble
-    :members:
-    
+.. toctree::
+   :maxdepth: 1
 
-Tools
------
+   ensemble.rst
 
+.. 
+.. Ensemble
+.. ---------
+.. 
 .. .. currentmodule:: eroML
-
-.. autosummary::
-    eroML.ensemble
-    eroML.ensemble.astro_object
-    eroML.ensemble.astro_ensemble
-    eroML.ensemble.tools
-
-Astro_object
-------------------------------------
-.. automodule:: eroML.ensemble.astro_object
-    :members:
-    
-|
-|
-    
-Astro_ensemble
----------------
-.. automodule:: eroML.ensemble.astro_ensemble
-    :members:
-
-
-|
-|
-
-Tools
------
-.. automodule:: eroML.ensemble.tools
-    :members:
-    
+.. 
+.. 
+.. .. automodule:: eroML.ensemble
+..     :members:
+.. 
+.. Specifically, the following sub-modules are available:    
+..     
+.. .. autosummary::
+..     eroML.ensemble.astro_object
+..     eroML.ensemble.astro_ensemble
+..     eroML.ensemble.tools
+.. 
+.. ensemle.astro_object
+.. ------------------------------------
+.. .. automodule:: eroML.ensemble.astro_object
+..     :members:
+..     
+.. |
+.. |
+..     
+.. ensemble.astro_ensemble
+.. ------------------------------------
+.. .. autoclass:: eroML.ensemble.astro_ensemble.Ensemble
+..     :members:
+.. 
+.. ..     :nosignatures:
+..     
+.. 
+.. |
+.. |
+.. 
+.. ensemble.tools
+.. --------------
+.. .. automodule:: eroML.ensemble.tools
+..     :members:
+..     

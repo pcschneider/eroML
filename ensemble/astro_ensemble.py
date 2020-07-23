@@ -25,6 +25,8 @@ class Ensemble():
     objects contain properties not generally available (check `known_cols`-attribute), 
     a copy of the object is stored and can be retrieved.
     With this approach, access to the `known_cols`-properties is fast.
+    
+    
     """
     def __init__(self, deepcopy=True):
         self.objects = OrderedDict()
@@ -56,7 +58,7 @@ class Ensemble():
         
     def add_one_object(self, obj, auto_resolve=True, verbose=1):
         """
-        Add an object to `Ensemble`
+        Add an object to `Ensemble`.
         
         Parameters
         ----------
@@ -174,6 +176,7 @@ class Ensemble():
     def shift_array(self, dN, n0=None, n1=None):
         """
         
+        Shift (part of) the rows of the array.
         
         Parameters
         ----------
@@ -346,9 +349,13 @@ class Ensemble():
         """
         return list(self.row_mapper.keys())
     
-    def merge_add(self, other, conflict_resolution="append", col_postfix="_NN", criterium="distance", verbose=10, **kwargs):
+    def merge_add(self, other, conflict_resolution="append", col_postfix="_NN", criterium="distance", verbose=1, **kwargs):
         """
         Add properties of another Ensemble to this Ensemble. Also adds property `match_dist`
+        
+        .. todo::
+        
+            Also add objects that are in other ensemble. Currently, only the other's array is considered.
         
         Parameters
         ----------
@@ -377,7 +384,8 @@ class Ensemble():
             NN = kwargs["NN"]
         else:
             NN = 1
-        
+        if verbose>1: print("Ensemble::merge_add - NN:",NN) 
+
         if "epoch" in kwargs:
             epoch = kwargs["epoch"]
         else:
@@ -387,26 +395,19 @@ class Ensemble():
         coord1 = other.skyCoords(epoch=epoch)
         oIDs = other.srcIDs()
         
-        if verbose>1: print("Ensemble::merge_add - NN:",NN) 
-        
         idx, d2d,d3d = coord0.match_to_catalog_sky(coord1, nthneighbor=NN) 
-        #aa = other.array[idx]
-        #print(np.shape(self.array), np.shape(aa))
-        #xx = np.vstack((self.array, aa))
         
         cols = other.known_cols
         merge_cols = []
         ows = []
         
+        # Identify the columns to be merged
         for c in cols:
-            #print(c)            
             if c=="coord": continue
-        
             if c == "srcID":
                 cc = "srcID"+col_postfix
                 oa = other.to_array(colnames=c)[idx]
                 dt = oa.dtype[0]
-                #print("srcID dtype: ",dt)
                 self.array = rfn.append_fields(self.array, cc, oa, dtypes=dt)
                 self.known_cols.append(cc)                
                 continue
@@ -421,68 +422,48 @@ class Ensemble():
                     continue
             else:
                 ow = c
-                
+                self.known_cols.append(ow)                
             ows.append(ow)
             merge_cols.append(c)
         
-        #print("merge_cols: ",merge_cols)
-    
         oa = other.to_array(colnames=merge_cols, array_type='recarray')[idx]
         
+        # Build new merged array
+        # First, the dtype
         dt = oa.dtype
-        #print("AA")
-        #print(type(oa), oa.shape)
-        #print(dt)
         ca = []
         for i in range(len(ows)):
-            
-            #print(i, ows[i], dt[i])
             ca.append(oa[merge_cols[i]])
         fdt = []
-        #print(len(self.array.dtype))
-        #print(self.array.dtype.names    )
-        #ldtype = list(self.array.dtype)
         for i in range(len(self.array.dtype)):
-            #print(i, ldtype[i][0])
             fdt.append((self.array.dtype.names[i], str(self.array.dtype[i])))
         for i in range(len(dt)):
             fdt.append((ows[i], str(dt[i])))
-        #print(fdt, len(fdt))    
-        xxx = np.zeros(len(self), dtype=fdt)
-        
+        # Second, create and fill the new array
+        xxx = np.zeros(len(self), dtype=fdt)        
         for j, c in enumerate(self.array.dtype.names):
-            #print(j, c)
-            #if c in self.array.dtype.names:
-            xxx[c] = self.array[c]
-            #else:
-                #xxx[c] = oa[c]
-        
+            xxx[c] = self.array[c]        
         for j, c in enumerate(oa.dtype.names):
-            #print(j, c)
             xxx[ows[j]] = oa[c]
-        
-        
+        # Last, overwrite existing array
         self.array = xxx
-        #self.array = rfn.rec_append_fields(self.array, ows, ca, dtypes=dt)
-        #print("BB")
-        #self.known_cols.append(c)
-        #else:
-                #raise NotImplementedError(str("Ensemble::merge_add - Trying to append \"%s\", but appending not known cols is currently not implemented." % c))
-                                    
+        
+        
         if NN>1:
             ow = "match_dist_"+str(NN)
         else:
             ow = "match_dist"
-
-        
-        self.array = rfn.append_fields(self.array, ow, d2d.arcsec, dtypes=["f4"])
-
+        ows.append(ow)
         self.known_cols.append(ow)
-        ##self.
-        #for j, k in enumerate(self.mapper.keys()):
-            ##print(j, idx[j], oIDs[idx[j]])
-            #self.array[self.row_mapper[k]] = d2d[j].arcsec
+        self.array = rfn.append_fields(self.array, ow, d2d.arcsec, dtypes=["f4"])
+        
+        #for ow in ows:
+            #self.known_cols.append(ow)
             
+        if verbose>5: print("Ensemble::merge_add - added cols: ",ows) 
+        if verbose>3: print("Ensemble::merge_add - all known cols: ",self.known_cols)
+        if verbose>0: print("Ensemble::merge_add - Added ", len(ows)+1, " columns to Ensemble.")
+         
     def __getitem__(self, name, verbose=1):
         """
         """
@@ -532,8 +513,10 @@ class Ensemble():
         
         Returns
         -------
-        array if `array_type` == "recarray", np.array if `array_type`=="array" else dictionary
-            array shape is (len(colnames), N) with N being the number of objects in Ensemble
+        Content of self.array, the array shape is (len(colnames), N) with N being the number of objects in Ensemble : The return value depends on `array_type`, see above
+          - recarray if `array_type` == "recarray"
+          - np.array if `array_type` == "array" 
+          - dictionary if `array_type` == "dict"
         """
         colnames = np.atleast_1d(colnames)
         
