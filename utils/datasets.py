@@ -1,5 +1,8 @@
 from eroML.ensemble import Ensemble
 from eroML.ensemble import from_fits,to_fits
+from astropy.io import fits as pyfits
+import astropy.units as u
+from astropy.coordinates import SkyCoord
 import numpy as np
 
 def enrich_Gaia(e):
@@ -18,6 +21,8 @@ def enrich_merged(e):
     d2d = e.to_array(colnames="match_dist", array_type="array")
     e.add_col("offset_sig", d2d/offset_sig)
     #ec={"offset_sig": np.concatenate([d2d.arcsec/err, d2d2[gi2].arcsec/err[gi2], d2d3[gi3].arcsec/err[gi3]])}
+
+
 
 
 def major_catalog(ifn_gaia, ifn_ero, ofn, keep_ero_cols=None, keep_gaia_cols=None, overwrite=True):
