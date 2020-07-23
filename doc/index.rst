@@ -6,6 +6,11 @@
 Welcome to eroML's documentation!
 =================================
   
+Run the stuff::
+
+    python3.7 -c 'from eroML.utils import NN_distribution ; print(NN_distribution("merged.fits", ofn="x"))'
+
+  
 .. toctree::
    :maxdepth: 2
    :caption: Contents:

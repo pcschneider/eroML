@@ -1,7 +1,8 @@
 from .ensemble import *
+from .utils import *
 
 def test():
-    modules = ["ensemble"]
+    modules = ["ensemble", "utils"]
     x = []
     for m in modules:
         mod = __import__(m, globals(), locals(), ['test'])

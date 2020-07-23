@@ -42,5 +42,5 @@ def test():
             print()
     testRunner = unittest.runner.TextTestRunner()
     r = testRunner.run(test_suits)
-    return tests
+    return r
 

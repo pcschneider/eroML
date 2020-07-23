@@ -42,7 +42,7 @@ def major_catalog(ifn_gaia, ifn_ero, ofn, keep_ero_cols=None, keep_gaia_cols=Non
     
     offset_sig = ero.to_array(colnames="offset_sig", array_type="array")
     d2d = ero.to_array(colnames="match_dist", array_type="array")
-    gi = np.where((offset_sig<5) & (d2d<10))[0]
+    gi = np.where((offset_sig<50) & (d2d<1000))[0]
     srcIDs = np.array(ero.srcIDs())
     #print(len(gi), gi, srcIDs )
     good_ids = srcIDs[gi]
@@ -70,3 +70,9 @@ def major_catalog(ifn_gaia, ifn_ero, ofn, keep_ero_cols=None, keep_gaia_cols=Non
     plt.xlabel("Offset in sigma")
     plt.ylabel("N")
     plt.show()
+
+class Tile():
+    """
+    Orchestrates the analyzes of a sky region.
+    """
+    pass

@@ -5,6 +5,7 @@ Description of individual submodules
    :maxdepth: 1
 
    ensemble.rst
+   utils.rst
 
 .. 
 .. Ensemble
