@@ -8,7 +8,7 @@ Utils
     
 .. autosummary::
     eroML.utils.datasets
-    eroML.utils.number_estimator
+    eroML.utils.estimators
     
     
 utils.datasets
@@ -18,5 +18,7 @@ utils.datasets
    
 utils.estimators
 ------------------------------------
-.. automethod:: eroML.utils.estimators.NN_distribution
-   
+.. automodule:: eroML.utils.estimators
+   :exclude-members: Dist_model
+   :members:
+
