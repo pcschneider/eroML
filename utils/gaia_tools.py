@@ -108,7 +108,7 @@ def add_quality_column(fn, ofile, colname="quality", overwrite=False, filterNr=0
     
 
 
-def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=10, keep_VO=False):
+def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=10, keep_VO=False, overwrite=False):
     """
     Download Gaia sources for the sky region covered by an eROSITA source catalog
     
@@ -163,5 +163,8 @@ def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=10, keep_VO
     
     tmp_fn = job.outputFile
     if ofn is not None:
-        vo2fits(tmp_fn, ofn)
+        vo2fits(tmp_fn, ofn, overwrite=overwrite)
         
+    if keep_VO == False:
+        import os
+        os.remove(tmp_fn)

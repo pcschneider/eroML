@@ -4,7 +4,8 @@ from astropy.io import fits as pyfits
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 import numpy as np
-
+from .gaia_tools import gaia4ero
+from .estimators import NN_distribution
 def enrich_Gaia(e):
     arr = e.to_array(colnames=["phot_g_mean_mag"])
     FG = 10**(-0.4* arr["phot_g_mean_mag"])*3.660e-08*720
@@ -85,7 +86,19 @@ class Tile():
         """
         self.e = None
         
-    def prepare(self, ero_fn):
+    def prepare(self, ero_fn, gaia_fn):
         """
         """
-        self.e = from_fits(ero_fn)
+        self.ero_fn = ero_fn
+        self.gaia_fn = gaia_fn
+        gaia4ero(ero_fn, ofn=gaia_fn, overwrite=True)
+        
+
+    def from_files(self, ero_fn, gaia_fn):       
+        """
+        """
+        self.e = from_fits(ero_fn, mapper={"detUID":"srcID", "DEC":"Dec"}, maxN=100)
+        g = from_fits(gaia_fn, mapper={"source_id":"srcID", "ra":"RA", "dec":"Dec"}, maxN=10)
+        self.e.merge_add(g)
+        
+        #N_match = NN_distribution
