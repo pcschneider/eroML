@@ -1,4 +1,4 @@
-from eroML.utils.datasets import major_catalog
+from eroML.utils.datasets import major_catalog, Tile
 from eroML.utils.estimators import NN_distribution
 
 

@@ -13,10 +13,19 @@ class Dist_model(fuf.OneDFit):
         fuf.OneDFit.__init__(self, ["fraction","sig","dens","N", "err_scaling"])
         self.Nsig = 1000
         self.sig = [1]
-        self["sig"] = None
+        self["sig"] = 1.
+        self["err_scaling"] = 1.
         
     def gen_sigs(self, sig_array):
         self.sig = np.random.choice(sig_array, self.Nsig)
+        #mn = np.nanmedian(self.sig)
+        ##st = np.std(self.sig)
+        #self.sig-=mn
+        #self.sig*=0.2
+        #self.sig+=mn
+        #plt.hist(np.abs(self.sig), range=(0,10), bins=30)
+        #print("mn", mn)
+        #plt.show()
         
     def evaluate(self, x):
         """
@@ -109,7 +118,7 @@ def NN_distribution(fn, Nsig=1000, ext=1, fkey="match_dist", errkey="RADEC_ERR",
     mm.gen_sigs(ff[ext].data[errkey])
     
     mm["N"] = N
-    mm["sig"] = 2.5
+    mm["sig"] = 3.7496337890625 * 0.75
     mm["dens"] = 4.5e-4
     mm["fraction"] = 0
     mm["err_scaling"] = 0.8
@@ -118,13 +127,14 @@ def NN_distribution(fn, Nsig=1000, ext=1, fkey="match_dist", errkey="RADEC_ERR",
     gi = np.where(bin_x > dlim)[0]
 
     mm.fit(bin_x[gi], bin_y[gi], maxfun=1e4, miniFunc="cash79", disp=disp)
+    mm.parameterSummary()
     x = np.linspace(hist_range[0], hist_range[1],1000)
 
     if ofn is not None:
         fig = plt.figure(figsize=(8,11))
         ax0 = fig.add_subplot(311)
         ax0.hist(md, range=hist_range, bins=hist_bins)
-        ax0.plot(x, mm.evaluate(x))
+        ax0.plot(x, mm.evaluate(x), ls='--')
         
         ax = fig.add_subplot(312)
         #ax.plot(bin_x, bin_y, ls='steps-mid')
@@ -138,27 +148,44 @@ def NN_distribution(fn, Nsig=1000, ext=1, fkey="match_dist", errkey="RADEC_ERR",
     mm.freeze(["dens"])
     mm["fraction"] = 0.35
     mm["N"] = np.sum(hh[0])
-    mm.thaw(["fraction", "err_scaling"])
+    mm["err_scaling"]=0.75
+    #mm.thaw(["fraction", "err_scaling"])
+    mm.thaw(["fraction"])
+    #mm.thaw(["fraction","sig"])
     mm.fit(bin_x, bin_y, maxfun=1e4, miniFunc="cash79", disp=disp)
     #mm.parameterSummary()
 
     mm.thaw(["dens"])
     mm.fit(bin_x, bin_y, maxfun=1e4, miniFunc="cash79", disp=disp)
+    #mm["dens"] = 0.000441403 * 10
+            
+    if verbose>0:
+        mm.parameterSummary()
+        print("Estimated number of sources: ",mm["N"], " instead of ", np.sum(hh[0]), " -> ",  np.sum(hh[0]) - mm["N"], "+-", np.sum(hh[0])**0.5,"(real-model)")
+    
     
     if ofn is not None:
         ax = fig.add_subplot(313)
         #ax.plot(bin_x, bin_y, ls='steps-mid')
+        ax0.plot(x, mm.evaluate(x), lw=2, color='r')
+        ff, NN = mm["fraction"], mm["N"]
+        mm["fraction"] = 1.
+        mm["N"] = ff*NN
         ax0.plot(x, mm.evaluate(x))
+        mm["fraction"] = 0
+        mm["N"] = NN * (1-ff)
+        
+        ax0.plot(x, mm.evaluate(x), ls='-')
+
+        mm["fraction"] = ff
+        mm["N"] = NN
         ax.errorbar(bin_x, bin_y - mm.evaluate(bin_x), yerr=np.sqrt(bin_y))
         #ax.errorbar(bin_x[gi], bin_y[gi] - mm.evaluate(bin_x[gi]), yerr=np.sqrt(bin_y[gi]), color='r')
         ax.axhline(y=0, color='k')
         ax.set_ylim(-100,100)
         plt.savefig(ofn)
-        
-    if verbose>0:
-        mm.parameterSummary()
-        print("Estimated number of sources: ",mm["N"], " instead of ", np.sum(hh[0]), " -> ",  np.sum(hh[0]) - mm["N"], "+-", np.sum(hh[0])**0.5,"(real-model)")
-    
+        plt.show()
+
     return mm["N"] * mm["fraction"]
 
 

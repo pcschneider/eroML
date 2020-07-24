@@ -140,6 +140,28 @@ class Ensemble():
         #print(sID, self.mapper)
         return sID
     
+    def rename(self, name, newname):
+        """
+        Rename object `name` to `newname`
+        
+        Parameters
+        ----------
+        name, newname : str
+        """
+        if newname in self.row_mapper:
+            raise ValueError("Ensemble::rename - Object with name " + str(newname) + " already in Ensemble.")
+                
+        ridx = self.row_mapper[name]
+        self.array["srcID"][ridx] = newname
+        del self.row_mapper[name]
+        self.row_mapper[newname] = ridx
+        
+        if name in self.mapper:
+            idx = self.mapper[name]
+            self.objects[idx].srcID = newname
+            del self.mapper[name]
+            self.mapper[newname] = idx
+            
     def add_col(self, colname, array):
         """
         Add or overwrite column (if a column with this name already exists)
@@ -479,7 +501,7 @@ class Ensemble():
         #print("XX", self.objects.keys())
         #return 1
         if idx not in self.objects.keys():
-            if verbose>5: print("__getitem__ - Creating Astro_Object", name," -> ",idx)
+            if verbose>5: print("__getitem__ - Creating Astro_Object", name," -> row-index ",row_idx)
             dct = {}
             for c in self.known_cols:
                 if c=="RA": continue
@@ -491,7 +513,7 @@ class Ensemble():
                     #print("key: ",c)
                     dct[c] = self.objects[idx][c]
             
-            coord = SkyCoord(ra=self.array["RA"][idx], dec=self.array["Dec"][idx], unit=(u.degree, u.degree))
+            coord = SkyCoord(ra=self.array["RA"][row_idx], dec=self.array["Dec"][row_idx], unit=(u.degree, u.degree))
             dct["coord"] = coord
             aa = Astro_Object(dct, id_name='srcID', ref_epoch=2000, coord_name='coord', pm_name=None)
             return aa
@@ -612,8 +634,171 @@ class Ensemble():
         else:
             raise LookupError("Ensemble::array - `array_type` must be in [recarray, array, dict], but is " +str(array_type))
         
-         
+    def append(self, other, postfix=None, cols="all", verbose=10):
+        """
+        Append another Ensemble
         
+        Parameters
+        ----------
+        other : Ensemble
+        postfitx : str
+            append `postfix` to `srcID` if object with the same `srcID` already exists in `self`.
+        cols : str or tuple
+            How to handle columns existing in only one Ensemble
+            - `all` : keep all columns and use np.nan for the entries in the other Ensemble
+            - `same` : keep only columns existing in both Ensembles
+            - `left` : keep all columns of left Ensemble
+        """
+        srcIDs1, srcIDs2 = self.srcIDs(), other.srcIDs()
+        shared_cols = np.intersect1d(self.known_cols, other.known_cols)
+        N0, N1 = len(self), len(other)
+        
+        if verbose>5:
+            print("Ensemble::append - shared_cols: ",shared_cols)
+
+        # Get columns for new array
+        if type(cols) == type("all"):
+            if cols == "all":
+                outcols = np.unique(self.known_cols + other.known_cols)
+            elif cols == "same":
+                outcols = np.intersect1d(self.known_cols, other.known_cols)
+            elif cols == "left":
+                outcols = self.known_cols
+            else:
+                raise NotImplementedError(str("Ensemble::append - I don't understand cols=%s..." % cols))
+        elif isinstance(cols, tuple) or isinstance(cols, list):
+            outcols = cols
+        else:
+            raise NotImplementedError(str("Ensemble::append - I don't understand cols=%s..." % str(cols)))
+        if verbose>5: print("Ensemble::append - Using cols=",outcols)
+
+        # Build dtype
+        dt = []
+        for c in outcols:
+            if c in self.known_cols:
+                dtt = (c, self.array[c].dtype)
+            elif c in other.known_cols:
+                dtt = (c, other.array[c].dtype)
+            else:
+                print("Argh~!")
+                exit()
+            dt.append(dtt)
+        if verbose > 2: print("Ensemble::append - Using dtype=", dt)   
+        
+        # Resolve ID conflicts:
+        shared_ids = np.intersect1d(srcIDs1, srcIDs2)
+        if verbose>5: print("Ensemble::append - shared_ids", shared_ids)
+        if len(shared_ids)>0 and postfix is None:
+            raise ValueError("Ensemble::append - Name conflicts, but no `postfix` given.")
+            
+        for si in shared_ids:
+            other.rename(si, si+postfix)
+
+        # Construct new array
+        new_arr = np.zeros(N0+N1, dtype=dt)
+        for c in outcols:
+            left  = self.array[c] if c in self.known_cols else np.array(N0*[np.nan])
+            right = other.array[c] if c in other.known_cols else np.array(N1*[np.nan])
+                
+            arr = np.hstack((left, right))
+            new_arr[c] = arr
+
+        # Assign new array to this Ensemble
+        self.known_cols = outcols
+        self.array = new_arr
+        
+        for i, nn in enumerate(other.srcIDs()):
+            self.row_mapper[nn] = i+N0
+            
+        print(self.array)     
+        print(self.array.dtype)
+
+def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", center=(0, 0), width=(1, 1), pm=False, randomIDs=False, ref_epoch=None, seed=None, random_cols=[], verbose=2):
+    """
+    Generate fake ensemble, either with random or uniform coordinates.
+    
+    The sky density will be approximately uniform. Only for large regions, the 
+    RA coordinates will be skewed somewhat, because only `dec_center` is 
+    considered.
+    
+    Example
+    -------
+    >>> from eroML.ensemble import random_ensemble
+    >>> e = random_ensemble(center=(10,45), pm=10, seed=1)
+    >>> e["src_0"].RA
+    
+    Parameters
+    ----------
+    N : int 
+       Number of objects in Ensemble
+    random_pos : boolean
+       Use random coordinates within coordinate-box
+    center : tuple (RA, Dec), float
+       Coordinate center (in degree)
+    ra_width, dec_width : float
+       Width in degree (i.e., the region size will be width_RA x width_Dec)
+    pm : float
+       Add random proper motion (values are -pm...+pm in both, pm_RA and pm_Dec)
+       Unit: mas/yr
+    ref_epoch : float
+       Epoch for pos (decimal-year)
+    random_cols : list of str
+       Include columns with names `random_cols` and random entries
+    seed : int
+       Control seed for numpy random (useful if a specific output is needed)
+        
+    Returns
+    --------
+    Ensemble
+    """
+    np.random.seed(seed=seed)
+    
+    if ref_epoch is None:
+        ref_epoch = 2000.
+    
+    if randomIDs:
+        ids = [ID_prefix+str(i) for i in np.random.randint(1000000, size=N)]
+    else:
+        ids = [ID_prefix+str(i) for i in np.arange(N)]
+    
+    if random_pos:
+        dec = (np.random.rand(N)-0.5) * width[1] + center[1]
+        cos_ra_min = (center[0]-width[0]) * np.cos(center[1]/180*np.pi)
+        cos_ra_max = (center[0]+width[0]) * np.cos(center[1]/180*np.pi)
+        ra = ((np.random.rand(N)-0.5) *  (cos_ra_max - cos_ra_min)) / np.cos(center[1]/180*np.pi) + center[0]
+    else:
+        dec = np.linspace(center[1]-width[1]/2, center[1]+width[1]/2, N)
+        ra  = np.linspace(center[0]-width[0]/2, center[0]+width[0]/2, N)
+    
+    if pm:
+        pm_ra, pm_dec = (np.random.rand(N)-0.5)*2*pm, (np.random.rand(N)-0.5)*2*pm
+        dt = [("srcID", type("X"),16), ("RA", float), ("Dec", float), ("pm_RA", float), ("pm_Dec", float), ("ref_epoch", float)]
+        rec = np.zeros(N, dtype=dt)
+        rec["pm_RA"] = pm_ra
+        rec["pm_Dec"] = pm_dec
+        rec["ref_epoch"] = ref_epoch
+        
+    else:
+        dt = [("srcID", '|S25'), ("RA", float), ("Dec", float)]
+        rec = np.zeros(N, dtype=dt)
+        
+    rec["srcID"] = ids
+    rec["RA"] = ra
+    rec["Dec"] = dec
+
+    e = Ensemble()
+    e.from_array(rec)
+   
+    for cc in random_cols:
+        x = np.random.rand(N)
+        e.add_col(cc, x)
+   
+    #if verbose>1: print(rec)    
+
+    return e
+    
+    
+    
 if __name__ == "__main__":
     pass
     

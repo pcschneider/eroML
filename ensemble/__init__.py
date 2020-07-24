@@ -9,7 +9,7 @@ This implementation of an Ensemble handles
 
 from .astro_object import Astro_Object
 from .astro_object import from_Simbad
-from .astro_ensemble import Ensemble
+from .astro_ensemble import Ensemble, fake_ensemble
 from .tools import from_fits, to_fits
 from astropy.coordinates import SkyCoord
 from astropy import units as u

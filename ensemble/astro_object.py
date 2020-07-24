@@ -79,12 +79,12 @@ class Astro_Object():
         return self.dct[self.coord_name]        
     
     @property
-    def ra(self):
+    def RA(self):
         tmp = self.coord_tuple()
         return tmp[0]
     
     @property
-    def dec(self):
+    def Dec(self):
         tmp = self.coord_tuple()
         return tmp[1]
     

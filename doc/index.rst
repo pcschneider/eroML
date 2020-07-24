@@ -22,6 +22,12 @@ Run the stuff::
 .. .. automodule:: ensemble   .. include::    ../ensemble/ensemble2.rst
 ..     :members:
 
+Todo
+----
+
+- Add quality criterium for NN_estimate
+- xx
+
 Testing
 -------
 

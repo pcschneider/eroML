@@ -23,8 +23,6 @@ def enrich_merged(e):
     #ec={"offset_sig": np.concatenate([d2d.arcsec/err, d2d2[gi2].arcsec/err[gi2], d2d3[gi3].arcsec/err[gi3]])}
 
 
-
-
 def major_catalog(ifn_gaia, ifn_ero, ofn, keep_ero_cols=None, keep_gaia_cols=None, overwrite=True):
     """
       Parameters
@@ -76,8 +74,18 @@ def major_catalog(ifn_gaia, ifn_ero, ofn, keep_ero_cols=None, keep_gaia_cols=Non
     plt.ylabel("N")
     plt.show()
 
+
+
 class Tile():
     """
     Orchestrates the analyzes of a sky region.
     """
-    pass
+    def __init__(self):
+        """
+        """
+        self.e = None
+        
+    def prepare(self, ero_fn):
+        """
+        """
+        self.e = from_fits(ero_fn)
