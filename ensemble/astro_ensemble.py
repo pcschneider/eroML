@@ -314,6 +314,14 @@ class Ensemble():
             srcIDs = self.mapper.keys()
         if verbose>3: print("astro_ensemble::Ensemble::skyCoords - Getting coords for ",srcIDs)    
         ra, dec = self.to_array(colnames=["RA","Dec"], array_type="array")
+        
+        if "pm_RA" in self.known_cols:
+            dtime = epoch - self.array["ref_epoch"]
+            d_ra = self.array["pm_RA"] * dtime
+            d_dec = self.array["pm_Dec"] * dtime
+            
+            #TODO: calc pos angle and add to coordinates
+        
         if verbose>5: print("astro_ensemble::Ensemble::skyCoords - #coords",len(ra))    
         return SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree))
     
@@ -473,6 +481,7 @@ class Ensemble():
         
         if NN>1:
             ow = "match_dist_"+str(NN)
+            ow = "match_dist"
         else:
             ow = "match_dist"
         ows.append(ow)
@@ -634,7 +643,7 @@ class Ensemble():
         else:
             raise LookupError("Ensemble::array - `array_type` must be in [recarray, array, dict], but is " +str(array_type))
         
-    def append(self, other, postfix=None, cols="all", verbose=10):
+    def append(self, other, postfix=None, cols="all", verbose=1):
         """
         Append another Ensemble
         
@@ -659,9 +668,9 @@ class Ensemble():
         # Get columns for new array
         if type(cols) == type("all"):
             if cols == "all":
-                outcols = np.unique(self.known_cols + other.known_cols)
+                outcols = np.unique(self.known_cols + other.known_cols).tolist()
             elif cols == "same":
-                outcols = np.intersect1d(self.known_cols, other.known_cols)
+                outcols = np.intersect1d(self.known_cols, other.known_cols).tolist()
             elif cols == "left":
                 outcols = self.known_cols
             else:
@@ -705,13 +714,12 @@ class Ensemble():
 
         # Assign new array to this Ensemble
         self.known_cols = outcols
+        print("outcols: ",type(outcols), outcols)
         self.array = new_arr
         
         for i, nn in enumerate(other.srcIDs()):
             self.row_mapper[nn] = i+N0
-            
-        print(self.array)     
-        print(self.array.dtype)
+
 
 def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", center=(0, 0), width=(1, 1), pm=False, randomIDs=False, ref_epoch=None, seed=None, random_cols=[], verbose=2):
     """

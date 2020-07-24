@@ -98,9 +98,15 @@ def NN_distribution(fn, Nsig=1000, ext=1, fkey="match_dist", errkey="RADEC_ERR",
     dlim = 25 # assume that only random matches exist above this threshold
     disp = False if verbose<1 else True
         
-    
-    if verbose>0: print("Reading ",fn)
-    ff = pyfits.open(fn)
+    # Read file    
+    if type(fn) == pyfits.HDUList:
+        if verbose>0:
+            print("utils.estimators.NN_distribution - fn is HDUList")
+        ff = fn
+    else:
+        if verbose>0: print("Reading ",fn)
+        ff = pyfits.open(fn)
+        
     md = ff[ext].data[fkey] # match_distance
     N = len(md)
     

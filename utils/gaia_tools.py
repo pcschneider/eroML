@@ -133,8 +133,8 @@ def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=10, keep_VO
     RA_center = min(ra)+width/2
     Dec_center = min(dec)+height/2
     
-    width/=100
-    height/=100
+    #width/=100
+    #height/=100
     
     if verbose>0:
         print("Downloading Gaia sources around RA, Dec = (",RA_center, Dec_center,") with width, height = (", width, height,")")

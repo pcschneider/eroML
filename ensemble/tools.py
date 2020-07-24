@@ -50,7 +50,10 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     col_data = []
     names=[]
     for col in cols:
-        col_data.append(ff[extension].data[col.name][0:maxN])
+        if col_mapper(col.name) == "srcID":
+            col_data.append(ff[extension].data[col.name][0:maxN].astype(str))
+        else:
+            col_data.append(ff[extension].data[col.name][0:maxN])
         if verbose>6: print("ensemble.tools::from_fits - Using col: ",col.name, " with format: ",col.format)
         names.append(col_mapper(col.name))
             
@@ -66,7 +69,7 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
         print("ensemble.tools::from_fits - Generated Ensemble with",np.shape(a), " entries with ",len(names.split(","))," properties")
     return e
     
-def to_fits(ensemble, ofn, overwrite=False, verbose=1, mapper={}, maxN=None):
+def to_fits(ensemble, ofn=None, overwrite=False, verbose=1, mapper={}, maxN=None):
     """
     Write Ensemble-data to fits-file
     
@@ -116,10 +119,11 @@ def to_fits(ensemble, ofn, overwrite=False, verbose=1, mapper={}, maxN=None):
     cc = pyfits.ColDefs(cols)
     xx = pyfits.BinTableHDU.from_columns(cc)
     hdul = pyfits.HDUList([hdu, xx])
-    hdul.writeto(ofn, overwrite=overwrite)        
-    if verbose>0:
-        print("ensemble.tools::to_fits - Written ",maxN," objects with ",len(cols)," properties to ",ofn)
-
+    if ofn is not None:
+        hdul.writeto(ofn, overwrite=overwrite)        
+        if verbose>0:
+            print("ensemble.tools::to_fits - Written ",maxN," objects with ",len(cols)," properties to ",ofn)
+    return hdul
 
 
 
