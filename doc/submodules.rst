@@ -6,6 +6,7 @@ Description of individual submodules
 
    ensemble.rst
    utils.rst
+   tile.rst
 
 .. 
 .. Ensemble

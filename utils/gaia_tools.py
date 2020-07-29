@@ -5,15 +5,18 @@ from astroquery.gaia import Gaia
 from astropy.io import fits as pyfits
 from astropy.io.votable import parse
 from astropy.io.votable import parse_single_table
+import tempfile
+import copy
 
-def vo2fits(ifn, ofn, overwrite=False):
+
+def vo2fits(ifn, ofn, verbose=1, overwrite=False):
     """
     Convert VO table (file) into fits-file
     """
     hdu = pyfits.PrimaryHDU()       
-    print("Reading: ",ifn)
+    if verbose>0: print("gaia_tools::vo2fits - Reading: ",ifn)
     votable = parse_single_table(ifn).to_table()
-    print("Rows:",len(votable), " Columns: ",len(votable.columns))
+    print("gaia_tools::vo2fits - Rows:",len(votable), " Columns: ",len(votable.columns))
     cols = []
     for f in votable.columns:
         cc = votable[f]
@@ -32,7 +35,7 @@ def vo2fits(ifn, ofn, overwrite=False):
             fmt = "L"
         else: fmt = None
         mm = cc.torecords()
-        print("Adding column \'%s\' with dtype=%s using fits-format=%s." % (f,dtype,fmt))
+        if verbose>1: print("gaia_tools::vo2fits - Adding column \'%s\' with dtype=%s using fits-format=%s." % (f,dtype,fmt))
         c = pyfits.Column(name=f, array=cc.data, format=fmt)
         cols.append(c)
 
@@ -48,7 +51,7 @@ def vo2fits(ifn, ofn, overwrite=False):
     hdul = pyfits.HDUList([hdu, xx])
     
     hdul.writeto(ofn, overwrite=overwrite)
-    print("Written: \'%s\'" % ofn)        
+    if verbose>0: print("gaia_tools::vo2fits - Written: \'%s\'" % ofn)        
 
 
 def quality_filter(ff, filter_Nr=0):
@@ -93,22 +96,49 @@ def quality_filter(ff, filter_Nr=0):
     q[gi] = 1
     return q
 
-def add_quality_column(fn, ofile, colname="quality", overwrite=False, filterNr=0):
+def add_quality_column(fn, ofile, colname="quality", overwrite=False, verbose=1, filter_Nr=0):
     ff = pyfits.open(fn)
     cols = ff[1].columns
-    print(cols) 
-    q = quality_filter(ff, filterNr=filterNr)
+    #print(cols) 
+    q = quality_filter(ff, filter_Nr=filter_Nr)
     c = pyfits.Column(name=colname, array=q, format="L")
-    print("#rows: %i, good quality: %i, fraction: %f" % (len(ff[1].data[cols[0].name]), np.sum(q),np.sum(q)/len(ff[1].data[cols[0].name]) ))
+    if verbose>1: print("gaia_tools::add_quality_column - #rows: %i, good quality: %i, fraction: %f" % (len(ff[1].data[cols[0].name]), np.sum(q),np.sum(q)/len(ff[1].data[cols[0].name]) ))
     cols.add_col(c)
     hdu = copy.copy(ff[0]) 
     hdx = pyfits.BinTableHDU.from_columns(cols)
     hdul = pyfits.HDUList([hdu, hdx])
     hdul.writeto(ofile, overwrite=overwrite)    #hdul = pyfits.HDUList([hdu, ff[1])
+ 
+def add_standard_cols(ifn, overwrite=True):
+    """
+    """
+    ff = pyfits.open(ifn)
+    cols = ff[1].columns
+    srcIDs = ff[1].data["source_id"].astype(str)
+    c = pyfits.Column(name="srcID", array=srcIDs, format="20A")
     
-
-
-def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=10, keep_VO=False, overwrite=False):
+    
+    #print("#rows: %i, good quality: %i, fraction: %f" % (len(ff[1].data[cols[0].name]), np.sum(q),np.sum(q)/len(ff[1].data[cols[0].name]) ))
+    cols.add_col(c)
+    hdu = copy.copy(ff[0]) 
+    hdx = pyfits.BinTableHDU.from_columns(cols)
+    hdul = pyfits.HDUList([hdu, hdx])
+    hdul.writeto(ifn, overwrite=overwrite)    #hdul = pyfits.HDUList([hdu, ff[1])
+    
+ 
+def prepare_gaia(ifn, ofn, verbose=1):
+    """
+    Download Gaia sources and enrich file, keep only relevant columns.
+    """
+    tmp_fn = tempfile.mkstemp(dir='.', suffix='.fits')[1]
+    #print(tmp_fn)
+    gaia4ero(ifn, ofn=tmp_fn)
+    add_standard_cols(tmp_fn, overwrite=True)
+    add_quality_column(tmp_fn, ofn, overwrite=True)
+    import os
+    os.remove(tmp_fn)
+    
+def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=1, keep_VO=False, overwrite=False):
     """
     Download Gaia sources for the sky region covered by an eROSITA source catalog
     
@@ -133,11 +163,11 @@ def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=10, keep_VO
     RA_center = min(ra)+width/2
     Dec_center = min(dec)+height/2
     
-    #width/=100
-    #height/=100
+    width/=100
+    height/=100
     
     if verbose>0:
-        print("Downloading Gaia sources around RA, Dec = (",RA_center, Dec_center,") with width, height = (", width, height,")")
+        print("gaia_tools::gaia4ero - Downloading Gaia sources around RA, Dec = (",RA_center, Dec_center,") with width, height = (", width, height,")")
 
     #exit()
     ww= u.Quantity(width, u.deg)

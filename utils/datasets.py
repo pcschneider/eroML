@@ -7,42 +7,36 @@ import numpy as np
 import copy
 from .gaia_tools import gaia4ero
 from .estimators import NN_distribution
+from .enrich import enrich_merged
 
-def enrich_Gaia(e):
-    arr = e.to_array(colnames=["phot_g_mean_mag"])
-    FG = 10**(-0.4* arr["phot_g_mean_mag"])*3.660e-08*720
-    e.add_col("F_G", FG)
-
-def enrich_eROSITA(e):
-    err = e.to_array(colnames="RADEC_ERR", array_type="array")
-    err[err<1.] = 1.
-    e.set_col("RADEC_ERR", err)
-
-def enrich_merged(e):
-    offset_sig = e.to_array(colnames="RADEC_ERR", array_type="array")
-    d2d = e.to_array(colnames="match_dist", array_type="array")
-    e.add_col("offset_sig", d2d/offset_sig)
-    #ec={"offset_sig": np.concatenate([d2d.arcsec/err, d2d2[gi2].arcsec/err[gi2], d2d3[gi3].arcsec/err[gi3]])}
-
-
-def major_catalog(ifn_gaia, ifn_ero, ofn, keep_ero_cols=None, keep_gaia_cols=None, NN=3, overwrite=True):
+def major_set(ifn_ero, ifn_gaia, ofn, keep_ero_cols=None, keep_gaia_cols=None, NN=3, verbose=1, overwrite=True):
     """
-      Parameters
-      ----------
-      keep_[ero/gaia] cols : refers to ifn
-    """
-
-
-    gaia = from_fits(ifn_gaia, mapper={"source_id":"srcID", "ra":"RA", "dec":"Dec"}, maxN=20000)
-    enrich_Gaia(gaia)
+    Merge eROSITA and Gaia sources into one fits-file. 
     
-    ero0 = from_fits(ifn_ero, mapper={"detUID":"srcID", "DEC":"Dec"}, maxN=2000)
-    enrich_eROSITA(ero0)
-    print("len 0: ", len(ero0))
+    Matching is based on the sky-distance. The `NN`-argument determines the n-th nearest match that enters 
+    the merged table. Since sources must be unique, the second nearest neighbor will be added as `srcID`_NN2, i.e., 
+    a new source is created. The original srcID is kept in the field `original_srcID`.
+    
+    Parameters
+    ----------
+    keep_[ero/gaia] cols : refers to respective ifn
+    """
+
+
+    #gaia = from_fits(ifn_gaia, mapper={"source_id":"srcID", "ra":"RA", "dec":"Dec"}, maxN=20000)
+    gaia = from_fits(ifn_gaia, maxN=20000)
+    #print("gaia known cols: ",gaia.known_cols)
+    #print("Gaia len",len(gaia), np.shape(gaia.array))
+    #enrich_Gaia(gaia)
+    
+    #ero0 = from_fits(ifn_ero, mapper={"detUID":"srcID", "DEC":"Dec"}, maxN=2000)
+    ero0 = from_fits(ifn_ero, maxN=2000)
+    #enrich_eROSITA(ero0)
+    #print("len 0: ", len(ero0))
           
     eros = []
     for i in range(NN):
-        print("merging NN=",i+1)
+        if verbose>1: print("datasets::major_set - Merging NN=",i+1)
         ero1 = copy.deepcopy(ero0)
         ero1.merge_add(gaia, NN=i+1)
         ero1.add_col("NN", np.array(len(ero1)*[i+1]))
@@ -54,12 +48,10 @@ def major_catalog(ifn_gaia, ifn_ero, ofn, keep_ero_cols=None, keep_gaia_cols=Non
         ero1.append(e, postfix="_NN"+str(i+2))
     enrich_merged(ero1)    
     
-    print("len 1: ", len(eros[0]))
+    #print("len 1: ", len(eros[0]))
     #gi2 = np.where(d2d2.arcsec < 5*err)[0]
     #gi3 = np.where(d2d3.arcsec < 5*err)[0]
 
-    
-    
     offset_sig = ero1.to_array(colnames="offset_sig", array_type="array")
     d2d = ero1.to_array(colnames="match_dist", array_type="array")
     gi = np.where((offset_sig<50) & (d2d<1000))[0]
@@ -71,19 +63,19 @@ def major_catalog(ifn_gaia, ifn_ero, ofn, keep_ero_cols=None, keep_gaia_cols=Non
     
     sids = ero1.srcIDs()
     oids = ero1.to_array(colnames="original_srcID", array_type="array")
-    print(sids, oids)
+    #print(sids, oids)
     cnt = np.zeros(len(sids))
     unique_elements, counts_elements = np.unique(oids, return_counts=True)
     for a, b in zip(unique_elements, counts_elements):
         gi = np.where(oids == a)[0]
-        print(a, gi, b)
+        #print(a, gi, b)
         cnt[gi] = b
     ero1.add_col("NN_max", cnt.astype(int))
     
         
     #print(ero1.to_array(colnames="srcID_NN"))
     
-    to_fits(ero1, "test.fits", overwrite=True)
+    to_fits(ero1, ofn, overwrite=True)
     return ero1
     
     print(len(err),np.shape(ide), np.shape(idg), len(ec["offset_sig"]))
@@ -105,32 +97,14 @@ def major_catalog(ifn_gaia, ifn_ero, ofn, keep_ero_cols=None, keep_gaia_cols=Non
     plt.ylabel("N")
     plt.show()
 
-
-
-class Tile():
+def training_set(ifn):
     """
-    Orchestrates the analyzes of a sky region.
+    Generate training set based on good positional matches and a criterium on Fx/Fg
     """
-    def __init__(self):
-        """
-        """
-        self.e = None
-        
-    def prepare(self, ero_fn, gaia_fn):
-        """
-        """
-        self.ero_fn = ero_fn
-        self.gaia_fn = gaia_fn
-        gaia4ero(ero_fn, ofn=gaia_fn, overwrite=True)
-        
+    pass
 
-    def from_files(self, ero_fn, gaia_fn):       
-        """
-        """
-        self.e = from_fits(ero_fn, mapper={"detUID":"srcID", "DEC":"Dec"})#, maxN=100)
-        g = from_fits(gaia_fn, mapper={"source_id":"srcID", "ra":"RA", "dec":"Dec"})#, maxN=10)
-        self.e.merge_add(g)
-        ff = to_fits(self.e)
-        N_catalog = NN_distribution(ff, verbose=10)
-
-        
+def random_set(ifn):
+    """
+    Generate a random set, i.e., shuffle the X-ray positions
+    """
+    pass

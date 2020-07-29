@@ -1,6 +1,7 @@
-from eroML.utils.datasets import major_catalog, Tile
+from eroML.utils.datasets import major_set, training_set, random_set
+from eroML.utils.enrich import enrich_Gaia, enrich_eROSITA, enrich_merged
 from eroML.utils.estimators import NN_distribution
-
+from eroML.utils.gaia_tools import prepare_gaia
 
 def test():
     import doctest

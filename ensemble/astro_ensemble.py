@@ -424,7 +424,7 @@ class Ensemble():
         coord0 = self.skyCoords(epoch=epoch)
         coord1 = other.skyCoords(epoch=epoch)
         oIDs = other.srcIDs()
-        
+              
         idx, d2d,d3d = coord0.match_to_catalog_sky(coord1, nthneighbor=NN) 
         
         cols = other.known_cols
@@ -456,7 +456,9 @@ class Ensemble():
             ows.append(ow)
             merge_cols.append(c)
         
-        oa = other.to_array(colnames=merge_cols, array_type='recarray')[idx]
+
+        oa_arr = other.to_array(colnames=merge_cols, array_type='recarray')
+        oa = oa_arr[idx]
         
         # Build new merged array
         # First, the dtype
@@ -580,7 +582,7 @@ class Ensemble():
                     if "i" not in dt[1] and "f" not in dt[1]: 
                         #print(c, type(tmp), dt)
                         tmp = np.array(tmp).astype(str)
-                        dt = (c, '<U10')
+                        dt = (c, '<U20')
                     elif "f" in dt[1]:
                         idx = np.isfinite(tmp)
                         #print(idx)
@@ -600,6 +602,7 @@ class Ensemble():
                         xxx = np.transpose(arr)
                         xxx = np.zeros(len(self), dtype=dts)
                         for i, c in enumerate(colnames):
+                            #print(i, "ccc",c, "(",len(self),np.shape(self.array),len(np.unique(self.srcIDs())),")")
                             xxx[c] = arr[i]
                         return xxx
                     return np.array(np.array(arr).flatten(), dtype=dts)
@@ -714,7 +717,7 @@ class Ensemble():
 
         # Assign new array to this Ensemble
         self.known_cols = outcols
-        print("outcols: ",type(outcols), outcols)
+        #print("outcols: ",type(outcols), outcols)
         self.array = new_arr
         
         for i, nn in enumerate(other.srcIDs()):

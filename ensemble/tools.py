@@ -88,6 +88,8 @@ def to_fits(ensemble, ofn=None, overwrite=False, verbose=1, mapper={}, maxN=None
     mapper : dictionary
       Mapping between property-name in Ensemble and in fits-file; `x` if nothing in `mapper` for property `x` and `mapper` [`x`] otherwise.
     """
+    if verbose>3: print("ensemble.tools::to_fits - len, shape, len(unique): ",len(ensemble), np.shape(ensemble.array), len(np.unique(ensemble.srcIDs())))
+    
     fmt_mapper = {"i":"I","u":"I","U":"32A","f":"D"}
     col_mapper = lambda x:mapper[x] if x in mapper else x
 

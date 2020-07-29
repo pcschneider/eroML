@@ -18,6 +18,17 @@ Run the stuff::
    submodules.rst
    cheat_sheet.rst
    
+
+Work Logic
+-----------
+
+Loop through Tiles 
+
+  1. For each Tile: (method: :func:`~eroML.utils.gaia_tools.gaia4ero`)
+      - Get sky extent 
+      - Download Gaia sources from archive
+      - Convert Gaia data to fits-file
+  2. Prepare data 
    
 .. .. automodule:: ensemble   .. include::    ../ensemble/ensemble2.rst
 ..     :members:
