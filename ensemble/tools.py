@@ -12,6 +12,59 @@ from .astro_object import Astro_Object
 from .astro_ensemble import Ensemble
 from astropy.io import fits as pyfits
 import numpy as np
+import functools
+
+
+def multi_fits_support(n):
+    def multi_fits_support_func(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            args_tmp = list(args)
+            if len(args)<n-1:
+                raise TypeError("ensemle.tools::fits_support: Expecting at least n-1 arguments, but too few provided.")
+            ens = []
+            for i in range(n-1):
+                if type(args[i]) == type("xxx"):
+                    print("ensemle.tools::multi_fits_support - Assuming ", args[0], " is a fits-filename.")
+                    if "mapper" in kwargs:
+                        e = from_fits(args[i], mapper=kwargs["mapper"])
+                    else:
+                        e = from_fits(args[i])
+                else:
+                    e = args[i]
+                args_tmp[i] = e
+            if len(args)>=n:
+                args_tmp.pop(n-1)
+            r = func(*tuple(args_tmp), **kwargs)
+            #print("YYYYY", type(r), len(r))
+
+            if len(args)==n and type(args[n-1]) == type("xxx"):
+                print("ensemle.tools::multi_fits_support - Assuming ", args[n-1], " is a fits-filename.")
+                to_fits(r, ofn=args[n-1], overwrite=True)
+            return r    
+        return wrapper
+    return multi_fits_support_func
+
+def fits_support(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if len(args)>0:
+            x = args[0]
+        else:
+            raise TypeError("ensemle.tools::fits_support: Expecting at least one argument, but none provided.")
+        if type(x) == type("xxx"):
+            print("ensemle.tools::fits_support - Assuming ", args[0], " is a fits-filename.")
+            if "mapper" in kwargs:
+                e = from_fits(x, mapper=kwargs["mapper"])
+            else:
+                e = from_fits(x)
+        else:
+            e = x
+        func(e)
+        if type(x) == type("xxx"):
+            to_fits(e, ofn=x, overwrite=True)
+    return wrapper
+
 
 def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     """

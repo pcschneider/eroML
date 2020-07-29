@@ -44,12 +44,12 @@ class Tile():
         
         
         
-    def generate_sets(self, ero_fn=None, gaia_fn=None, fn_prefix="Tile"):       
+    def generate_sets(self, ero_fn=None, gaia_fn=None):       
         """
         """
-        major_set(self.ero_fn, self.gaia_fn, self.major_fn)
-        training_set()
-        random_set()
+        #major_set(self.ero_fn, self.gaia_fn, self.major_fn)
+        random_set(self.ero_fn, self.gaia_fn, self.random_fn)
+        #training_set()
         
         return
         self.e = from_fits(ero_fn, mapper={"detUID":"srcID", "DEC":"Dec"})#, maxN=100)

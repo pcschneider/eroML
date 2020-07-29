@@ -1,26 +1,5 @@
-import functools
-from eroML.ensemble import from_fits,to_fits
+from eroML.ensemble import from_fits,to_fits, fits_support
 import numpy as np
-
-def fits_support(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        if len(args)>0:
-            x = args[0]
-        else:
-            raise TypeError("fits_support: Expecting at least one argument, but none provided.")
-        if type(x) == type("xxx"):
-            print("enrich.py::fits_support - Assuming ", args[0], " is a fits-filename.")
-            if "mapper" in kwargs:
-                e = from_fits(x, mapper=kwargs["mapper"])
-            else:
-                e = from_fits(x)
-        else:
-            e = x
-        func(e)
-        if type(x) == type("xxx"):
-            to_fits(e, ofn=x, overwrite=True)
-    return wrapper
 
         
 @fits_support

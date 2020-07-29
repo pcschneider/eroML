@@ -181,6 +181,7 @@ class Ensemble():
         
     def set_col(self, colname, array):
         """
+        Set values (entire array column) for one column
         """
         if colname not in self.known_cols:
             raise IndexError(str("Ensemble::set_col - Column with name %s alrady known." % colname))
