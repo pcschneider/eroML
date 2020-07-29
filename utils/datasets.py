@@ -10,6 +10,27 @@ from .estimators import NN_distribution
 from .enrich import enrich_merged
 
 
+activity_poly = [-3.22, 3.6/5.5] # in log scale
+
+def activity_filter(color, FxFg, log_margin=0):
+    """
+      Parameters
+      ----------
+      color : array (Gaia Bp-Rp color)
+      FxFg : array (ratio, linear)
+      
+      Returns 
+      -------
+        array : True for sources above threshold
+    """
+    ys = activity_poly[1]
+    ye = color*ys + activity_poly[0]
+    dy = np.log10(FxFg)-ye
+    return dy>log_margin
+        
+
+
+
 @multi_fits_support(3)
 def major_set(ero0, gaia, keep_ero_cols=None, keep_gaia_cols=None, NN=3, verbose=10, overwrite=True):
     """

@@ -16,6 +16,17 @@ import functools
 
 
 def multi_fits_support(n):
+    """
+    Decorator to support that the `n`-first arguments can be filenames (strings) instead of ensembles.
+    
+    There are two modes:
+      - The number of arguments is at least `n`: The `n`-th argument will be assumed to be the output fits-file. The number or "real" arguments is `n`-1 so that the `n`-th argument will be removed from the argument list.
+      - The number of arguments is `n`-1: Only the first `n`-1 arguments will be inspected for filenames. No fits-file will be written
+    
+    Returns
+    -------
+    Original result of `func` : N/A
+    """
     def multi_fits_support_func(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -38,7 +49,7 @@ def multi_fits_support(n):
             r = func(*tuple(args_tmp), **kwargs)
             #print("YYYYY", type(r), len(r))
 
-            if len(args)==n and type(args[n-1]) == type("xxx"):
+            if len(args)>=n and type(args[n-1]) == type("xxx"):
                 print("ensemle.tools::multi_fits_support - Assuming ", args[n-1], " is a fits-filename.")
                 to_fits(r, ofn=args[n-1], overwrite=True)
             return r    
@@ -46,6 +57,10 @@ def multi_fits_support(n):
     return multi_fits_support_func
 
 def fits_support(func):
+    """
+    Decorator to support that the first arguments can be a filename (string) instead of an ensemble.
+    """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         if len(args)>0:
