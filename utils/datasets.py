@@ -1,5 +1,5 @@
 from eroML.ensemble import Ensemble
-from eroML.ensemble import from_fits,to_fits,multi_fits_support
+from eroML.ensemble import from_fits,to_fits,multi_fits_support, fits_support
 from astropy.io import fits as pyfits
 import astropy.units as u
 from astropy.coordinates import SkyCoord
@@ -7,30 +7,29 @@ import numpy as np
 import copy
 from .gaia_tools import gaia4ero
 from .estimators import NN_distribution
-from .enrich import enrich_merged
+from .enrich import enrich_merged, activity_filter
 
 
-activity_poly = [-3.22, 3.6/5.5] # in log scale
-
-def activity_filter(color, FxFg, log_margin=0):
+@fits_support
+def NN_Max(e):
     """
-      Parameters
-      ----------
-      color : array (Gaia Bp-Rp color)
-      FxFg : array (ratio, linear)
-      
-      Returns 
-      -------
-        array : True for sources above threshold
+    Count number of matches for each source
     """
-    ys = activity_poly[1]
-    ye = color*ys + activity_poly[0]
-    dy = np.log10(FxFg)-ye
-    return dy>log_margin
-        
-
-
-
+    sids = e.srcIDs()
+    oids = e.to_array(colnames="original_srcID", array_type="array")
+    #print(sids, oids)
+    cnt = np.zeros(len(sids))
+    unique_elements, counts_elements = np.unique(oids, return_counts=True)
+    for a, b in zip(unique_elements, counts_elements):
+        gi = np.where(oids == a)[0]
+        #print(a, gi, b)
+        cnt[gi] = b
+    if "NN_max" in e.known_cols:
+        e.set_col("NN_max", cnt.astype(int))
+    else:
+        e.add_col("NN_max", cnt.astype(int))
+    return e
+    
 @multi_fits_support(3)
 def major_set(ero0, gaia, keep_ero_cols=None, keep_gaia_cols=None, NN=3, verbose=10, overwrite=True):
     """
@@ -88,72 +87,82 @@ def major_set(ero0, gaia, keep_ero_cols=None, keep_gaia_cols=None, NN=3, verbose
     #print("Keeping: ",good_ids)
     ero1.keep(good_ids)
     
-    sids = ero1.srcIDs()
-    oids = ero1.to_array(colnames="original_srcID", array_type="array")
-    #print(sids, oids)
-    cnt = np.zeros(len(sids))
-    unique_elements, counts_elements = np.unique(oids, return_counts=True)
-    for a, b in zip(unique_elements, counts_elements):
-        gi = np.where(oids == a)[0]
-        #print(a, gi, b)
-        cnt[gi] = b
-    ero1.add_col("NN_max", cnt.astype(int))
+    NN_Max(ero1)
+    
+    #sids = ero1.srcIDs()
+    #oids = ero1.to_array(colnames="original_srcID", array_type="array")
+    ##print(sids, oids)
+    #cnt = np.zeros(len(sids))
+    #unique_elements, counts_elements = np.unique(oids, return_counts=True)
+    #for a, b in zip(unique_elements, counts_elements):
+        #gi = np.where(oids == a)[0]
+        ##print(a, gi, b)
+        #cnt[gi] = b
+    #ero1.add_col("NN_max", cnt.astype(int))
     
         
     #print(ero1.to_array(colnames="srcID_NN"))
     
     #to_fits(ero1, ofn, overwrite=True)
     return ero1
-    
-    #print(len(err),np.shape(ide), np.shape(idg), len(ec["offset_sig"]))
-    
-    #if keep_ero_cols is not None:
-        #for c in np.atleast_1d(keep_ero_cols):
-            #print(c)
-            #ec[c] = np.concatenate([ero_ff[1].data[c], ero_ff[1].data[c][gi2], ero_ff[1].data[c][gi3]])
-    #if keep_gaia_cols is not None:
-        #for c in np.atleast_1d(keep_ero_cols):
-            #print(c)
-            #ec[c] = np.concatenate([gaia_ff[1].data[c], gaia_ff[1].data[c][gi2], gaia_ff[1].data[c][gi3]])                                   
-                                   
-    
-    #merge_catalogs(ifn_ero, ide, ifn_gaia, idg, ofn, extra_columns=ec, overwrite=overwrite)
-    
-    #plt.hist(ec["offset_sig"], bins=50, range=(0, 10))
-    #plt.xlabel("Offset in sigma")
-    #plt.ylabel("N")
-    #plt.show()
 
-def training_set(ifn):
+
+@multi_fits_support(2)
+def training_set(e, abs_dist_cutoff=3, rel_dist_cutoff=2):
     """
     Generate training set based on good positional matches and a criterium on Fx/Fg
-    """
-    ff_stellar = pyfits.open(stellar_fn)
-    ff_non_stellar = pyfits.open(non_stellar_fn)
-    ff_random = pyfits.open(random_fn)
-    N_stellar = len(ff_stellar[1].data["id_gaia"])
-    N_non_stellar = len(ff_non_stellar[1].data["id_gaia"])
-    N_random = len(ff_random[1].data["id_gaia"])
-    print("%s:%i, %s:%i, %s:%i" % (stellar_fn,N_stellar, non_stellar_fn, N_non_stellar, random_fn, N_random))
-    hdu = pyfits.PrimaryHDU()    
-    cols = []
-    for c in ff_stellar[1].columns:
-        col = pyfits.Column(name=c.name, array=np.concatenate((ff_stellar[1].data[c.name], ff_non_stellar[1].data[c.name], ff_random[1].data[c.name])), format=c.format)
-        cols.append(col)
     
-    category = np.zeros(N_stellar+N_non_stellar+N_random)
-    category[0:N_stellar] = 1
-    ccol = pyfits.Column(name="class", array=category, format="J")
-    cols.append(ccol)
-    cc = pyfits.ColDefs(cols)
-    xx = pyfits.BinTableHDU.from_columns(cc)
-    xx.header["stellar_file"] = stellar_fn
-    xx.header["non_stellar_file"] = non_stellar_fn
-    xx.header["random_file"] = random_fn
-    hdul = pyfits.HDUList([hdu, xx])
-    hdul.writeto(ofn, overwrite=overwrite)     
-    print("Written: ",ofn, " with ", len(category), " sources.")
-
+    Parameters
+    ----------
+    e : Ensemble
+    abs/rel_dist_cutoff : float
+        Use only sources, which are closer on sky than these cutoff values.
+        
+        Units: 
+          - abs_dist_cutoff : arcsec
+          - rel_dist_cutoff : sigma
+    """
+    
+    #print("XXXXXXXXX")
+    abs_dist = e.to_array("match_dist", array_type="array")
+    rel_dist = e.to_array("offset_sig", array_type="array")
+    
+    gi = np.where( (abs_dist < abs_dist_cutoff) & (rel_dist < rel_dist_cutoff) )[0]
+    
+    
+    color = e.to_array("bp_rp", array_type="array")
+    FxFg = e.to_array("FxFg", array_type="array")
+    below = (1-activity_filter(color, FxFg)).astype(bool)
+    well_above = activity_filter(color, FxFg, log_margin=0.5).astype(bool)
+    #print(len(below))
+    
+    cl = np.ones(len(e)).astype(int) * 2
+    cl[below] = 1
+    cl[well_above] = 0
+    #print("unique: ",np.unique(cl), below)
+    gi2 = np.where(cl < 2)[0]
+    
+    
+    #print("#below acitvity threshold: ",np.sum(below), ", well above: ",np.sum(well_above), " all: ",len(e))
+    #print(gi2, len(e))
+    #print(type(gi), type(gi2), len(gi), len(gi2))
+    keep = np.intersect1d(gi, gi2).astype(int).tolist()
+        
+    print("keep",len(keep))
+    
+    e.add_col("category", cl)
+    
+    sids = np.array(e.srcIDs())
+    #print("keep",keep, type(keep), " sids",sids, type(sids))
+    #print(sids[keep])
+    e.keep(sids[keep])
+    
+    
+    #print("YYYYY")
+    NN_Max(e)
+    return e
+    
+    
 @multi_fits_support(3)
 def random_set(ero, gaia):
     """
@@ -179,11 +188,11 @@ def random_set(ero, gaia):
     
     #print(len(ra))
     coords = ero.skyCoords()
-    print(len(coords))
+    #print(len(coords))
     N = len(coords)
     angle = np.random.rand(N)*360
     offset = np.random.rand(N)*(max_offset- min_offset)+min_offset
-    print(offset)
+    #print(offset)
 
     doords = coords.directional_offset_by(angle*u.degree, offset*u.arcsec)
 
@@ -193,24 +202,3 @@ def random_set(ero, gaia):
     
     return major_set(ero, gaia)
     
-
-    idx, d2d,d3d = coords.match_to_catalog_sky(doords)
-    print(d2d.arcsec)
-
-    hdu = pyfits.PrimaryHDU()    
-    cols = []
-    for c in ff[1].columns:
-        print(c.name)
-        if c.name == "RA":
-            col = pyfits.Column(name=c.name, array=doords.ra.degree, format=c.format)
-        elif c.name == "RA":
-            col = pyfits.Column(name=c.name, array=doords.dec.degree, format=c.format)
-        else:
-            col = pyfits.Column(name=c.name, array=ff[1].data[c.name], format=c.format)
-        cols.append(col)
-    cc = pyfits.ColDefs(cols)
-    xx = pyfits.BinTableHDU.from_columns(cc)
-    xx.header["min_offset"] = min_offset
-    xx.header["max_offset"] = max_offset
-    hdul = pyfits.HDUList([hdu, xx])
-    hdul.writeto(ofn, overwrite=overwrite)

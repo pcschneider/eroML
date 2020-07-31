@@ -1,8 +1,9 @@
 from .ensemble import *
 from .utils import *
+from .tile import *
 
 def test():
-    modules = ["ensemble", "utils"]
+    modules = ["ensemble", "utils","tile"]
     x = []
     for m in modules:
         mod = __import__(m, globals(), locals(), ['test'])
@@ -13,3 +14,5 @@ def test():
         x.append(m)
         print()
     print(x)    
+
+

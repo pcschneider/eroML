@@ -44,7 +44,7 @@ def vo2fits(ifn, ofn, verbose=1, overwrite=False):
     hdul = pyfits.HDUList([hdu, xx])
     
     qc = quality_filter(hdul)
-    c = pyfits.Column(name="Quality", array=qc, format="L")
+    c = pyfits.Column(name="Gaia_Quality", array=qc, format="I")
     cols.append(c)
     cc = pyfits.ColDefs(cols)
     xx = pyfits.BinTableHDU.from_columns(cc)
@@ -54,7 +54,9 @@ def vo2fits(ifn, ofn, verbose=1, overwrite=False):
     if verbose>0: print("gaia_tools::vo2fits - Written: \'%s\'" % ofn)        
 
 
-def quality_filter(ff, filter_Nr=0):
+    
+
+def quality_filter(ff, filter_Nr=2):
     """
     Determine Gaia-sources for which certain filter criteria are fullfilled
     
@@ -65,6 +67,9 @@ def quality_filter(ff, filter_Nr=0):
         There are three filters defined (0, 1, 2). Filter-Nr 0 corresponds to the tightest contrains and equals the criteria 
         defined in <> to obtain a well-defined HR diagram.
     """
+    filter_Nr = 3
+    print("using Filter: ",filter_Nr)
+    
     d = ff[1].data
     N = len(d["source_id"])
     tmp = np.array([N*[1],np.exp(-0.4*(d["phot_g_mean_mag"]-19.5))])
@@ -92,11 +97,20 @@ def quality_filter(ff, filter_Nr=0):
             (d["phot_bp_rp_excess_factor"] > 1.0+0.015*(d["phot_bp_mean_mag"]-d["phot_rp_mean_mag"])**2) &\
             (d["visibility_periods_used"]>8) &\
             (d["astrometric_chi2_al"]/(d["astrometric_n_good_obs_al"]-5)<1.44*tmp))[0]
+    elif filter_Nr==3:
+       gi = np.where((d["parallax"]/d["parallax_error"] > 3) & (d["phot_g_mean_flux_over_error"]>30) &\
+            (d["phot_rp_mean_flux_over_error"]>10) & (d["phot_bp_mean_flux_over_error"]>10) &\
+            (d["phot_bp_rp_excess_factor"] < 1.3+0.06 *(d["phot_bp_mean_mag"]-d["phot_rp_mean_mag"])**2) &\
+            (d["phot_bp_rp_excess_factor"] > 1.0+0.015*(d["phot_bp_mean_mag"]-d["phot_rp_mean_mag"])**2) &\
+            (d["visibility_periods_used"]>4) &\
+            (d["astrometric_chi2_al"]/(d["astrometric_n_good_obs_al"]-5)<1.44*tmp))[0]
+
+        
     q = np.zeros(N)
     q[gi] = 1
     return q
 
-def add_quality_column(fn, ofile, colname="quality", overwrite=False, verbose=1, filter_Nr=0):
+def add_quality_column(fn, ofile, colname="Gaia_quality", overwrite=False, verbose=1, filter_Nr=2):
     ff = pyfits.open(fn)
     cols = ff[1].columns
     #print(cols) 
@@ -132,7 +146,7 @@ def prepare_gaia(ifn, ofn, verbose=1):
     """
     tmp_fn = tempfile.mkstemp(dir='.', suffix='.fits')[1]
     #print(tmp_fn)
-    gaia4ero(ifn, ofn=tmp_fn)
+    gaia4ero(ifn, ofn=tmp_fn, verbose=verbose)
     add_standard_cols(tmp_fn, overwrite=True)
     add_quality_column(tmp_fn, ofn, overwrite=True)
     import os
@@ -155,6 +169,7 @@ def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=1, keep_VO=
     keep_VO : boolean
         The temporary VO-file is kept if True
     """
+    if verbose>3: print("gaia_tools::gaia4ero - Reading: ",ifn)
     ff = pyfits.open(ifn)
     ra, dec = ff[ext].data[radec_cols[0]], ff[ext].data[radec_cols[1]]
    
@@ -163,15 +178,18 @@ def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=1, keep_VO=
     RA_center = min(ra)+width/2
     Dec_center = min(dec)+height/2
     
-    width/=100
-    height/=100
+    #width/=100
+    #height/=100
     
     if verbose>0:
         print("gaia_tools::gaia4ero - Downloading Gaia sources around RA, Dec = (",RA_center, Dec_center,") with width, height = (", width, height,")")
 
     #exit()
-    ww= u.Quantity(width, u.deg)
-    hh = u.Quantity(height, u.deg)
+    ww= u.Quantity(width, u.deg) + 10.*u.arcmin
+    hh = u.Quantity(height, u.deg) + 10.*u.arcmin
+
+    width = ww.to(u.degree).value
+    height = hh.to(u.degree).value
 
     coord = SkyCoord(ra=RA_center, dec=Dec_center, unit=(u.degree, u.degree), frame='icrs')
     #r = Gaia.query_object_async(coordinate=coord, width=width, height=height, dump_to_file=True)
@@ -179,9 +197,9 @@ def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=1, keep_VO=
     qc=False
         
     if qc:
-        query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),BOX('ICRS', %f, %f, %f, %f))=1 AND parallax_over_error > 10 AND phot_g_mean_flux_over_error>50 AND phot_rp_mean_flux_over_error>20 AND phot_bp_mean_flux_over_error>20 AND phot_bp_rp_excess_factor < 1.3+0.06*power(phot_bp_mean_mag-phot_rp_mean_mag,2) AND phot_bp_rp_excess_factor > 1.0+0.015*power(phot_bp_mean_mag-phot_rp_mean_mag,2) AND visibility_periods_used>8 AND astrometric_chi2_al/(astrometric_n_good_obs_al-5)<1.44*greatest(1,exp(-0.4*(phot_g_mean_mag-19.5)));" % (RA_center, Dec_center, width*1.01,height*1.01))
+        query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),BOX('ICRS', %f, %f, %f, %f))=1 AND parallax_over_error > 10 AND phot_g_mean_flux_over_error>50 AND phot_rp_mean_flux_over_error>20 AND phot_bp_mean_flux_over_error>20 AND phot_bp_rp_excess_factor < 1.3+0.06*power(phot_bp_mean_mag-phot_rp_mean_mag,2) AND phot_bp_rp_excess_factor > 1.0+0.015*power(phot_bp_mean_mag-phot_rp_mean_mag,2) AND visibility_periods_used>8 AND astrometric_chi2_al/(astrometric_n_good_obs_al-5)<1.44*greatest(1,exp(-0.4*(phot_g_mean_mag-19.5)));" % (RA_center, Dec_center, width,height))
     else:
-        query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),BOX('ICRS', %f, %f, %f, %f))=1;" % (RA_center, Dec_center, width*1.01,height*1.01))   
+        query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),BOX('ICRS', %f, %f, %f, %f))=1;" % (RA_center, Dec_center, width,height))   
    
     if verbose>3:
         print(query_str)

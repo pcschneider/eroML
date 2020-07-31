@@ -40,6 +40,7 @@ class Ensemble():
         
         self.array = np.recarray((0,),dtype=[("srcID",str), ("RA",float), ("Dec",float)])
      
+
     def filter_array_for_srcIDs(self, array, srcIDs, verbose=10):
         """
         Restrict array to those entries that match the given srcIDs
@@ -55,7 +56,8 @@ class Ensemble():
         """
         idx = list([self.row_mapper[s] for s in srcIDs])
         return array[idx]
-        
+
+
     def add_one_object(self, obj, auto_resolve=True, verbose=1):
         """
         Add an object to `Ensemble`.
@@ -140,6 +142,7 @@ class Ensemble():
         #print(sID, self.mapper)
         return sID
     
+
     def rename(self, name, newname):
         """
         Rename object `name` to `newname`
@@ -162,6 +165,7 @@ class Ensemble():
             del self.mapper[name]
             self.mapper[newname] = idx
             
+
     def add_col(self, colname, array):
         """
         Add or overwrite column (if a column with this name already exists)
@@ -171,30 +175,45 @@ class Ensemble():
         array : array, must be same length as len(Ensemble)
         name : str, Name of the column
         """
-        import numpy.lib.recfunctions as rfn
+        #import numpy.lib.recfunctions as rfn
+        #print("Adding ",colname, self.known_cols)
         if colname in self.known_cols: 
-            raise ValueError(str("Ensemble::add_col - Column with name %s alrady known." % colname))
+            raise ValueError(str("Ensemble::add_col - Column with name \'%s\' alrady known." % colname))
         #a = rfn.append_fields(a, 'USNG', np.empty(a.shape[0], dtype='|S100'), dtypes='|S100')
-        dt = array.dtype
-        self.array = rfn.append_fields(self.array, colname, array, dtypes=dt)
+        #dt = array.dtype
+        #self.array = rfn.append_fields(self.array, colname, array, dtypes=dt)
+        #print(dir(self.array.dtype.names))
+        dt = []
+        for n in self.array.dtype.names:
+            #print(n, self.array[n].dtype)
+            dt.append((n, self.array[n].dtype))
+        dt.append((colname, array.dtype))
+        tmp_arr = np.zeros(len(self), dtype=dt)
+        for j, c in enumerate(self.array.dtype.names):
+            tmp_arr[c] = self.array[c]
+        tmp_arr[colname] = array
+        self.array = tmp_arr
         self.known_cols.append(colname)
         
+
     def set_col(self, colname, array):
         """
         Set values (entire array column) for one column
         """
         if colname not in self.known_cols:
-            raise IndexError(str("Ensemble::set_col - Column with name %s alrady known." % colname))
+            raise IndexError(str("Ensemble::set_col - Column with name %s not known." % colname))
         if len(array) != len(self):
             raise ValueError(str("Ensemble::set_col - Column with name %s  should have %i instead of %i entries." % (colname, len(self), len(array))))
                              
         self.array[colname] = array
         
+
     def __len__(self):
         """
         Number of objects in `Ensemble`
         """
         return len(self.row_mapper)
+
 
     def shift_array(self, dN, n0=None, n1=None):
         """
@@ -208,7 +227,6 @@ class Ensemble():
         n0, n1 : int
             The start and end indices for shifting
         """
-        
         N = len(self.array)
         
         if n0 is not None:
@@ -226,7 +244,8 @@ class Ensemble():
             
         self.array[i0:i1] = np.roll(self.array, dN)[n0:n1]        
         self.array.resize(N+dN)
-            
+
+
     def rebuild_row_mapper(self, dN, n0=None):
         """
         Make sure that the row_mapper reflects the array.
@@ -243,6 +262,7 @@ class Ensemble():
         for si in srcIDs:
             if self.row_mapper[si] > n0:
                 self.row_mapper[si]+=dN
+
         
     def del_object(self, obj_name, verbose=1):
         """
@@ -265,7 +285,7 @@ class Ensemble():
                 print("Ensemble::del_object - Now len(self)= ", len(self))
         else:
             raise IndexError(str("%s not in Ensemble." % obj_name))
-        #print("del",self.mapper)
+
 
     def keep(self, srcIDs, verbose=10):
         """
@@ -294,7 +314,8 @@ class Ensemble():
         self.array = narr
         
         if verbose>1: print("Ensemble::keep - Keeping only ",len(self), " from ",n_old," objects.")
-        
+
+
     def skyCoords(self, srcIDs=None, epoch=2000, verbose=1):
         """
         The SkyCoords for the objects in the `Ensemble`
@@ -310,7 +331,6 @@ class Ensemble():
         -------
         Coordinates : SkyCoord instance
         """
-        
         if srcIDs is None:
             srcIDs = self.mapper.keys()
         if verbose>3: print("astro_ensemble::Ensemble::skyCoords - Getting coords for ",srcIDs)    
@@ -325,6 +345,7 @@ class Ensemble():
         
         if verbose>5: print("astro_ensemble::Ensemble::skyCoords - #coords",len(ra))    
         return SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree))
+    
     
     def from_array(self, array, verbose=1, clean=True):
         """
@@ -370,6 +391,7 @@ class Ensemble():
                 self.mapper[srcID.strip()] = self._N+i+1
         return self    
    
+   
     def srcIDs(self):
         """
         The source IDs
@@ -379,7 +401,8 @@ class Ensemble():
         srcIDs - list
         """
         return list(self.row_mapper.keys())
-    
+
+
     def merge_add(self, other, conflict_resolution="append", col_postfix="_NN", criterium="distance", verbose=1, **kwargs):
         """
         Add properties of another Ensemble to this Ensemble. Also adds property `match_dist`
@@ -498,6 +521,7 @@ class Ensemble():
         if verbose>3: print("Ensemble::merge_add - all known cols: ",self.known_cols)
         if verbose>0: print("Ensemble::merge_add - Added ", len(ows)+1, " columns to Ensemble.")
          
+
     def __getitem__(self, name, verbose=1):
         """
         """
@@ -533,6 +557,7 @@ class Ensemble():
             if verbose>5: print("__getitem__ - returning Astro_Object", name," -> ",idx)
             return self.objects[idx]
     
+
     def to_array(self, colnames=(), srcIDs=None, array_type="recarray", verbose=1):
         """
         Usually used to get a numpy.array or np.recarray from given `colnames`.
@@ -646,7 +671,8 @@ class Ensemble():
             return dct
         else:
             raise LookupError("Ensemble::array - `array_type` must be in [recarray, array, dict], but is " +str(array_type))
-        
+
+
     def append(self, other, postfix=None, cols="all", verbose=1):
         """
         Append another Ensemble

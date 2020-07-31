@@ -71,11 +71,12 @@ def fits_support(func):
             print("ensemle.tools::fits_support - Assuming ", args[0], " is a fits-filename.")
             if "mapper" in kwargs:
                 e = from_fits(x, mapper=kwargs["mapper"])
+                del kwargs["mapper"]
             else:
                 e = from_fits(x)
         else:
             e = x
-        func(e)
+        func(e, **kwargs)
         if type(x) == type("xxx"):
             to_fits(e, ofn=x, overwrite=True)
     return wrapper

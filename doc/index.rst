@@ -15,10 +15,11 @@ Run the stuff::
    :maxdepth: 2
    :caption: Contents:
 
+   learning.rst
    submodules.rst
    cheat_sheet.rst
+      
    
-
 Work Logic
 -----------
 
@@ -30,14 +31,14 @@ Loop through Tiles
       - Convert Gaia data to fits-file
   2. Prepare data 
    
-.. .. automodule:: ensemble   .. include::    ../ensemble/ensemble2.rst
-..     :members:
+
 
 Todo
 ----
 
 - Add quality criterium for NN_estimate
-- xx
+- Pixelize and merge
+
 
 Testing
 -------

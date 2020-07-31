@@ -16,6 +16,11 @@ The corresponding path should be then added to PYTHONPATH::
   export PYTHONPATH=/hs/pc13/data/stgh325/Xdata/ero
   
 
+Count lines::
+
+   git ls-files | xargs wc -l
+
+  
 python
 ------
 
