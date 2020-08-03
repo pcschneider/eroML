@@ -50,8 +50,12 @@ class Tile():
         #e = from_fits(gaia_fn)
         # Enrich eROSITA data
         #print("fn",ero_fn)
-        enrich_eROSITA(ero_fn, mapper={"detUID":"srcID", "DEC":"Dec"})
-        
+        e = enrich_eROSITA(ero_fn, mapper={"DETUID":"srcID", "DEC":"Dec"})
+        #print("zzzzzzzz:",len(e))
+        #print(e.srcIDs())
+        f = from_fits(ero_fn)
+        #print("zzzzzzzz:",len(f))
+        #print(f.srcIDs())
         
         
     def generate_sets(self, ero_fn=None, gaia_fn=None):       

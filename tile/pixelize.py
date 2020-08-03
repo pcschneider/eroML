@@ -89,8 +89,8 @@ def add_healpix_col(ifn, ofn=None, extension=1, overwrite=False, nside=16, verbo
 
     x = hp.pixelfunc.ang2pix(nside, (180-phi)/180*np.pi, theta/180*np.pi, nest=False, lonlat=False)
     
+    uni, cnt = np.unique(x, return_counts=True)    
     if verbose>1: 
-        uni, cnt = np.unique(x, return_counts=True)
         print("pixelize::add_healpix_col: Number of populated healpix pixel: ",len(uni))
     if verbose>2: 
         print("pixelize::add_healpix_col: Populated healpix pixel: ",np.unique(uni))
@@ -114,6 +114,7 @@ def add_healpix_col(ifn, ofn=None, extension=1, overwrite=False, nside=16, verbo
     hdul.writeto(ofn, overwrite=overwrite)
     if verbose>0: print('"pixelize::add_healpix_col - Written: ',ofn)
 
+    return uni
 
     #m = np.ones(NPIX)
     #m[uni] = cnt

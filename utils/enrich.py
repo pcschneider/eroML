@@ -62,7 +62,7 @@ def sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="el
     coord = e.skyCoords()[gi]
     print("Searching around ",around, "arcmin.")
     idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, around*u.arcmin)
-    print(idxc[0:20], idxcatalog[0:20], len(gi), len(e))
+    #print(idxc[0:20], idxcatalog[0:20], len(gi), len(e))
     #print("xxx",len(coord), len(idxc))
     uni, cnt = np.unique(idxc, return_counts=True)
     #print(uni, cnt)
@@ -70,8 +70,8 @@ def sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="el
     dens[gi] = 1/cnt
     if out_col not in e.known_cols: e.add_col(out_col, dens)
     else: e.set_col(out_col, dens)
-    print(" outcol: ",out_col)
-    print(dens)
+    print(" outcol: ",out_col," nanmean: ",np.nanmean(dens))
+    print()
     return e
         
 @fits_support

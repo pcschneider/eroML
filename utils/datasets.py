@@ -134,7 +134,7 @@ def training_set(e, abs_dist_cutoff=3, rel_dist_cutoff=2):
     FxFg = e.to_array("FxFg", array_type="array")
     below = (1-activity_filter(color, FxFg)).astype(bool)
     well_above = activity_filter(color, FxFg, log_margin=0.5).astype(bool)
-    #print(len(below))
+    #print(len(below), len(well_above), len(e))
     
     cl = np.ones(len(e)).astype(int) * 2
     cl[below] = 1
@@ -148,7 +148,7 @@ def training_set(e, abs_dist_cutoff=3, rel_dist_cutoff=2):
     #print(type(gi), type(gi2), len(gi), len(gi2))
     keep = np.intersect1d(gi, gi2).astype(int).tolist()
         
-    print("keep",len(keep))
+    #print("keep",len(keep))
     
     e.add_col("category", cl)
     

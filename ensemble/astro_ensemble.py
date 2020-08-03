@@ -448,7 +448,7 @@ class Ensemble():
         coord0 = self.skyCoords(epoch=epoch)
         coord1 = other.skyCoords(epoch=epoch)
         oIDs = other.srcIDs()
-              
+                
         idx, d2d,d3d = coord0.match_to_catalog_sky(coord1, nthneighbor=NN) 
         
         cols = other.known_cols
@@ -608,7 +608,7 @@ class Ensemble():
                     if "i" not in dt[1] and "f" not in dt[1]: 
                         #print(c, type(tmp), dt)
                         tmp = np.array(tmp).astype(str)
-                        dt = (c, '<U20')
+                        dt = (c, '<U36')
                     elif "f" in dt[1]:
                         idx = np.isfinite(tmp)
                         #print(idx)

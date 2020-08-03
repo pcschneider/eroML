@@ -79,6 +79,7 @@ def fits_support(func):
         func(e, **kwargs)
         if type(x) == type("xxx"):
             to_fits(e, ofn=x, overwrite=True)
+        return e    
     return wrapper
 
 
@@ -159,7 +160,7 @@ def to_fits(ensemble, ofn=None, overwrite=False, verbose=1, mapper={}, maxN=None
     """
     if verbose>3: print("ensemble.tools::to_fits - len, shape, len(unique): ",len(ensemble), np.shape(ensemble.array), len(np.unique(ensemble.srcIDs())))
     
-    fmt_mapper = {"i":"I","u":"I","U":"32A","f":"D"}
+    fmt_mapper = {"i":"I","u":"I","U":"36A","f":"D"}
     col_mapper = lambda x:mapper[x] if x in mapper else x
 
     outcols = ensemble.known_cols
