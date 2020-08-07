@@ -6,7 +6,7 @@ import copy
 ofn = "test_merged.fits"
 overwrite=True
 glob_str = "../../ero_data/*rID1_training.fits"
-fnames = glob.glob(glob_str)[0:10]
+fnames = glob.glob(glob_str)#[0:10]
 print("Number of matching files: ",len(fnames))
 
 # Count required entries
@@ -44,8 +44,10 @@ for fn in fnames:
 out_cols = []    
 for c in cols:
     #print(c)
-    if c.name == "Gaia_Quality":
-        col = pyfits.Column(name=c.name, array=col_dct[c.name]["array"]=="True", format="J")
+    if c.name == "Gaia_quality":
+        ar = np.array(col_dct[c.name]["array"])=="True"
+        print(ar, col_dct[c.name]["array"])
+        col = pyfits.Column(name=c.name, array=ar, format="J")
     else:
         try:
             col = pyfits.Column(name=c.name, array=col_dct[c.name]["array"], format=col_dct[c.name]["col"].format)
@@ -53,7 +55,7 @@ for c in cols:
             print("XXX",c.name)
             col = pyfits.Column(name=c.name, array=col_dct[c.name]["array"]=="True", format=col_dct[c.name]["col"].format)
     out_cols.append(col)
-        
+print(out_cols)        
 hdu = pyfits.PrimaryHDU()    
 cc = pyfits.ColDefs(out_cols)
 xx = pyfits.BinTableHDU.from_columns(cc)
