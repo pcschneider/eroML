@@ -83,6 +83,7 @@ def add_iso_column(ifn, ofn, iso_fn="aux_data/iso.dat", \
     hdx = pyfits.BinTableHDU.from_columns(cols)
     hdul = pyfits.HDUList([hdu, hdx])
     hdul.writeto(ofn, overwrite=overwrite)
+    ff.close()
     if verbose>0: print('iso_tools::add_iso_column - Written: ',ofn)
     
 def check_iso_box(iso_fn="iso.dat", parsec_fn="parsec_isochrones.dat",\

@@ -1,5 +1,7 @@
 from eroML.tile import Tile, add_healpix_col, extract_healpix_range
 import eroML.config as conf
+import numpy as np
+import glob
 
 def loop():
     fn = conf.ero_fn
@@ -9,7 +11,15 @@ def loop():
     rID = 1
     hps = add_healpix_col(fn, ofn=ofn, nside=NSIDE, overwrite=True)
     #hps = [500,501]
-    for i in hps[100:102]:
+    #gi = np.where(hps==2814)[0][0]
+    #print(gi)
+    for i in hps:
+
+        glob_str = "../ero_data/tile_hp"+str(i)+"_nside"+str(NSIDE)+"_rID"+str(rID)+"_training.fits"
+        fnames = glob.glob(glob_str)
+        print(glob_str)
+        print(fnames)
+        if len(fnames)>0: continue
         
         print()
         print()

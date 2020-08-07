@@ -137,6 +137,7 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     e = Ensemble().from_array(a)
     if verbose>0:
         print("ensemble.tools::from_fits - Generated Ensemble with",np.shape(a), " entries with ",len(names.split(","))," properties")
+    ff.close()    
     return e
     
 def to_fits(ensemble, ofn=None, overwrite=False, verbose=1, mapper={}, maxN=None):

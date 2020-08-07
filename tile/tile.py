@@ -41,10 +41,14 @@ class Tile():
         prepare_gaia(ero_fn, gaia_fn, verbose=1)
         enrich_Gaia(gaia_fn)
         #g = from_fits(gaia_fn)
+        #import time
+        #print("sleep")
+        #time.sleep(5)
         add_iso_column(gaia_fn, gaia_fn, overwrite=True)        
         eligible(gaia_fn)
         sky_density(gaia_fn)
         sky_density(gaia_fn, filter_prop=None, out_col="sky_density")
+
         #exit()
         
         #e = from_fits(gaia_fn)
@@ -53,7 +57,7 @@ class Tile():
         e = enrich_eROSITA(ero_fn, mapper={"DETUID":"srcID", "DEC":"Dec"})
         #print("zzzzzzzz:",len(e))
         #print(e.srcIDs())
-        f = from_fits(ero_fn)
+        #f = from_fits(ero_fn)
         #print("zzzzzzzz:",len(f))
         #print(f.srcIDs())
         

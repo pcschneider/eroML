@@ -88,11 +88,11 @@ def enrich_Gaia(e):
     FG = 10**(-0.4* arr["phot_g_mean_mag"])*3.660e-08*720
     e.add_col("Fg", FG)
     
-    ra = e.to_array(colnames=["ra"], array_type='array')
-    dec = e.to_array(colnames=["dec"], array_type='array')
-    #print(ra, type(ra))
-    e.add_col("RA", ra)
-    e.add_col("Dec", dec)
+    #ra = e.to_array(colnames=["ra"], array_type='array')
+    #dec = e.to_array(colnames=["dec"], array_type='array')
+    ##print(ra, type(ra))
+    #e.add_col("RA", ra)
+    #e.add_col("Dec", dec)
     
 @fits_support
 def enrich_eROSITA(e):

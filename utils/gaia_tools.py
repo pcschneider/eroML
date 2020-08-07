@@ -7,7 +7,7 @@ from astropy.io.votable import parse
 from astropy.io.votable import parse_single_table
 import tempfile
 import copy
-
+import os
 
 def vo2fits(ifn, ofn, verbose=1, overwrite=False):
     """
@@ -36,16 +36,21 @@ def vo2fits(ifn, ofn, verbose=1, overwrite=False):
         else: fmt = None
         mm = cc.torecords()
         if verbose>1: print("gaia_tools::vo2fits - Adding column \'%s\' with dtype=%s using fits-format=%s." % (f,dtype,fmt))
-        c = pyfits.Column(name=f, array=cc.data, format=fmt)
+        if f=="ra":
+            c = pyfits.Column(name="RA", array=cc.data, format=fmt)
+        elif f=="dec":
+            c = pyfits.Column(name="Dec", array=cc.data, format=fmt)
+        else:
+            c = pyfits.Column(name=f, array=cc.data, format=fmt)
         cols.append(c)
 
     cc = pyfits.ColDefs(cols)
     xx = pyfits.BinTableHDU.from_columns(cc)
     hdul = pyfits.HDUList([hdu, xx])
     
-    qc = quality_filter(hdul)
-    c = pyfits.Column(name="Gaia_Quality", array=qc, format="I")
-    cols.append(c)
+    #qc = quality_filter(hdul)
+    #c = pyfits.Column(name="Gaia_Quality", array=qc, format="I")
+    #cols.append(c)
     cc = pyfits.ColDefs(cols)
     xx = pyfits.BinTableHDU.from_columns(cc)
     hdul = pyfits.HDUList([hdu, xx])
@@ -110,7 +115,8 @@ def quality_filter(ff, filter_Nr=2):
     q[gi] = 1
     return q
 
-def add_quality_column(fn, ofile, colname="Gaia_quality", overwrite=False, verbose=1, filter_Nr=2):
+def add_quality_column(fn, ofile, colname="Gaia_quality", overwrite=False, verbose=10, filter_Nr=2):
+    if verbose>0: print("Reading: ",fn, " -> ",ofile)
     ff = pyfits.open(fn)
     cols = ff[1].columns
     #print(cols) 
@@ -119,39 +125,45 @@ def add_quality_column(fn, ofile, colname="Gaia_quality", overwrite=False, verbo
     if verbose>1: print("gaia_tools::add_quality_column - #rows: %i, good quality: %i, fraction: %f" % (len(ff[1].data[cols[0].name]), np.sum(q),np.sum(q)/len(ff[1].data[cols[0].name]) ))
     cols.add_col(c)
     hdu = copy.copy(ff[0]) 
+    #hdu = ff[0]
+    #hdu = pyfits.PrimaryHDU()
     hdx = pyfits.BinTableHDU.from_columns(cols)
     hdul = pyfits.HDUList([hdu, hdx])
-    hdul.writeto(ofile, overwrite=overwrite)    #hdul = pyfits.HDUList([hdu, ff[1])
- 
+    hdul.writeto(ofile, overwrite=overwrite)
+    ff.close()
+    
 def add_standard_cols(ifn, overwrite=True):
     """
     """
     ff = pyfits.open(ifn)
     cols = ff[1].columns
     srcIDs = ff[1].data["source_id"].astype(str)
-    c = pyfits.Column(name="srcID", array=srcIDs, format="20A")
+    c = pyfits.Column(name="srcID", array=srcIDs, format="38A")
     
     
     #print("#rows: %i, good quality: %i, fraction: %f" % (len(ff[1].data[cols[0].name]), np.sum(q),np.sum(q)/len(ff[1].data[cols[0].name]) ))
     cols.add_col(c)
     hdu = copy.copy(ff[0]) 
+    #hdu = ff[0]
     hdx = pyfits.BinTableHDU.from_columns(cols)
     hdul = pyfits.HDUList([hdu, hdx])
     hdul.writeto(ifn, overwrite=overwrite)    #hdul = pyfits.HDUList([hdu, ff[1])
+    ff.close()
     
  
 def prepare_gaia(ifn, ofn, verbose=1):
     """
     Download Gaia sources and enrich file, keep only relevant columns.
     """
-    tmp_fn = tempfile.mkstemp(dir='.', suffix='.fits')[1]
-    #print(tmp_fn)
+    fh, tmp_fn = tempfile.mkstemp(dir='.', suffix='.fits')
     gaia4ero(ifn, ofn=tmp_fn, verbose=verbose)
     add_standard_cols(tmp_fn, overwrite=True)
     add_quality_column(tmp_fn, ofn, overwrite=True)
-    import os
+
+    os.close(fh)
     os.remove(tmp_fn)
-    
+
+
 def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=1, keep_VO=False, overwrite=False):
     """
     Download Gaia sources for the sky region covered by an eROSITA source catalog
@@ -191,6 +203,9 @@ def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=1, keep_VO=
     width = ww.to(u.degree).value
     height = hh.to(u.degree).value
 
+    #width/=100
+    #height/=100
+
     coord = SkyCoord(ra=RA_center, dec=Dec_center, unit=(u.degree, u.degree), frame='icrs')
     #r = Gaia.query_object_async(coordinate=coord, width=width, height=height, dump_to_file=True)
 
@@ -214,5 +229,6 @@ def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=1, keep_VO=
         vo2fits(tmp_fn, ofn, overwrite=overwrite)
         
     if keep_VO == False:
-        import os
         os.remove(tmp_fn)
+        
+    ff.close()

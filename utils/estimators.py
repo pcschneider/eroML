@@ -169,7 +169,7 @@ def NN_distribution(fn, Nsig=1000, ext=1, fkey="match_dist", errkey="RADEC_ERR",
         mm.parameterSummary()
         print("Estimated number of sources: ",mm["N"], " instead of ", np.sum(hh[0]), " -> ",  np.sum(hh[0]) - mm["N"], "+-", np.sum(hh[0])**0.5,"(real-model)")
     
-    
+    ff.close()
     if ofn is not None:
         ax = fig.add_subplot(313)
         #ax.plot(bin_x, bin_y, ls='steps-mid')
