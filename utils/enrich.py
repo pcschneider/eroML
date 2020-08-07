@@ -61,17 +61,25 @@ def sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="el
     print("filter_prop: ",filter_prop, " out_col:",out_col)    
     coord = e.skyCoords()[gi]
     print("Searching around ",around, "arcmin.")
-    idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, around*u.arcmin)
+    
+    ta = 0.5*u.arcmin
+    idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, ta)
+    uni, cnt = np.unique(idxc, return_counts=True)
+    if np.median(cnt)<10: 
+        idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, around*u.arcmin)
+        uni, cnt = np.unique(idxc, return_counts=True)
+    else:
+        print("Using 0.5 arcmin search radiua and extrapolating.")
+        cnt=np.array(cnt)*(around/0.5)**2
     #print(idxc[0:20], idxcatalog[0:20], len(gi), len(e))
     #print("xxx",len(coord), len(idxc))
-    uni, cnt = np.unique(idxc, return_counts=True)
+    #uni, cnt = np.unique(idxc, return_counts=True)
     #print(uni, cnt)
     #print(d2d.arcmin)
     dens[gi] = 1/cnt
     if out_col not in e.known_cols: e.add_col(out_col, dens)
     else: e.set_col(out_col, dens)
     print(" outcol: ",out_col," nanmean: ",np.nanmean(dens))
-    print()
     return e
         
 @fits_support
