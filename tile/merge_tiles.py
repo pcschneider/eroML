@@ -26,7 +26,7 @@ for c in cols:
 i0, i1 = None, None
 
 for fn in fnames:
-    print(fn)    
+    #print(fn)    
     ff = pyfits.open(fn)
     M = len(ff[1].data["srcID"])
     if i0 == None:
@@ -35,19 +35,23 @@ for fn in fnames:
         i0, i1 = i1, i1+M
         
     for c in cols:
-        col_dct[c.name]["array"][i0:i1] = copy.copy(ff[1].data[c.name])
+        #col_dct[c.name]["array"][i0:i1] = copy.copy(ff[1].data[c.name])
+        col_dct[c.name]["array"][i0:i1] = ff[1].data[c.name]
         col_dct[c.name]["col"] = c
 
-print(col_dct["srcID"])        
+#print(col_dct["srcID"])        
     
 out_cols = []    
 for c in cols:
     #print(c)
-    try:
-        col = pyfits.Column(name=c.name, array=col_dct[c.name]["array"], format=col_dct[c.name]["col"].format)
-    except:
-        print("XXX",c.name)
-        col = pyfits.Column(name=c.name, array=col_dct[c.name]["array"]=="True", format=col_dct[c.name]["col"].format)
+    if c.name == "Gaia_Quality":
+        col = pyfits.Column(name=c.name, array=col_dct[c.name]["array"]=="True", format="J")
+    else:
+        try:
+            col = pyfits.Column(name=c.name, array=col_dct[c.name]["array"], format=col_dct[c.name]["col"].format)
+        except:
+            print("XXX",c.name)
+            col = pyfits.Column(name=c.name, array=col_dct[c.name]["array"]=="True", format=col_dct[c.name]["col"].format)
     out_cols.append(col)
         
 hdu = pyfits.PrimaryHDU()    
