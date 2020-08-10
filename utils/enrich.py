@@ -69,7 +69,7 @@ def sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="el
         idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, around*u.arcmin)
         uni, cnt = np.unique(idxc, return_counts=True)
     else:
-        print("Using 0.5 arcmin search radiua and extrapolating.")
+        print("Using 0.5 arcmin search radius and extrapolating.")
         cnt=np.array(cnt)*(around/0.5)**2
     #print(idxc[0:20], idxcatalog[0:20], len(gi), len(e))
     #print("xxx",len(coord), len(idxc))
