@@ -1,8 +1,9 @@
 from eroML.utils.datasets import major_set, training_set, random_set
-from eroML.utils.enrich import enrich_Gaia, enrich_eROSITA, enrich_merged
+from eroML.utils.enrich import enrich_Gaia, enrich_eROSITA, enrich_merged, sky_density
 from eroML.utils.estimators import NN_distribution
-from eroML.utils.gaia_tools import prepare_gaia
+from eroML.utils.gaia_tools import get_gaia, download_Gaia_tiles
 from eroML.utils.iso_tools import *
+from .gaia_tools import vo2fits
 
 def test():
     import doctest

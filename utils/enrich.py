@@ -1,8 +1,10 @@
-from eroML.ensemble import from_fits,to_fits, fits_support
+from eroML.ensemble import Ensemble, from_fits,to_fits, fits_support
 import numpy as np
 import astropy.units as u
+from .iso_tools import add_iso_column
+import logging
 
-
+logger = logging.getLogger('eroML')
 
 activity_poly = [-3.22, 3.6/5.5] # in log scale
 
@@ -40,8 +42,11 @@ def eligible(e, out_col="eligible", verbose=5):
     if out_col not in e.known_cols: e.add_col(out_col, el.astype(int))
     else: e.set_col(out_col, el.astype(int))
 
+    return e
+
+
 @fits_support
-def sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="eligible_sky_density"):
+def sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="eligible_sky_density", verbose=1):
     """
     
     Parameters
@@ -50,6 +55,7 @@ def sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="el
     around : float
         The on-sky radius in arcmin
     """
+    #return None
     dens = np.zeros(len(e))
     dens[:] = np.nan
     
@@ -57,36 +63,77 @@ def sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="el
         gi = np.where(e.to_array(colnames=filter_prop, array_type="array") == filter_value)[0]
     else:
         gi = np.arange(len(e))
-        
-    print("filter_prop: ",filter_prop, " out_col:",out_col)    
-    coord = e.skyCoords()[gi]
-    print("Searching around ",around, "arcmin.")
     
-    ta = 0.5*u.arcmin
-    idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, ta)
-    uni, cnt = np.unique(idxc, return_counts=True)
-    if np.median(cnt)<10: 
+    
+    coord = e.skyCoords()[gi]
+    if verbose>0:
+        print("sky_dens:: filter_prop: ",filter_prop, " out_col:",out_col)    
+        print("sky_dens:: Searching around ",around, "arcmin.")
+        print("sky_dens:: Coord range: (",max(coord.ra.degree), min(coord.ra.degree), " ; ", max(coord.dec.degree), min(coord.dec.degree),")")
+    
+    
+    ra_range0 = abs(max(coord.ra.degree) - min(coord.ra.degree))
+    ra_range1 = abs(max((coord.ra.degree  + 180) % 360)- min((coord.ra.degree + 180) % 360))
+    #print("ra_range0, ra_range1",ra_range0, ra_range1)
+    ra_range = ra_range0 if ra_range0<ra_range1 else ra_range1
+    dec_range = abs(max(coord.dec.degree) - min(coord.dec.degree))
+    sky_area = ra_range *dec_range * np.cos(np.nanmean(coord.dec.degree)/180*np.pi)
+    #print("cos", np.cos(np.nanmedian(coord.dec.degree/180*np.pi)))
+    sky_dens = len(coord)/sky_area/3600 # per armin^2
+    if verbose>0: 
+        print("sky_dens:: Sky area of Ensemble: ",sky_area, " (center: ",np.nanmedian(coord.ra.degree), np.nanmedian(coord.dec.degree),")")         
+        print("sky_dens::    Mean sky density: ",sky_dens," #stars/arcmin^2")
+    
+    if sky_dens > 30:
+        #return None
+        print("sky_dens:: splitting Ensemble...")
+        s = e.split(3)
+        f = Ensemble()
+        for ss in s:
+            x = sky_density(ss, around=around, filter_prop=filter_prop, filter_value=filter_value, out_col=out_col)
+            skd = x.to_array(out_col, array_type="array")
+            x.set_col(out_col, skd/3)
+            f.append(x)
+        return f
+    
+    elif sky_dens > 10:
+        ta = 0.5*u.arcmin
+        idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, ta)
+        uni, cnt = np.unique(idxc, return_counts=True)
+        cnt=np.array(cnt)*(around/0.5)**2
+        print("sky_dens:: Using 0.5 arcmin search radius and extrapolating.")        
+    #elif sky_dens > 3:
+        #ta = 0.7*u.arcmin
+        #idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, ta)
+        #uni, cnt = np.unique(idxc, return_counts=True)
+        #cnt=np.array(cnt)*(around/0.7)**2
+        #print("sky_dens:: Using 0.7 arcmin search radius and extrapolating.")
+    else:
         idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, around*u.arcmin)
         uni, cnt = np.unique(idxc, return_counts=True)
-    else:
-        print("Using 0.5 arcmin search radius and extrapolating.")
-        cnt=np.array(cnt)*(around/0.5)**2
-    #print(idxc[0:20], idxcatalog[0:20], len(gi), len(e))
-    #print("xxx",len(coord), len(idxc))
-    #uni, cnt = np.unique(idxc, return_counts=True)
-    #print(uni, cnt)
-    #print(d2d.arcmin)
+        print("sky_dens:: Using ",around," arcmin search radius.")
+
     dens[gi] = 1/cnt
     if out_col not in e.known_cols: e.add_col(out_col, dens)
     else: e.set_col(out_col, dens)
-    print(" outcol: ",out_col," nanmean: ",np.nanmean(dens))
+    print("sky_dens::  outcol: ",out_col," nanmean: ",np.nanmean(dens), "returning ",e)
     return e
         
 @fits_support
 def enrich_Gaia(e):
+    """
+    Add G-band flux
+    """
     arr = e.to_array(colnames=["phot_g_mean_mag"])
     FG = 10**(-0.4* arr["phot_g_mean_mag"])*3.660e-08*720
-    e.add_col("Fg", FG)
+    e.add_col("Fg", FG, force=True)
+    
+    
+    add_iso_column(e)        
+    eligible(e)
+    sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="eligible_sky_density")
+    sky_density(e, around=3, filter_prop=None, out_col="sky_density")
+    return e
     
     #ra = e.to_array(colnames=["ra"], array_type='array')
     #dec = e.to_array(colnames=["dec"], array_type='array')
@@ -105,7 +152,7 @@ def enrich_eROSITA(e):
         e.set_col("Fx", Fx)
     else:
         e.add_col("Fx", Fx)
-
+    return e
 
 @fits_support
 def enrich_merged(e):
@@ -121,7 +168,7 @@ def enrich_merged(e):
     color = e.to_array(colnames="bp_rp", array_type="array")
     activity = activity_filter(color, FxFg)
     e.add_col("too_active", activity)
-    
+    return e
     
     
     

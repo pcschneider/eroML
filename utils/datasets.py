@@ -8,7 +8,7 @@ import copy
 from .gaia_tools import gaia4ero
 from .estimators import NN_distribution
 from .enrich import enrich_merged, activity_filter
-
+import glob
 
 @fits_support
 def NN_Max(e):
@@ -163,6 +163,34 @@ def training_set(e, abs_dist_cutoff=3, rel_dist_cutoff=2):
     return e
     
     
+@multi_fits_support(3)    
+def training_random_set(training, random, abs_dist_cutoff=3, rel_dist_cutoff=2):
+    """
+    Merge the training set with the random set applying the same selection criteria.
+    
+    Random sources get `category` 2 assigned.
+    
+    Parameters
+    ----------
+    training, random : Ensemble
+    abs/rel_dist_cutoff : float
+        In arcsec
+        
+    Returns
+    -------
+    Merged : Ensemble
+    
+    """
+    random.add_col("category", np.array(len(random)*[2]))
+    rand_srcIDs = np.array(random.srcIDs())
+    abs_dist = random.to_array("match_dist", array_type="array")
+    rel_dist = random.to_array("offset_sig", array_type="array")
+    gi = np.where( (abs_dist <=abs_dist_cutoff) & (rel_dist <= rel_dist_cutoff))[0]
+    random.keep(rand_srcIDs[gi])
+    training.append(random, postfix="rand")
+    return training
+    
+    
 @multi_fits_support(3)
 def random_set(ero, gaia):
     """
@@ -204,7 +232,7 @@ def random_set(ero, gaia):
     
 def prep_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     """
-    Keep only relevant columns and rows (= without NaNs)
+    Keep only relevant columns
     """
     relevant_cols = ["srcID", "Fx","Fg","bp_rp","offset_sig","parallax","sky_density"]
     
@@ -273,4 +301,5 @@ def prep_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
         hdul.writeto(ofn, overwrite=overwrite)        
         if verbose>0:
             print("datasets::prep_classify - Written ",len(dst)," objects with ",len(cols)," properties to ",ofn)
+    ff.close()            
     return hdul

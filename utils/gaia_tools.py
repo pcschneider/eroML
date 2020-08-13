@@ -8,15 +8,77 @@ from astropy.io.votable import parse_single_table
 import tempfile
 import copy
 import os
+import healpy as hp
+import logging
+import glob
 
+logger = logging.getLogger('eroML')
+
+def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwrite=False, verbose=1, edge=3., keep_VO=False):
+    """
+    Download all Gaia sources
+    """
+    if idx is None:
+        idx = range(hp.nside2npix(nside))
+    logger.info("Number of hpix: %i" % len(idx))   
+    for j, i in enumerate(idx):
+        ofn = outdir+"/"+prefix+"_nside"+str(nside)+"_"+str(i)+".fits"
+        logger.debug("Using \'%s\' for hpix=%i  (pix %i of %i)" % (ofn, i, j+1, len(idx)))
+        if os.path.exists(ofn):
+            logger.debug("  Skipping...")
+            continue
+        download_one_Gaia_tile(ofn, i, nside, overwrite=overwrite, verbose=verbose, edge=edge, keep_VO=keep_VO)
+        add_standard_cols(ofn, overwrite=True)
+        add_quality_column(ofn, ofn, overwrite=True)
+    
+         
+         
+def download_one_Gaia_tile(ofn, hpix, nside, overwrite=False, verbose=1, edge=3., keep_VO=False):
+    """
+    Download Gaia sources for specific healpix index
+    
+    Parameters
+    -----------
+    """
+    resol = hp.nside2resol(nside, arcmin=True)
+    pix_center = hp.pix2ang(nside, hpix, nest=True)
+    ra, dec = pix_center[1]/np.pi*180, 90. - pix_center[0]/np.pi*180
+    logger.log(10, "pos: "+str(pix_center)+ " resol: "+str(resol)+" RA, Dec: "+str(ra)+" "+str(dec))
+    logger.log(10, "pix_center: %f, %f " % (90-pix_center[0]*180/np.pi, pix_center[1]*180/np.pi))
+    
+    ww= u.Quantity(resol, u.arcmin) + 2*edge*u.arcmin
+    hh = u.Quantity(resol, u.arcmin) + 2*edge*u.arcmin
+
+    width = ww.to(u.degree).value
+    height = hh.to(u.degree).value
+    
+    query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),BOX('ICRS', %f, %f, %f, %f))=1;" % (ra, dec, width,height))   
+       
+    logger.log(5, "query_str: "+query_str)
+    #return    
+    job = Gaia.launch_job_async(query_str, dump_to_file=True)
+
+    if verbose>3: logger.log(0, " (job)"+str(job))
+    r = job.get_results()
+    
+    tmp_fn = job.outputFile
+    if ofn is not None:
+        vo2fits(tmp_fn, ofn, overwrite=overwrite)
+        
+    if keep_VO == False:
+        os.remove(tmp_fn)
+        
+    
+    
+    
 def vo2fits(ifn, ofn, verbose=1, overwrite=False):
     """
     Convert VO table (file) into fits-file
     """
     hdu = pyfits.PrimaryHDU()       
-    if verbose>0: print("gaia_tools::vo2fits - Reading: ",ifn)
+    logger.debug("Reading: %s" % ifn)
     votable = parse_single_table(ifn).to_table()
-    print("gaia_tools::vo2fits - Rows:",len(votable), " Columns: ",len(votable.columns))
+    logger.debug("   Rows: %i Columns: %i " % (len(votable), len(votable.columns)))
     cols = []
     for f in votable.columns:
         cc = votable[f]
@@ -56,7 +118,7 @@ def vo2fits(ifn, ofn, verbose=1, overwrite=False):
     hdul = pyfits.HDUList([hdu, xx])
     
     hdul.writeto(ofn, overwrite=overwrite)
-    if verbose>0: print("gaia_tools::vo2fits - Written: \'%s\'" % ofn)        
+    logger.debug("   Written: \'%s\'" % ofn)        
 
 
     
@@ -151,15 +213,17 @@ def add_standard_cols(ifn, overwrite=True):
     ff.close()
     
  
-def prepare_gaia(ifn, ofn, verbose=1):
+def get_gaia(ifn, ofn, overwrite=False, verbose=1):
     """
     Download Gaia sources and enrich file, keep only relevant columns.
-    """
+    """    
+    if os.path.exists(ofn):
+        if verbose>0: print("gaia_tools::get_gaia - ",ofn," already exists. Assuming it is the correct file.")
+        return
     fh, tmp_fn = tempfile.mkstemp(dir='.', suffix='.fits')
     gaia4ero(ifn, ofn=tmp_fn, verbose=verbose)
     add_standard_cols(tmp_fn, overwrite=True)
     add_quality_column(tmp_fn, ofn, overwrite=True)
-
     os.close(fh)
     os.remove(tmp_fn)
 
@@ -203,8 +267,8 @@ def gaia4ero(ifn, ofn=None, ext=1, radec_cols=("RA", "DEC"), verbose=1, keep_VO=
     width = ww.to(u.degree).value
     height = hh.to(u.degree).value
 
-    #width/=100
-    #height/=100
+    #width/=30
+    #height/=30
 
     coord = SkyCoord(ra=RA_center, dec=Dec_center, unit=(u.degree, u.degree), frame='icrs')
     #r = Gaia.query_object_async(coordinate=coord, width=width, height=height, dump_to_file=True)

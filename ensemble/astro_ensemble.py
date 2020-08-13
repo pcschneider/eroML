@@ -58,6 +58,36 @@ class Ensemble():
         return array[idx]
 
 
+    def split(self, N, verbose=1):
+        """
+        Split Ensemble into `N` sub-Ensembles
+        
+        Not all (sub-) Ensembles will have the same size, the last (sub-) Ensemble will contain the ramining objects.
+        
+        Parameters
+        ----------
+        N : int
+            Number of sub-Ensembles.
+        """
+        r = []
+        step = len(self)//N
+        si = np.random.permutation(range(len(self)))
+        i0, i1 = 0, step
+        
+        for i in range(N):
+            #print(i, " - ",i0, i1)
+            if i==N-1:
+                i1 = len(self)
+            f = copy.deepcopy(self)
+            sids = np.array(f.srcIDs())[si[i0:i1]]
+            f.keep(sids, verbose=0)
+            r.append(f)
+            i0=i1
+            i1+=step
+            
+        return r    
+
+
     def add_one_object(self, obj, auto_resolve=True, verbose=1):
         """
         Add an object to `Ensemble`.
@@ -166,7 +196,7 @@ class Ensemble():
             self.mapper[newname] = idx
             
 
-    def add_col(self, colname, array):
+    def add_col(self, colname, array, force=True):
         """
         Add or overwrite column (if a column with this name already exists)
         
@@ -174,11 +204,16 @@ class Ensemble():
         ----------
         array : array, must be same length as len(Ensemble)
         name : str, Name of the column
+        force : boolean
+            Overwrite extsting content
         """
         #import numpy.lib.recfunctions as rfn
         #print("Adding ",colname, self.known_cols)
         if colname in self.known_cols: 
-            raise ValueError(str("Ensemble::add_col - Column with name \'%s\' alrady known." % colname))
+            if force:
+                return self.set_col(colname, array)
+            else:
+                raise ValueError(str("Ensemble::add_col - Column with name \'%s\' alrady known." % colname))
         #a = rfn.append_fields(a, 'USNG', np.empty(a.shape[0], dtype='|S100'), dtypes='|S100')
         #dt = array.dtype
         #self.array = rfn.append_fields(self.array, colname, array, dtypes=dt)
@@ -803,7 +838,7 @@ def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", center=(0, 0), width=
         dec = (np.random.rand(N)-0.5) * width[1] + center[1]
         cos_ra_min = (center[0]-width[0]) * np.cos(center[1]/180*np.pi)
         cos_ra_max = (center[0]+width[0]) * np.cos(center[1]/180*np.pi)
-        ra = ((np.random.rand(N)-0.5) *  (cos_ra_max - cos_ra_min)) / np.cos(center[1]/180*np.pi) + center[0]
+        ra = ((np.random.rand(N)-0.5) *  (cos_ra_max - cos_ra_min)) / 2 / np.cos(center[1]/180*np.pi) + center[0]
     else:
         dec = np.linspace(center[1]-width[1]/2, center[1]+width[1]/2, N)
         ra  = np.linspace(center[0]-width[0]/2, center[0]+width[0]/2, N)
@@ -815,10 +850,12 @@ def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", center=(0, 0), width=
         rec["pm_RA"] = pm_ra
         rec["pm_Dec"] = pm_dec
         rec["ref_epoch"] = ref_epoch
-        
     else:
         dt = [("srcID", '|S25'), ("RA", float), ("Dec", float)]
         rec = np.zeros(N, dtype=dt)
+        
+    print(max(ra), min(ra))
+    print(max(dec), min(dec))    
         
     rec["srcID"] = ids
     rec["RA"] = ra

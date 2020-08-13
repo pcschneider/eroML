@@ -1,8 +1,53 @@
-from ..utils.datasets import major_set, training_set, random_set
-from ..utils.gaia_tools import gaia4ero, prepare_gaia
+from ..utils.datasets import major_set, training_set, random_set, training_random_set
+from ..utils.gaia_tools import gaia4ero, get_gaia
 from ..utils.enrich import *
 from ..utils.iso_tools import *
 from ..ensemble import from_fits
+from .pixelize import add_healpix_col, extract_healpix_range
+import glob
+
+def loop(ero_fn=None, ofn=None, NSIDE=None, rID=1, skip=True):
+    """
+    Loop through tiles.
+    
+    Parameters
+    ----------
+    ero_fn : str
+        filename for eROSITA sources list 
+    ofn : str
+        Source list with HPIX
+    NSIDE : int (2**N)
+        nside for healpix index calculation
+    rID : int or str 
+        run ID
+    """
+
+    print("using fn=",ero_fn, " ofn=",ofn," NSIDE=",NSIDE, "rID=",rID)
+    #rID = 1
+    hps = add_healpix_col(ero_fn, ofn=ofn, nside=NSIDE, overwrite=True)
+    #hps = [500,501]
+    #gi = np.where(hps==2814)[0][0]
+    #print(gi)
+    for i in hps:#[10:]:
+
+        glob_str = "../ero_data/tile_hp"+str(i)+"_nside"+str(NSIDE)+"_rID"+str(rID)+"_training.fits"
+        glob_str = "../ero_data/tile_hp"+str(i)+"_nside"+str(NSIDE)+"_rID"+str(rID)+"_gaia_sources.fits"
+        fnames = glob.glob(glob_str)
+        print(glob_str)
+        print(fnames)
+        if skip and len(fnames)>0: continue
+        
+        print()
+        print()
+        print(i)
+        extract_healpix_range(ofn, "tmp_hp.fits", overwrite=True, min_index=i, max_index=i)
+        t = Tile()
+        t.populate_filenames("tmp_hp.fits", fn_prefix="../ero_data/tile_hp"+str(i)+"_nside"+str(NSIDE)+"_rID"+str(rID))
+        t.prepare_data()
+        #t.generate_sets()
+        print()
+        print()        
+
 
 class Tile():
     """
@@ -14,60 +59,85 @@ class Tile():
       3. Create a random catalog to assess to reliability of the sources
       4. Prepare the data for ML, i.e., convert/normalize columns etc.
     """
-    def __init__(self):
+    def __init__(self, ero_fn=None, fn_prefix="Tile"):
         """
-        xxx
+        Initialize Tile
+        
+        For parameters, see :func:`~eroML.tile.tile.Tile.populate_filenames`.
         """
-        self.e = None
+        #self.e = None
+        if ero_fn is not None:
+            self.populate_filenames(ero_fn, fn_prefix=fn_prefix)            
+
     def populate_filenames(self, ero_fn, fn_prefix="Tile"):
         """
         Generate the filenames to be used later
+        
+        The following filenames will be available:
+        
+        - `ero_fn` : eROSITA source file
+        - `gaia_fn` : File containing ALL Gaia sources
+        - `major_fn` : Matched sources
+        - `random_fn` : Shifted and matched sources
+        - `training_fn` : subset of `major_fn` fullfilling certaing quality criteris
+        - `training_random_fn` : training + random sources
+        
+        Parameters
+        ----------
+        ero_fn : str
+            Filename for eROSITA source list
+        fn_prefix : str
+            String that will be prefixed when writing the corresponding files.
         """
         self.ero_fn = ero_fn
         self.gaia_fn = fn_prefix+"_gaia_sources.fits"
         self.major_fn = fn_prefix+"_major.fits"
         self.training_fn = fn_prefix+"_training.fits"
+        self.training_random_fn = fn_prefix+"_training_random.fits"
         self.random_fn = fn_prefix+"_random.fits"
         
     def prepare_data(self, ero_fn=None, gaia_fn=None):
         """
+        Add additional information to source lists.
+        
+        Parameters
+        ----------
+        ero/gaia_fn : str
+            Filenames for eROSITA and Gaia source lists
         """
-        #return
+        
         if ero_fn is None: ero_fn = self.ero_fn 
         if gaia_fn is None: gaia_fn = self.gaia_fn     
         
         # First, download and enrich Gaia data
-        ####gaia4ero(ero_fn, ofn=gaia_fn, overwrite=True)
-        prepare_gaia(ero_fn, gaia_fn, verbose=1)
+        get_gaia(ero_fn, gaia_fn, verbose=1)
         enrich_Gaia(gaia_fn)
-        #g = from_fits(gaia_fn)
-        #import time
-        #print("sleep")
-        #time.sleep(5)
-        add_iso_column(gaia_fn, gaia_fn, overwrite=True)        
-        eligible(gaia_fn)
-        sky_density(gaia_fn)
-        sky_density(gaia_fn, filter_prop=None, out_col="sky_density")
-
-        #exit()
         
-        #e = from_fits(gaia_fn)
         # Enrich eROSITA data
-        #print("fn",ero_fn)
         e = enrich_eROSITA(ero_fn, mapper={"DETUID":"srcID", "DEC":"Dec"})
-        #print("zzzzzzzz:",len(e))
-        #print(e.srcIDs())
-        #f = from_fits(ero_fn)
-        #print("zzzzzzzz:",len(f))
-        #print(f.srcIDs())
         
         
-    def generate_sets(self, ero_fn=None, gaia_fn=None):       
+    def generate_sets(self, ero_fn=None, gaia_fn=None, training_rel_dist_cutoff=2, training_abs_dist_cutoff=3):       
         """
+        Generate the relevant data sets.
+        
+        In particular, it generates
+        
+        - major set : Containing all matched sources (:func:`~eroML.utils.datasets.major_set`)
+        - random set : Shift all source by a random amount and match  (:func:`~eroML.utils.datasets.random_set`)
+        - training set : Best matching sources  (:func:`~eroML.utils.datasets.training_set`)
+        - training+random : training set plus random source fullfilling the same criteria as the training set sources  (:func:`~eroML.utils.datasets.training_random_set`)
+        
+        Parameters
+        ----------
+        ero/gaia_fn : str
+            Filenames for eROSITA and Gaia source lists
+      
         """
         major_set(self.ero_fn, self.gaia_fn, self.major_fn)
         random_set(self.ero_fn, self.gaia_fn, self.random_fn)
-        training_set(self.major_fn, self.training_fn)
+        training_set(self.major_fn, self.training_fn, abs_dist_cutoff=training_abs_dist_cutoff, rel_dist_cutoff=training_rel_dist_cutoff)
+        training_random_set(self.training_fn, self.random_fn, self.training_random_fn, abs_dist_cutoff=training_abs_dist_cutoff, rel_dist_cutoff=training_rel_dist_cutoff)
         
         return
         self.e = from_fits(ero_fn, mapper={"detUID":"srcID", "DEC":"Dec"})#, maxN=100)

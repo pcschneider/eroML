@@ -4,6 +4,8 @@ import matplotlib.path as mpltPath
 from astropy.io import fits as pyfits
 import copy
 from matplotlib.patches import PathPatch#, PointPatch
+from eroML.ensemble import fits_support
+
 
 def iso_box(fn):
     """
@@ -40,9 +42,10 @@ def within_iso(points, iso_path, verbose=1):
         path, *x = iso_box(iso_path)
     return path.contains_points(points, radius=0)
 
-def add_iso_column(ifn, ofn, iso_fn="aux_data/iso.dat", \
+@fits_support
+def add_iso_column(e, iso_fn="aux_data/iso.dat", \
                    columns={"bp_rp":"bp_rp", "parallax":"parallax", "Gmag":"phot_g_mean_mag"},\
-                   outcol="iso_compatible", extension=1, verbose=1, overwrite=False):
+                   outcol="iso_compatible", verbose=1):
     """
       Add column to fits-file indicating if an object is within the iso-box.
 
@@ -60,31 +63,33 @@ def add_iso_column(ifn, ofn, iso_fn="aux_data/iso.dat", \
           Name for fits-column indicating compatibility with isochrone
           
     """
-    if verbose>0: print("iso_tools::add_iso_column - Reading ",ifn)
-    ff = pyfits.open(ifn)
-    color = ff[extension].data[columns["bp_rp"]]
-    dist = 1000./ff[extension].data[columns["parallax"]]
+    
+    color = e.to_array(columns["bp_rp"], array_type="array")
+    dist = 1000./e.to_array(columns["parallax"], array_type="array")
     #psig = ff[1].data["parallax"] / ff[1].data["parallax_error"]
-    mag = ff[extension].data[columns["Gmag"]]
+    mag = e.to_array(columns["Gmag"], array_type="array")
     abs_mag = mag - 5*np.log10(dist)+5
     points = np.array([color, abs_mag])
     iso = within_iso(points.T, iso_fn)
+    
+    e.add_col(outcol, iso)
+    
     if verbose>0: print('iso_tools::add_iso_column - %i from %i are within iso-box (%5.2f%%).' % (np.sum(iso), len(iso), 100.*np.sum(iso)/len(iso)))
     
-    colnames = [c.name for c in ff[extension].columns]     
-    hdu = pyfits.PrimaryHDU()    
-    col = pyfits.Column(name=outcol, array=iso, format="L")
-    if outcol in colnames:
-        ff[extension].data[outcol] = iso
-    else:
-        ff[extension].columns.add_col(col)
-    hdu = copy.copy(ff[0]) 
-    cols = ff[extension].columns
-    hdx = pyfits.BinTableHDU.from_columns(cols)
-    hdul = pyfits.HDUList([hdu, hdx])
-    hdul.writeto(ofn, overwrite=overwrite)
-    ff.close()
-    if verbose>0: print('iso_tools::add_iso_column - Written: ',ofn)
+    #colnames = [c.name for c in ff[extension].columns]     
+    #hdu = pyfits.PrimaryHDU()    
+    #col = pyfits.Column(name=outcol, array=iso, format="L")
+    #if outcol in colnames:
+        #ff[extension].data[outcol] = iso
+    #else:
+        #ff[extension].columns.add_col(col)
+    #hdu = copy.copy(ff[0]) 
+    #cols = ff[extension].columns
+    #hdx = pyfits.BinTableHDU.from_columns(cols)
+    #hdul = pyfits.HDUList([hdu, hdx])
+    #hdul.writeto(ofn, overwrite=overwrite)
+    #ff.close()
+    #if verbose>0: print('iso_tools::add_iso_column - Written: ',ofn)
     
 def check_iso_box(iso_fn="iso.dat", parsec_fn="parsec_isochrones.dat",\
                   columns={"bp_rp":"bp_rp", "parallax":"parallax", "Gmag":"phot_g_mean_mag", "iso":"iso"},\

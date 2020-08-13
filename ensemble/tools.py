@@ -76,10 +76,10 @@ def fits_support(func):
                 e = from_fits(x)
         else:
             e = x
-        func(e, **kwargs)
+        r = func(e, **kwargs)
         if type(x) == type("xxx"):
-            to_fits(e, ofn=x, overwrite=True)
-        return e    
+            to_fits(r, ofn=x, overwrite=True)
+        return r    
     return wrapper
 
 
