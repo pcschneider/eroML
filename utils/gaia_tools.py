@@ -1,5 +1,6 @@
 import astropy.units as u
 from astropy.coordinates import SkyCoord
+from eroML.ensemble import fits_support
 import numpy as np
 from astroquery.gaia import Gaia
 from astropy.io import fits as pyfits
@@ -29,7 +30,7 @@ def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwri
             continue
         download_one_Gaia_tile(ofn, i, nside, overwrite=overwrite, verbose=verbose, edge=edge, keep_VO=keep_VO)
         add_standard_cols(ofn, overwrite=True)
-        add_quality_column(ofn, ofn, overwrite=True)
+        #add_quality_column(ofn, ofn, overwrite=True)
     
          
          
@@ -123,7 +124,7 @@ def vo2fits(ifn, ofn, verbose=1, overwrite=False):
 
     
 
-def quality_filter(ff, filter_Nr=2):
+def quality_filter(ff, filter_Nr=3):
     """
     Determine Gaia-sources for which certain filter criteria are fullfilled
     
@@ -131,14 +132,25 @@ def quality_filter(ff, filter_Nr=2):
     ----------
     ff : pyfits.HDUList
     filter_Nr : int
-        There are three filters defined (0, 1, 2). Filter-Nr 0 corresponds to the tightest contrains and equals the criteria 
+        There are three filters defined (0, 1, 2, 3). Filter-Nr 0 corresponds to the tightest contrains and equals the criteria 
         defined in <> to obtain a well-defined HR diagram.
     """
-    filter_Nr = 3
+    #filter_Nr = 3
     print("using Filter: ",filter_Nr)
     
-    d = ff[1].data
-    N = len(d["source_id"])
+    try:
+        ff["parallax"]
+        is_array=True
+    except:
+        is_array=False
+        
+        
+    if not is_array:
+        d = ff[1].data
+    else:
+        d = ff
+        
+    N = len(d["srcID"])
     tmp = np.array([N*[1],np.exp(-0.4*(d["phot_g_mean_mag"]-19.5))])
     
     tmp = np.max(tmp.T, axis=1)
@@ -175,24 +187,24 @@ def quality_filter(ff, filter_Nr=2):
         
     q = np.zeros(N)
     q[gi] = 1
+    logger.debug("Number of sources fullfilling Gaia quality criterium: %i (%f)" % (np.sum(q), np.sum(q)/N))
     return q
 
-def add_quality_column(fn, ofile, colname="Gaia_quality", overwrite=False, verbose=10, filter_Nr=2):
-    if verbose>0: print("Reading: ",fn, " -> ",ofile)
-    ff = pyfits.open(fn)
-    cols = ff[1].columns
-    #print(cols) 
-    q = quality_filter(ff, filter_Nr=filter_Nr)
-    c = pyfits.Column(name=colname, array=q, format="L")
-    if verbose>1: print("gaia_tools::add_quality_column - #rows: %i, good quality: %i, fraction: %f" % (len(ff[1].data[cols[0].name]), np.sum(q),np.sum(q)/len(ff[1].data[cols[0].name]) ))
-    cols.add_col(c)
-    hdu = copy.copy(ff[0]) 
-    #hdu = ff[0]
-    #hdu = pyfits.PrimaryHDU()
-    hdx = pyfits.BinTableHDU.from_columns(cols)
-    hdul = pyfits.HDUList([hdu, hdx])
-    hdul.writeto(ofile, overwrite=overwrite)
-    ff.close()
+@fits_support
+def add_quality_column(e, colname="Gaia_quality", filter_Nr=2):
+    q = quality_filter(e.array, filter_Nr=filter_Nr).astype(bool)
+    e.add_col(colname, q)
+    return e
+    #c = pyfits.Column(name=colname, array=q, format="L")
+    #if verbose>1: print("gaia_tools::add_quality_column - #rows: %i, good quality: %i, fraction: %f" % (len(ff[1].data[cols[0].name]), np.sum(q),np.sum(q)/len(ff[1].data[cols[0].name]) ))
+    #cols.add_col(c)
+    #hdu = copy.copy(ff[0]) 
+    ##hdu = ff[0]
+    ##hdu = pyfits.PrimaryHDU()
+    #hdx = pyfits.BinTableHDU.from_columns(cols)
+    #hdul = pyfits.HDUList([hdu, hdx])
+    #hdul.writeto(ofile, overwrite=overwrite)
+    #ff.close()
     
 def add_standard_cols(ifn, overwrite=True):
     """

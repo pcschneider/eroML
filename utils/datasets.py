@@ -7,28 +7,9 @@ import numpy as np
 import copy
 from .gaia_tools import gaia4ero
 from .estimators import NN_distribution
-from .enrich import enrich_merged, activity_filter
+from .enrich import enrich_merged, activity_filter, NN_Max
 import glob
 
-@fits_support
-def NN_Max(e):
-    """
-    Count number of matches for each source
-    """
-    sids = e.srcIDs()
-    oids = e.to_array(colnames="original_srcID", array_type="array")
-    #print(sids, oids)
-    cnt = np.zeros(len(sids))
-    unique_elements, counts_elements = np.unique(oids, return_counts=True)
-    for a, b in zip(unique_elements, counts_elements):
-        gi = np.where(oids == a)[0]
-        #print(a, gi, b)
-        cnt[gi] = b
-    if "NN_max" in e.known_cols:
-        e.set_col("NN_max", cnt.astype(int))
-    else:
-        e.add_col("NN_max", cnt.astype(int))
-    return e
     
 @multi_fits_support(3)
 def major_set(ero0, gaia, keep_ero_cols=None, keep_gaia_cols=None, NN=3, verbose=10, overwrite=True):
@@ -42,24 +23,7 @@ def major_set(ero0, gaia, keep_ero_cols=None, keep_gaia_cols=None, NN=3, verbose
     Parameters
     ----------
     keep_[ero/gaia] cols : refers to respective ifn
-    """
-
-
-    #gaia = from_fits(ifn_gaia, mapper={"source_id":"srcID", "ra":"RA", "dec":"Dec"}, maxN=20000)
-    #gaia = from_fits(ifn_gaia, maxN=20000)
-    #print("gaia known cols: ",gaia.known_cols)
-    #print("Gaia len",len(gaia), np.shape(gaia.array))
-    #enrich_Gaia(gaia)
-    
-    #ero0 = from_fits(ifn_ero, mapper={"detUID":"srcID", "DEC":"Dec"}, maxN=2000)
-    #ero0 = from_fits(ifn_ero, maxN=2000)
-    #enrich_eROSITA(ero0)
-    #print("len 0: ", len(ero0))
-    #print("XXXXXXXX", len(ero0), len(gaia))
-    #print(type(ero0), type(gaia))
-    #return copy.deepcopy(ero0)  
-    #return
-          
+    """         
     eros = []
     for i in range(NN):
         if verbose>1: print("datasets::major_set - Merging NN=",i+1)
@@ -88,22 +52,6 @@ def major_set(ero0, gaia, keep_ero_cols=None, keep_gaia_cols=None, NN=3, verbose
     ero1.keep(good_ids)
     
     NN_Max(ero1)
-    
-    #sids = ero1.srcIDs()
-    #oids = ero1.to_array(colnames="original_srcID", array_type="array")
-    ##print(sids, oids)
-    #cnt = np.zeros(len(sids))
-    #unique_elements, counts_elements = np.unique(oids, return_counts=True)
-    #for a, b in zip(unique_elements, counts_elements):
-        #gi = np.where(oids == a)[0]
-        ##print(a, gi, b)
-        #cnt[gi] = b
-    #ero1.add_col("NN_max", cnt.astype(int))
-    
-        
-    #print(ero1.to_array(colnames="srcID_NN"))
-    
-    #to_fits(ero1, ofn, overwrite=True)
     return ero1
 
 

@@ -2,6 +2,7 @@ from eroML.ensemble import Ensemble, from_fits,to_fits, fits_support
 import numpy as np
 import astropy.units as u
 from .iso_tools import add_iso_column
+from .gaia_tools import add_quality_column
 import logging
 
 logger = logging.getLogger('eroML')
@@ -33,9 +34,8 @@ def eligible(e, out_col="eligible", verbose=5):
     gaia = e.to_array(colnames="Gaia_quality", array_type="array")
     iso = np.array([True if ii=="True" else False for ii in iso])
     gaia = np.array([True if ii=="True" else False for ii in gaia])
-
     gi = np.where( (iso) & (gaia) )[0]
-    print("enrich::eligible - Number of eligible sources: ",len(gi)," (",len(gi)/len(e) * 100,"%)")
+    logger.debug("Number of eligible sources: %i (%5.3f%%)" % (len(gi),len(gi)/len(e) * 100))
     el = np.zeros(len(e))
     el[gi] = 1
 
@@ -118,7 +118,48 @@ def sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="el
     else: e.set_col(out_col, dens)
     print("sky_dens::  outcol: ",out_col," nanmean: ",np.nanmean(dens), "returning ",e)
     return e
-        
+
+
+
+@fits_support
+def NN_Max(e):
+    """
+    Count number of matches for each source
+    """
+    sids = e.srcIDs()
+    oids = e.to_array(colnames="original_srcID", array_type="array")
+    #print(sids, oids)
+    cnt = np.zeros(len(sids))
+    unique_elements, counts_elements = np.unique(oids, return_counts=True)
+    for a, b in zip(unique_elements, counts_elements):
+        gi = np.where(oids == a)[0]
+        #print(a, gi, b)
+        cnt[gi] = b
+    if "NN_max" in e.known_cols:
+        e.set_col("NN_max", cnt.astype(int))
+    else:
+        e.add_col("NN_max", cnt.astype(int))
+    return e
+
+ 
+@fits_support
+def calc_gaia_quality(e, colname="Gaia_quality", overwrite=False, verbose=10, filter_Nr=2):
+    """
+    """
+     
+    q = quality_filter(ff, filter_Nr=filter_Nr)
+    c = pyfits.Column(name=colname, array=q, format="L")
+    if verbose>1: print("gaia_tools::add_quality_column - #rows: %i, good quality: %i, fraction: %f" % (len(ff[1].data[cols[0].name]), np.sum(q),np.sum(q)/len(ff[1].data[cols[0].name]) ))
+    cols.add_col(c)
+    hdu = copy.copy(ff[0]) 
+    #hdu = ff[0]
+    #hdu = pyfits.PrimaryHDU()
+    hdx = pyfits.BinTableHDU.from_columns(cols)
+    hdul = pyfits.HDUList([hdu, hdx])
+    hdul.writeto(ofile, overwrite=overwrite)
+    ff.close()
+ 
+ 
 @fits_support
 def enrich_Gaia(e):
     """
@@ -128,7 +169,7 @@ def enrich_Gaia(e):
     FG = 10**(-0.4* arr["phot_g_mean_mag"])*3.660e-08*720
     e.add_col("Fg", FG, force=True)
     
-    
+    add_quality_column(e)
     add_iso_column(e)        
     eligible(e)
     sky_density(e, around=3, filter_prop="eligible", filter_value=1, out_col="eligible_sky_density")
