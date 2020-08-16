@@ -4,8 +4,9 @@ from configparser import ConfigParser, ExtendedInterpolation
 from eroML.config import *
 from eroML.tile import loop
 from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_files
-from eroML.utils import download_Gaia_tiles
+from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
 from eroML.utils import enrich_Gaia, ero_tile_loop
+from eroML.utils import major_loop, random_loop
 import logging.handlers
 import logging
 import glob
@@ -112,13 +113,66 @@ if config["Gaia Download"]["perform"].lower()=="true":
 
 
 if config["Enrich Gaia"]["perform"].lower()=="true":
-    fnames = discover_filenames("gaia")
+    healpix_file = config["Healpix"].get("pix_file", None)
+    index0 = config["Healpix"].getint("index0", 0)
+    index1 = config["Healpix"].getint("index1", None)
+
+    idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    logger.debug("Enriching %i ero-tiles." % len(idx))
+    prex = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    posx = ""
+    
     logger.info("Enriching Gaia data files")
-    for fn in fnames:
-        logger.debug("Working on %s" % fn)
-        enrich_Gaia(fn)
+    Gaia_tile_loop(idx, prefix=prex, postfix=posx)
+    
+
+if config["Data sets"]["major"].lower()=="true":
+    
+    healpix_file = config["Healpix"].get("pix_file", None)
+    index0 = config["Healpix"].getint("index0", 0)
+    index1 = config["Healpix"].getint("index1", None)
+
+    idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    g_prex = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    g_posx = ""
+    
+    e_prex = config["eROSITA preparation"]["directory"]+"/"+config["eROSITA preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    e_posx = ""
+    
+    m_prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    m_posx = ""
+    
+    logger.debug("Major sets for %i tiles." % len(idx))
+    major_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, major_prefix=m_prex, major_postfix=m_posx)
+    
+        
 
 
+if config["Data sets"]["random"].lower()=="true":
+    
+    healpix_file = config["Healpix"].get("pix_file", None)
+    index0 = config["Healpix"].getint("index0", 0)
+    index1 = config["Healpix"].getint("index1", None)
+
+    idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    g_prex = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    g_posx = ""
+    
+    e_prex = config["eROSITA preparation"]["directory"]+"/"+config["eROSITA preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    e_posx = ""
+    
+    r_prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    r_posx = ""
+    
+    mino = float(config["Data sets"]["min_random_offset"])
+    maxo = float(config["Data sets"]["max_random_offset"])
+    multi= int(config["Data sets"]["random_multi"])
+    logger.debug("Random data sets for %i tiles." % len(idx))
+    random_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, random_prefix=r_prex, random_postfix=r_posx, min_offset=mino, max_offset=maxo, multi=multi)
+    
+
+
+    
 #if config["Datasets"][1]
     
 exit()    

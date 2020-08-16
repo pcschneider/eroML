@@ -1,7 +1,7 @@
-from eroML.utils.datasets import major_set, training_set, random_set
+from eroML.utils.datasets import major_loop, random_loop, major_set, training_set, random_set
 from eroML.utils.enrich import enrich_Gaia, enrich_eROSITA, enrich_merged, sky_density
 from eroML.utils.estimators import NN_distribution
-from eroML.utils.gaia_tools import get_gaia, download_Gaia_tiles
+from eroML.utils.gaia_tools import get_gaia, download_Gaia_tiles, Gaia_tile_loop
 from eroML.utils.iso_tools import *
 from eroML.utils.ero_tools import ero_tile_loop
 from .gaia_tools import vo2fits

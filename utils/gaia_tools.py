@@ -12,6 +12,7 @@ import os
 import healpy as hp
 import logging
 import glob
+#from .enrich import enrich_Gaia
 
 logger = logging.getLogger('eroML')
 
@@ -31,7 +32,20 @@ def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwri
         download_one_Gaia_tile(ofn, i, nside, overwrite=overwrite, verbose=verbose, edge=edge, keep_VO=keep_VO)
         add_standard_cols(ofn, overwrite=True)
         #add_quality_column(ofn, ofn, overwrite=True)
+
+
+
+def Gaia_tile_loop(idx, prefix=None, postfix=None):
+    """
+    Loop through ero tiles and enrich them
+    """
+    from .enrich import enrich_Gaia
+    logger.info("Enrichting %i Gaia source tiles." % len(idx))
     
+    for i in idx:
+        fn = prefix+str(i)+postfix+'.fits'
+        logger.debug("Enriching Gaia tile: %s." % fn) 
+        enrich_Gaia(fn)    
          
          
 def download_one_Gaia_tile(ofn, hpix, nside, overwrite=False, verbose=1, edge=3., keep_VO=False):
@@ -205,6 +219,8 @@ def add_quality_column(e, colname="Gaia_quality", filter_Nr=2):
     #hdul = pyfits.HDUList([hdu, hdx])
     #hdul.writeto(ofile, overwrite=overwrite)
     #ff.close()
+
+
     
 def add_standard_cols(ifn, overwrite=True):
     """

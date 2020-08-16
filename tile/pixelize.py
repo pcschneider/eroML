@@ -21,6 +21,7 @@ def populated_hpix(fn, colname="healpix", extension=1):
  
 def hpix2process(ifn, index0=0, index1=None, pix_file=None, colname="healpix", extension=1):
     """
+    Returns list of healpix indices based on `index0`, `index1`, and `pix_file` for the healpix indices that are in `ifn`
     """
     hpix_all = populated_hpix(ifn, colname=colname, extension=extension)
     hpix_range=min(hpix_all), max(hpix_all)    
@@ -32,7 +33,7 @@ def hpix2process(ifn, index0=0, index1=None, pix_file=None, colname="healpix", e
         dd = np.genfromtxt(pix_file, dtype=int)
         indices = np.atleast_1d(dd)
     else:
-        indices = range(hpix_range[0], hpix_range[1])
+        indices = np.arange(hpix_range[0], hpix_range[1])
         
     if index1==None: index1=max(indices)
     
@@ -154,16 +155,21 @@ def add_healpix_col(ifn, ofn=None, extension=1, overwrite=False, nside=16, verbo
         logger.debug("pixelize::add_healpix_col - Approx. resolution at NSIDE {} is {:.2} deg".format(nside, hp.nside2resol(nside, arcmin=True) / 60))
     
     ff = pyfits.open(ifn)
-    theta, phi = copy.deepcopy(ff[extension].data["RA"]), copy.deepcopy(ff[1].data["Dec"])
+    ra, dec = copy.deepcopy(ff[extension].data["RA"]), copy.deepcopy(ff[1].data["Dec"])
 
-    theta[theta<0]+=360
-    phi+=90
+    ra[ra<0]+=360
+    phi = 90-dec
+    theta = ra
+
+    #resol = hp.nside2resol(nside, arcmin=True)
+    #pix_center = hp.pix2ang(nside, hpix, nest=True)
+    #ra, dec = pix_center[1]/np.pi*180, 90. - pix_center[0]/np.pi*180
 
     if verbose>1:
         logger.debug("pixelize::add_healpix_col: theta: %f %f " % (min(theta), max(theta)))
         logger.debug("pixelize::add_healpix_col: phi: %f %f " % (min(phi), max(phi)))
 
-    x = hp.pixelfunc.ang2pix(nside, (180-phi)/180*np.pi, theta/180*np.pi, nest=False, lonlat=False)
+    x = hp.pixelfunc.ang2pix(nside, phi/180*np.pi, theta/180*np.pi, nest=True, lonlat=False)
     
     uni, cnt = np.unique(x, return_counts=True)    
     if verbose>1: 

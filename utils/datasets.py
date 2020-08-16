@@ -13,6 +13,31 @@ import logging
 
 logger = logging.getLogger('eroML')
     
+
+def major_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_postfix=None, major_prefix=None, major_postfix=None):
+    """
+    """
+    for i in idx:
+        ero_fn = ero_prefix+str(i)+ero_postfix+".fits"
+        gaia_fn = gaia_prefix+str(i)+gaia_postfix+".fits"
+        ofn = major_prefix+str(i)+major_postfix+".fits"
+        logger.debug("Creating major set for ero=%s and Gaia=%s (ofn=%s)." % (ero_fn, gaia_fn, ofn))
+        major_set(ero_fn, gaia_fn, ofn)
+
+
+
+def random_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_postfix=None, random_prefix=None, random_postfix=None, multi=1, min_offset=60, max_offset=180):
+    """
+    """
+    for i in idx:
+        ero_fn = ero_prefix+str(i)+ero_postfix+".fits"
+        gaia_fn = gaia_prefix+str(i)+gaia_postfix+".fits"
+        ofn = random_prefix+str(i)+random_postfix+".fits"
+        logger.debug("Creating random data set for ero=%s and Gaia=%s (ofn=%s)." % (ero_fn, gaia_fn, ofn))
+        random_set(ero_fn, gaia_fn, ofn, multi=multi, min_offset=min_offset, max_offset=max_offset)
+
+
+        
 @multi_fits_support(3)
 def major_set(ero, gaia, eligible_ero="eligible_eROSITA", eligible_gaia="eligible_Gaia", NN=3, verbose=10, overwrite=True):
     """
@@ -32,14 +57,14 @@ def major_set(ero, gaia, eligible_ero="eligible_eROSITA", eligible_gaia="eligibl
     ero_ids = np.array(ero0.srcIDs())
     gi = np.where(ero_e == 1)[0]
     ero0.keep(ero_ids[gi])
-    logger.debug("Keeping %i of % i eligble eROSITA sources." % (len(gi), len(ero)))
+    logger.debug("Keeping %i of % i as eligble eROSITA sources." % (len(gi), len(ero)))
     
-    gaia0 = copy.deepcopy(gai)
-    gaia_e = gaia0.to_array(colnames=eligible_gai, array_type="array")
+    gaia0 = copy.deepcopy(gaia)
+    gaia_e = gaia0.to_array(colnames=eligible_gaia, array_type="array")
     gaia_ids = np.array(gaia0.srcIDs())
     gi = np.where(gaia_e == 1)[0]
     gaia0.keep(gaia_ids[gi])
-    logger.debug("Keeping %i of % i eligble Gaia sources." % (len(gi), len(gaia)))
+    logger.debug("Keeping %i of % i as eligble Gaia sources." % (len(gi), len(gaia)))
     
     eros = []
     for i in range(NN):
@@ -158,7 +183,7 @@ def training_random_set(training, random, abs_dist_cutoff=3, rel_dist_cutoff=2):
     
     
 @multi_fits_support(3)
-def random_set(ero, gaia, multi=1):
+def random_set(ero, gaia, multi=1, min_offset=60, max_offset=180):
     """
     Generate a random set, i.e., shuffle the X-ray positions
    
@@ -171,8 +196,8 @@ def random_set(ero, gaia, multi=1):
           Increase size of sample by N
       overwrite : boolean
     """
-    min_offset = 60 #arcsec
-    max_offset = 180
+    #min_offset = 60 #arcsec
+    #max_offset = 180
     
     #gaia = from_fits(ifn_gaia, maxN=20000)
     #print("gaia known cols: ",gaia.known_cols)
@@ -181,11 +206,18 @@ def random_set(ero, gaia, multi=1):
     
     #ero0 = from_fits(ifn_ero, mapper={"detUID":"srcID", "DEC":"Dec"}, maxN=2000)
     #ero = from_fits(ifn_ero, maxN=2000)
+    logger.debug("Random data set for min_offset=%f, max_offset=%f, multi=%i" % (min_offset, max_offset, multi))
+    tmp = copy.deepcopy(ero)
+    NN_random = np.array(len(tmp)*multi*[1])
+    N = len(tmp)
     
-    for i in range(multi):
-        tmp = copy.deepcopy(ero)
+    #print(N)
+    for i in range(multi-1):
         ero.append(tmp, postfix="_N"+str(i+2))
-    
+        i0, i1 = (i+1)*N, (i+2)*N-1
+        #print(i0, i1)
+        NN_random[i0:i1] = i+2
+    ero.add_col("NN_random", NN_random)
     #print(len(ra))
     coords = ero.skyCoords()
     #print(len(coords))
