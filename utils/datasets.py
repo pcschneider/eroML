@@ -13,6 +13,8 @@ import logging
 
 logger = logging.getLogger('eroML')
     
+def shrink():
+    pass
 
 def major_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_postfix=None, major_prefix=None, major_postfix=None):
     """
@@ -36,6 +38,15 @@ def random_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_p
         logger.debug("Creating random data set for ero=%s and Gaia=%s (ofn=%s)." % (ero_fn, gaia_fn, ofn))
         random_set(ero_fn, gaia_fn, ofn, multi=multi, min_offset=min_offset, max_offset=max_offset)
 
+def training_loop(idx, major_prefix=None, major_postfix=None, random_prefix=None, random_postfix=None, training_prefix=None, training_postfix=None, abs_dist=2, rel_dist=1):
+    """
+    """
+    for i in idx:
+        major_fn = major_prefix+str(i)+major_postfix+".fits"
+        random_fn = random_prefix+str(i)+random_postfix+".fits"
+        ofn = training_prefix+str(i)+training_postfix+".fits"
+        logger.debug("Creating training data set for major=%s and random=%s (ofn=%s)." % (major_fn, random_fn, ofn))
+        training_set(major_fn, random_fn, ofn, abs_dist_cutoff=abs_dist, rel_dist_cutoff=rel_dist)
 
         
 @multi_fits_support(3)
@@ -98,8 +109,50 @@ def major_set(ero, gaia, eligible_ero="eligible_eROSITA", eligible_gaia="eligibl
     return ero1
 
 
+@multi_fits_support(3)
+def training_set(major0, random0, abs_dist_cutoff=3, rel_dist_cutoff=2):
+    major = copy.deepcopy(major0)
+    random = copy.deepcopy(random0)
+    
+    print("len", len(major), len(random))
+    
+    for e in [major, random]:
+        abs_dist = e.to_array("match_dist", array_type="array")
+        rel_dist = e.to_array("offset_sig", array_type="array")
+        #print(abs_dist)
+        gi = np.where( (abs_dist < abs_dist_cutoff) & (rel_dist < rel_dist_cutoff) )[0]
+        sids = np.array(e.srcIDs())[gi]
+        e.keep(sids)
+    
+    random.add_col("category", np.ones(len(random))*2)
+    
+    color = major.to_array("bp_rp", array_type="array")
+    FxFg = major.to_array("FxFg", array_type="array")
+    below = (1-activity_filter(color, FxFg)).astype(bool)
+    well_above = activity_filter(color, FxFg, log_margin=0.5).astype(bool)
+    print(len(below), len(well_above))
+    print(below, well_above)
+    
+    cl = np.ones(len(major)).astype(int) *2
+    cl[below] = 0
+    cl[well_above] = 1
+    gi2 = np.where(cl < 2)[0]
+    sids = np.array(major.srcIDs())[gi2]
+    print(type(major), len(major), len(sids))
+    major.keep(sids)
+    
+    major.append(random, postfix="_rnd")
+    print(len(major))
+    return major
+    
+    #print("unique: ",np.unique(cl), below)
+    
+    
+    
+    
+
 @multi_fits_support(2)
-def training_set(e, abs_dist_cutoff=3, rel_dist_cutoff=2):
+def training_set2(e, abs_dist_cutoff=3, rel_dist_cutoff=2):
     """
     Generate training set based on good positional matches and a criterium on Fx/Fg
     

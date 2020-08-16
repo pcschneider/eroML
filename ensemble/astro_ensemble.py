@@ -643,7 +643,7 @@ class Ensemble():
                     if "i" not in dt[1] and "f" not in dt[1]: 
                         #print(c, type(tmp), dt)
                         tmp = np.array(tmp).astype(str)
-                        dt = (c, '<U36')
+                        dt = (c, '<U64')
                     elif "f" in dt[1]:
                         idx = np.isfinite(tmp)
                         #print(idx)
