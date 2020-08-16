@@ -21,6 +21,21 @@ Run the stuff::
    cheat_sheet.rst
       
 
+Individual data sets
+--------------------
+Names in brackets pertain to their corresponding name in the config-file (**idx** is the healpix index):
+
+  - eROSITA source list (*Sources:ero_filename*)
+      This file is provided by the catalog team and will not be changed
+  - eROSITA source list with healpix indices (*Sources:ero_filename_hp*)
+  - eROSITA tiles (*data_dir* / *prefix* _nside *nside* _ **idx**.fits)
+      This file may be annotated, but shall always contain the full content. 
+  - Gaia tiles (*data_dir*  / *prefix* _nside *nside* _**idx**.fits)    
+      This file may be annotated, but shall always contain the full content. 
+  - A major file for each healpix () 
+  - A file containing random matches
+  - A Training file containg both, real and random, sources 
+      
 Description of individual processing Steps
 --------------------------------------------
 

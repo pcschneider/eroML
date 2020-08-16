@@ -5,7 +5,7 @@ from eroML.config import *
 from eroML.tile import loop
 from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_files
 from eroML.utils import download_Gaia_tiles
-from eroML.utils import enrich_Gaia
+from eroML.utils import enrich_Gaia, ero_tile_loop
 import logging.handlers
 import logging
 import glob
@@ -75,14 +75,23 @@ if config["Healpix"]["calculate"].lower()=="true":
 
 if config["eROSITA preparation"]["perform"].lower()=="true":
     logger.info("Preparing eROSITA data")
-    prex = config["eROSITA preparation"]["directory"]+"/"+config["eROSITA preparation"]["prefix"]+"_pix"
-    posx = "_nside"+config["Healpix"]["nside"]
+    prex = config["eROSITA preparation"]["directory"]+"/"+config["eROSITA preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    posx = ""
+    healpix_file = config["Healpix"].get("pix_file", None)
+    index0 = config["Healpix"].getint("index0", 0)
+    index1 = config["Healpix"].getint("index1", None)    
+    generate_healpix_files(config["Sources"]["ero_filename_hp"], prefix=prex, postfix=posx, index0=index0, index1=index1, pix_file=healpix_file)
+
+if config["eROSITA preparation"]["enrich"].lower()=="true":
     healpix_file = config["Healpix"].get("pix_file", None)
     index0 = config["Healpix"].getint("index0", 0)
     index1 = config["Healpix"].getint("index1", None)
-    
-    generate_healpix_files(config["Sources"]["ero_filename_hp"], prefix=prex, postfix=posx, index0=index0, index1=index1, pix_file=healpix_file)
 
+    idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    logger.debug("Enriching %i ero-tiles." % len(idx))
+    prex = config["eROSITA preparation"]["directory"]+"/"+config["eROSITA preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    posx = ""
+    ero_tile_loop(idx, prefix=prex, postfix=posx)
 
 if config["Gaia Download"]["perform"].lower()=="true":
     logger.info("Downloading Gaia data")
@@ -100,13 +109,17 @@ if config["Gaia Download"]["perform"].lower()=="true":
                overwrite=config["Gaia Download"]["overwrite"],\
                edge=float(config["Gaia Download"]["edge"]),\
                verbose=int(config["Gaia Download"]["verbose"]))
- 
+
+
 if config["Enrich Gaia"]["perform"].lower()=="true":
     fnames = discover_filenames("gaia")
     logger.info("Enriching Gaia data files")
     for fn in fnames:
         logger.debug("Working on %s" % fn)
         enrich_Gaia(fn)
+
+
+#if config["Datasets"][1]
     
 exit()    
 

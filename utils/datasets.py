@@ -9,10 +9,12 @@ from .gaia_tools import gaia4ero
 from .estimators import NN_distribution
 from .enrich import enrich_merged, activity_filter, NN_Max
 import glob
+import logging
 
+logger = logging.getLogger('eroML')
     
 @multi_fits_support(3)
-def major_set(ero0, gaia, keep_ero_cols=None, keep_gaia_cols=None, NN=3, verbose=10, overwrite=True):
+def major_set(ero, gaia, eligible_ero="eligible_eROSITA", eligible_gaia="eligible_Gaia", NN=3, verbose=10, overwrite=True):
     """
     Merge eROSITA and Gaia sources into one fits-file. 
     
@@ -24,11 +26,27 @@ def major_set(ero0, gaia, keep_ero_cols=None, keep_gaia_cols=None, NN=3, verbose
     ----------
     keep_[ero/gaia] cols : refers to respective ifn
     """         
+    
+    ero0 = copy.deepcopy(ero)
+    ero_e = ero0.to_array(colnames=eligible_ero, array_type="array")
+    ero_ids = np.array(ero0.srcIDs())
+    gi = np.where(ero_e == 1)[0]
+    ero0.keep(ero_ids[gi])
+    logger.debug("Keeping %i of % i eligble eROSITA sources." % (len(gi), len(ero)))
+    
+    gaia0 = copy.deepcopy(gai)
+    gaia_e = gaia0.to_array(colnames=eligible_gai, array_type="array")
+    gaia_ids = np.array(gaia0.srcIDs())
+    gi = np.where(gaia_e == 1)[0]
+    gaia0.keep(gaia_ids[gi])
+    logger.debug("Keeping %i of % i eligble Gaia sources." % (len(gi), len(gaia)))
+    
     eros = []
     for i in range(NN):
         if verbose>1: print("datasets::major_set - Merging NN=",i+1)
         ero1 = copy.deepcopy(ero0)
-        ero1.merge_add(gaia, NN=i+1)
+        
+        ero1.merge_add(gaia0, NN=i+1)
         ero1.add_col("NN", np.array(len(ero1)*[i+1]))
         ero1.add_col("original_srcID", np.array(ero1.srcIDs()))
         eros.append(ero1)
@@ -140,7 +158,7 @@ def training_random_set(training, random, abs_dist_cutoff=3, rel_dist_cutoff=2):
     
     
 @multi_fits_support(3)
-def random_set(ero, gaia):
+def random_set(ero, gaia, multi=1):
     """
     Generate a random set, i.e., shuffle the X-ray positions
    
@@ -149,6 +167,8 @@ def random_set(ero, gaia):
       ----------
       ifn, ofn : string, filenames for in- and output files
       offsets : float, in arcsec
+      multi : int
+          Increase size of sample by N
       overwrite : boolean
     """
     min_offset = 60 #arcsec
@@ -161,6 +181,10 @@ def random_set(ero, gaia):
     
     #ero0 = from_fits(ifn_ero, mapper={"detUID":"srcID", "DEC":"Dec"}, maxN=2000)
     #ero = from_fits(ifn_ero, maxN=2000)
+    
+    for i in range(multi):
+        tmp = copy.deepcopy(ero)
+        ero.append(tmp, postfix="_N"+str(i+2))
     
     #print(len(ra))
     coords = ero.skyCoords()
