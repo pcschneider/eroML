@@ -1,4 +1,4 @@
-from eroML.utils.datasets import major_loop, random_loop, training_loop, major_set, training_set, random_set
+from eroML.utils.datasets import major_loop, random_loop, training_loop, major_set, training_set, random_set,file_loop_1to1,file_loop_2to1, shrink
 from eroML.utils.enrich import enrich_Gaia, enrich_eROSITA, enrich_merged, sky_density
 from eroML.utils.estimators import NN_distribution
 from eroML.utils.gaia_tools import get_gaia, download_Gaia_tiles, Gaia_tile_loop

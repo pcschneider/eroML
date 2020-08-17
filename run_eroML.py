@@ -7,6 +7,7 @@ from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_f
 from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
 from eroML.utils import enrich_Gaia, ero_tile_loop
 from eroML.utils import major_loop, random_loop, training_loop
+from eroML.utils import file_loop_1to1, shrink
 import logging.handlers
 import logging
 import glob
@@ -200,9 +201,29 @@ if config["Data sets"]["training"].lower()=="true":
     
     logger.debug("Random data sets for %i tiles." % len(idx))
     training_loop(idx, major_prefix=m_prex, major_postfix=m_posx, random_prefix=r_prex, random_postfix=r_posx, training_prefix=t_prex, training_postfix=t_posx, abs_dist=ad, rel_dist=rd)
+
+if config["Merging"]["shrink"]:
+    healpix_file = config["Healpix"].get("pix_file", None)
+    index0 = config["Healpix"].getint("index0", 0)
+    index1 = config["Healpix"].getint("index1", None)
+
+    idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     
-
-
+    r_prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    r_posx = ""
+    
+    #major
+    m_prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    m_posx = ""
+    
+    #training
+    t_prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["training_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    t_posx = ""
+ 
+    cols = config["Columns"]["keep"].split(",")
+    print("cols: ",cols)
+    file_loop_1to1(idx, prefix=t_prex, postfix=t_posx, method=shrink)
+    
     
 #if config["Datasets"][1]
     

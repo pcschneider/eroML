@@ -62,14 +62,22 @@ def eligible_eROSITA(e, out_col="eligible_eROSITA"):
 @fits_support
 def sky_density(e, around=3, filter_prop="eligible_Gaia", filter_value=1, out_col="eligible_sky_density", verbose=1):
     """
+    Calculate the local sky density for each source
+    
+    The sky density is in #stars/arcmin^-2
     
     Parameters
     ----------
     e : Ensemble
     around : float
         The on-sky radius in arcmin
+    filter_prop : str
+        The column to filter the input sample, i.e., use only entries which have the given `filter_value`.
+    filter_value : int
+    outcol : str
+        Name for the new column containing the sky density
     """
-    #return None
+    
     dens = np.zeros(len(e))
     dens[:] = np.nan
     
@@ -106,7 +114,7 @@ def sky_density(e, around=3, filter_prop="eligible_Gaia", filter_value=1, out_co
         for ss in s:
             x = sky_density(ss, around=around, filter_prop=filter_prop, filter_value=filter_value, out_col=out_col)
             skd = x.to_array(out_col, array_type="array")
-            x.set_col(out_col, skd/3)
+            x.set_col(out_col, skd*3)
             f.append(x)
         return f
     
@@ -127,7 +135,7 @@ def sky_density(e, around=3, filter_prop="eligible_Gaia", filter_value=1, out_co
         uni, cnt = np.unique(idxc, return_counts=True)
         print("sky_dens:: Using ",around," arcmin search radius.")
 
-    dens[gi] = 1/cnt
+    dens[gi] = cnt/np.pi/around**2
     if out_col not in e.known_cols: e.add_col(out_col, dens)
     else: e.set_col(out_col, dens)
     print("sky_dens::  outcol: ",out_col," nanmean: ",np.nanmean(dens), "returning ",e)

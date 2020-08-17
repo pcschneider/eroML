@@ -18,6 +18,10 @@ def progressbar(it, prefix="", size=10, file=sys.stdout):
     file.write("\n")
     file.flush()
     
+def shrink_loop():
+    """
+    """
+    
 def merge_matching(glob_str, ofn=None, overwrite=True, verbose=1):
     """
     Merge files matching `glob_str` into one fits-file

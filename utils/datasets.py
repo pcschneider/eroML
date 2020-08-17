@@ -13,8 +13,35 @@ import logging
 
 logger = logging.getLogger('eroML')
     
-def shrink():
-    pass
+@multi_fits_support(2)    
+def shrink(e, cols=[]):
+    """
+    """
+    standard_cols = ["srcID", "RA", "Dec"]
+    merged_cols = np.unique(standard_cols + cols)
+    f = Ensemble()
+    for c in e.known_cols:
+        if c in merged_cols:
+          f.add_col(c, e.array[c])
+    return f      
+
+
+
+def file_loop_1to1(idx, prefix="", postfix="", ofn_prefix="", ofn_postfix="", method=None, **kwargs):
+    for i in idx:
+        fn = prefix+str(i)+postfix+".fits"
+        ofn = ofn_prefix+str(i)+ofn_postfix+".fits"
+        logger.debug("Creating data set for fn=%s (ofn=%s)." % (fn, ofn))
+        method(fn, ofn, **kwargs)
+
+
+def file_loop_2to1(idx, prefix1="", postfix1="", prefix2="", postfix2="", ofn_prefix="", ofn_postfix="", method=None, **kwargs):
+    for i in idx:
+        fn1 = prefix1+str(i)+postfix1+".fits"
+        fn2 = prefix2+str(i)+postfix2+".fits"
+        ofn = ofn_prefix+str(i)+ofn_postfix+".fits"
+        logger.debug("Creating data set for fn1=%s and fn2=%s (ofn=%s)." % (fn1, fn2, ofn))
+        method(fn1, fn2, ofn, **kwargs)
 
 def major_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_postfix=None, major_prefix=None, major_postfix=None):
     """
