@@ -19,7 +19,10 @@ def shrink(e, cols=[]):
     """
     standard_cols = ["srcID", "RA", "Dec"]
     merged_cols = np.unique(standard_cols + cols)
+    print(merged_cols)
+    tmp = e.to_array(colnames=standard_cols)
     f = Ensemble()
+    f.from_array(tmp)
     for c in e.known_cols:
         if c in merged_cols:
           f.add_col(c, e.array[c])

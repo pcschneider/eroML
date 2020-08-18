@@ -222,7 +222,7 @@ if config["Merging"]["shrink"]:
  
     cols = config["Columns"]["keep"].split(",")
     print("cols: ",cols)
-    file_loop_1to1(idx, prefix=t_prex, postfix=t_posx, method=shrink)
+    file_loop_1to1(idx, prefix=t_prex, postfix=t_posx, method=shrink, cols=cols)
     
     
 #if config["Datasets"][1]
