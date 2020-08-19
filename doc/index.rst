@@ -24,17 +24,27 @@ Run the stuff::
 Individual data sets
 --------------------
 Names in brackets pertain to their corresponding name in the config-file (**idx** is the healpix index):
+Names in square brackets give the identifier for `file4`.
 
-  - eROSITA source list (*Sources:ero_filename*)
+  - eROSITA source list (*Sources:ero_filename*)[``ero_filename``]
       This file is provided by the catalog team and will not be changed
-  - eROSITA source list with healpix indices (*Sources:ero_filename_hp*)
-  - eROSITA tiles (*data_dir* / *prefix* _nside *nside* _ **idx**.fits)
+      
+  - eROSITA source list with healpix indices (*Sources:ero_filename_hp*)[``ero_filename_hp``]
+      
+  - eROSITA tiles (*data_dir* / *prefix* _nside *nside* _ **idx**.fits)[``ero_tiles``]
       This file may be annotated, but shall always contain the full content. 
-  - Gaia tiles (*data_dir*  / *prefix* _nside *nside* _**idx**.fits)    
+  - Gaia tiles (*data_dir*  / *prefix* _nside *nside* _**idx**.fits)[``gaia_tiles``]    
       This file may be annotated, but shall always contain the full content. 
-  - A major file for each healpix () 
-  - A file containing random matches
-  - A Training file containg both, real and random, sources 
+  - For each tile, the following sets
+      a) *major* [``major_tiles``]
+      b) *random* [``random_tiles``]
+      c) *training* [``training_tiles``]
+    Plus the same data sets in the _small_ incarnation [``*_small``]  
+  - Finally, the merged data sets
+      a) *major* [``major``]
+      b) *random* [``random``]
+      c) *training* [``training``]
+      
       
 Description of individual processing Steps
 --------------------------------------------

@@ -13,4 +13,4 @@ def ero_tile_loop(idx, prefix=None, postfix=None):
     for i in idx:
         fn = prefix+str(i)+postfix+'.fits'
         logger.debug("Enriching eROISTA tile: %s." % fn) 
-        enrich_eROSITA(fn, mapper={"DETUID":"srcID", "DEC":"Dec"})
+        enrich_eROSITA(fn, mapper={"DETUID":"srcID", "RA_CORR":"RA", "DEC_CORR":"Dec"})

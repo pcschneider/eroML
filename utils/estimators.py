@@ -1,6 +1,9 @@
 from astropy.io import fits as pyfits
 import numpy as np
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except:
+    pass    
 import PyAstronomy.funcFit as fuf
 
 
@@ -32,7 +35,8 @@ class Dist_model(fuf.OneDFit):
         Calculates and returns model according to the \
         current parameter values.
 
-        Parameters:
+        Parameters
+        ----------
         - `x` - Array specifying the positions at \
                 which to evaluate the model.
         """
@@ -68,13 +72,6 @@ def NN_distribution(fn, Nsig=1000, ext=1, fkey="match_dist", errkey="RADEC_ERR",
     Estimate number of real matches (as compared to random matches)
     
     The estimation is based on the 
-    
-    Example
-    -------
-    >>> from eroML.utils import NN_distribution 
-    >>> N = NN_distribution("merged.fits", verbose=0)
-    >>> abs(8663 - N)< 100
-    True
     
     Parameters
     ----------

@@ -112,7 +112,7 @@ def major_set(ero, gaia, eligible_ero="eligible_eROSITA", eligible_gaia="eligibl
         if verbose>1: print("datasets::major_set - Merging NN=",i+1)
         ero1 = copy.deepcopy(ero0)
         
-        ero1.merge_add(gaia0, NN=i+1)
+        ero1.merge_add(gaia0, NN=i+1, epoch=2019)
         ero1.add_col("NN", np.array(len(ero1)*[i+1]))
         ero1.add_col("original_srcID", np.array(ero1.srcIDs()))
         eros.append(ero1)
@@ -144,7 +144,7 @@ def training_set(major0, random0, abs_dist_cutoff=3, rel_dist_cutoff=2):
     major = copy.deepcopy(major0)
     random = copy.deepcopy(random0)
     
-    print("len", len(major), len(random))
+    #print("len", len(major), len(random))
     
     for e in [major, random]:
         abs_dist = e.to_array("match_dist", array_type="array")
@@ -160,19 +160,20 @@ def training_set(major0, random0, abs_dist_cutoff=3, rel_dist_cutoff=2):
     FxFg = major.to_array("FxFg", array_type="array")
     below = (1-activity_filter(color, FxFg)).astype(bool)
     well_above = activity_filter(color, FxFg, log_margin=0.5).astype(bool)
-    print(len(below), len(well_above))
-    print(below, well_above)
+    #print(len(below), len(well_above))
+    #print(below, well_above)
     
     cl = np.ones(len(major)).astype(int) *2
     cl[below] = 0
     cl[well_above] = 1
     gi2 = np.where(cl < 2)[0]
+    major.add_col("category", cl)
     sids = np.array(major.srcIDs())[gi2]
-    print(type(major), len(major), len(sids))
+    #print(type(major), len(major), len(sids))
     major.keep(sids)
     
     major.append(random, postfix="_rnd")
-    print(len(major))
+    #print(len(major))
     return major
     
     #print("unique: ",np.unique(cl), below)
@@ -266,7 +267,7 @@ def training_random_set(training, random, abs_dist_cutoff=3, rel_dist_cutoff=2):
     
     
 @multi_fits_support(3)
-def random_set(ero, gaia, multi=1, min_offset=60, max_offset=180):
+def random_set(ero0, gaia, multi=1, min_offset=60, max_offset=180):
     """
     Generate a random set, i.e., shuffle the X-ray positions
    
@@ -290,17 +291,27 @@ def random_set(ero, gaia, multi=1, min_offset=60, max_offset=180):
     #ero0 = from_fits(ifn_ero, mapper={"detUID":"srcID", "DEC":"Dec"}, maxN=2000)
     #ero = from_fits(ifn_ero, maxN=2000)
     logger.debug("Random data set for min_offset=%f, max_offset=%f, multi=%i" % (min_offset, max_offset, multi))
-    tmp = copy.deepcopy(ero)
-    NN_random = np.array(len(tmp)*multi*[1])
-    N = len(tmp)
+    ero = copy.deepcopy(ero0)
+    
+    #NN_random = np.array(len(tmp)*multi*[1])
+    NN_random = np.ones(len(ero)*multi)
+    N = len(ero)
+    
+    osids = ero.srcIDs()
     
     #print(N)
     for i in range(multi-1):
-        ero.append(tmp, postfix="_N"+str(i+2))
+        tmp = copy.deepcopy(ero0)
+        ero.append(tmp, postfix="_rnd"+str(i+2))
         i0, i1 = (i+1)*N, (i+2)*N-1
         #print(i0, i1)
         NN_random[i0:i1] = i+2
-    ero.add_col("NN_random", NN_random)
+
+    for si in osids:
+        ero.rename(si, si+"_rnd1")
+        
+        
+    ero.add_col("N_random", NN_random)
     #print(len(ra))
     coords = ero.skyCoords()
     #print(len(coords))

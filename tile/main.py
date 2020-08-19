@@ -1,8 +1,5 @@
-from ..utils.datasets import major_set, training_set, random_set, training_random_set
-from ..utils.gaia_tools import gaia4ero, get_gaia
-from ..utils.enrich import *
-from ..utils.iso_tools import *
-from ..ensemble import from_fits
+from eroML.utils import *
+from eroML.ensemble import from_fits
 from .pixelize import add_healpix_col, extract_healpix_range
 import glob
 

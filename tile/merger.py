@@ -4,6 +4,9 @@ import numpy as np
 import copy
 #import eroML.config as conf
 import sys
+import logging
+
+logger = logging.getLogger('eroML')
 
 def progressbar(it, prefix="", size=10, file=sys.stdout):
     count = len(it)
@@ -18,26 +21,24 @@ def progressbar(it, prefix="", size=10, file=sys.stdout):
     file.write("\n")
     file.flush()
     
-def shrink_loop():
+def merge_fits(fnames, ofn=None, overwrite=True, verbose=1):
     """
+    Merge fits-files into one fits-file
     """
-    
-def merge_matching(glob_str, ofn=None, overwrite=True, verbose=1):
-    """
-    Merge files matching `glob_str` into one fits-file
-    """
-    fnames = glob.glob(glob_str)#[0:10]
-    if verbose>0: print("tile.merger::merge_matching - Number of matching files: ",len(fnames))
+    #fnames = glob.glob(glob_str)#[0:10]
+    logger.debug("merge_fits - Number of files: %i " % len(fnames))
 
     # Count required entries
     N = 0    
-    for fn in progressbar(fnames, "tile.merger::merge_matching - Counting number of objects "):
+    k=0
+    #for fn in progressbar(fnames, "tile.merger::merge_matching - Counting number of objects "):
+    for fn in fnames:#
         ff = pyfits.open(fn)
         tmp = len(ff[1].data["srcID"])
         N+=tmp
-        if verbose>1: print(k+1,"/",len(fnames),"   ", fn, " -> ", tmp, "(",N,")")
+        logger.debug("Counting objects - %i/%i    %s -> %i (%i)" % (k+1, len(fnames), fn, tmp, N))
         ff.close()
-    
+        k+=1
     
     # Extract relevant columns, prepare final array
     ff = pyfits.open(fnames[0])
@@ -50,8 +51,8 @@ def merge_matching(glob_str, ofn=None, overwrite=True, verbose=1):
     if verbose>0: print("tile.merger::merge_matching - Number of rows: ",N)
 
     i0, i1 = None, None
-    #for k, fn in enumerate(fnames):
-    for fn in progressbar(fnames, "tile.merger::merge_matching - Merging objects into one file "):        
+    for k, fn in enumerate(fnames):
+    #for fn in progressbar(fnames, "tile.merger::merge_matching - Merging objects into one file "):
         ff = pyfits.open(fn)
         #if verbose>2: print(k+1,"/",len(fnames),"  Adding sources from ", fn)
         M = len(ff[1].data["srcID"])
@@ -63,7 +64,7 @@ def merge_matching(glob_str, ofn=None, overwrite=True, verbose=1):
         for c in cols:
             col_dct[c.name]["array"][i0:i1] = ff[1].data[c.name]
             col_dct[c.name]["col"] = c
-            
+        logger.debug("Merging objects - %i/%i    %s -> %i (of %i total)" % (k+1, len(fnames), fn, M, N))    
         ff.close()
         
     # Creating new fits-file and some streamlining of formats for output

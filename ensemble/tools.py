@@ -3,7 +3,7 @@ Collection of Tools for handling Ensembles.
 
 Example
 -------
->>> e = from_fits("../eFEDS/SrcCat_V2T.fits", mapper={"detUID":"srcID", "DEC":"Dec"}, maxN=100, verbose=0)
+>>> e = from_fits("../eFEDS/SrcCat_V2T.fits", maxN=100, verbose=0)
 >>> e["ML00001"]["srcID"].strip()
 'ML00001'
 """
@@ -87,7 +87,7 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     """
     Generate Astro_Ensemble from fits-file
     
-    Coordinates: It is important that columns RA and Dec exist in input file. Otherwise, populate mapper accordingly.
+    Coordinates: It is important that columns srcID, RA, and Dec exist in input file. Otherwise, populate mapper accordingly.
     
     Parameters
     ----------
@@ -104,10 +104,9 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     -------
     ensemble of objects : Ensemble
     """
-
     col_mapper = lambda x:mapper[x] if x in mapper else x
 
-    if verbose>0: print("ensemble.tools::from_fits - Reading ",fn)
+    if verbose>0: print("ensemble.tools::from_fits - Reading ",fn, " (mapper: ",mapper,")")
     ff = pyfits.open(fn)    
     cols = ff[extension].columns
     if verbose>5:
@@ -120,11 +119,21 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     col_data = []
     names=[]
     for col in cols:
+        if col.name in mapper.values(): continue
         if col_mapper(col.name) == "srcID":
             col_data.append(ff[extension].data[col.name][0:maxN].astype(str))
+            
+            if col.name in mapper.keys():
+                col_data.append(ff[extension].data[col.name][0:maxN])
+                names.append(col.name)
         else:
+            if col.name in mapper.keys():
+                col_data.append(ff[extension].data[col.name][0:maxN])
+                names.append(col.name)
+                
             col_data.append(ff[extension].data[col.name][0:maxN])
-        if verbose>6: print("ensemble.tools::from_fits - Using col: ",col.name, " with format: ",col.format)
+
+        if verbose>6: print("ensemble.tools::from_fits - Using col: ",col.name, " (-> ", col_mapper(col.name),") with format: ",col.format)
         names.append(col_mapper(col.name))
             
     names =     ",".join(names)    
@@ -136,7 +145,7 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     
     e = Ensemble().from_array(a)
     if verbose>0:
-        print("ensemble.tools::from_fits - Generated Ensemble with",np.shape(a), " entries with ",len(names.split(","))," properties")
+        print("ensemble.tools::from_fits - Generated Ensemble with",np.shape(a), " entries and ",len(names.split(","))," properties")
     ff.close()    
     return e
     

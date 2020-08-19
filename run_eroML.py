@@ -2,7 +2,7 @@ import argparse
 #import configparser
 from configparser import ConfigParser, ExtendedInterpolation
 from eroML.config import *
-from eroML.tile import loop
+from eroML.tile import loop, file4, merge_fits
 from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_files
 from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
 from eroML.utils import enrich_Gaia, ero_tile_loop
@@ -21,7 +21,7 @@ def discover_filenames(which):
     return fnames
 
 
-def setup_logger():
+def setup_logger(main_fn, debug_fn):
     """Setup a Rotating File Handler"""
     formatter = logging.Formatter('%(asctime)s - %(funcName)s - %(levelname)s - %(message)s')
 
@@ -34,7 +34,7 @@ def setup_logger():
     #logging.Logger.verbose = lambda inst, msg, *args, **kwargs: inst.log(logging.VERBOSE, msg, *args, **kwargs)
     #logging.verbose = lambda msg, *args, **kwargs: logging.log(logging.VERBOSE, msg, *args, **kwargs)
     
-    handler = logging.handlers.RotatingFileHandler("main.log", backupCount=5)
+    handler = logging.handlers.RotatingFileHandler(main_fn, backupCount=5)
     handler.setLevel(level=logging.INFO)
     handler.setFormatter(formatter)
     handler.doRollover()
@@ -42,7 +42,7 @@ def setup_logger():
     
     #x = hanlder.findCaller()
     
-    handler = logging.handlers.RotatingFileHandler("debug.log", backupCount=5)
+    handler = logging.handlers.RotatingFileHandler(debug_fn, backupCount=5)
     handler.setLevel(logging.DEBUG)#level=logging.DEBUG)
     handler.setFormatter(formatter)
     handler.doRollover()
@@ -58,18 +58,28 @@ def setup_logger():
 
 
 # file logger
-logger = setup_logger()
-logger.info('Starting eroML')
+#logger = setup_logger()
+#logger.info('Starting eroML')
 
 parser = argparse.ArgumentParser()
 parser.add_argument("conf_fn", nargs='?', default=None, help="Config-file")
 
+unlogged=[]
+
 args = parser.parse_args()
 if args.conf_fn is not None:
-    logger.info("Using custom config-file: `%s` " % args.conf_fn)
-    read_config(args.conf_fn)
-    
+    unlogged.append(("info", "Using custom config-file: `%s` " % args.conf_fn))
+    tmp = read_config(args.conf_fn)
+    unlogged.append(tmp)
 
+# file logger
+logger = setup_logger(config["General"]["main_log_file"], config["General"]["debug_log_file"])
+logger.info('Starting eroML')
+for m in unlogged:
+    out = getattr(logger, m[0])
+    out(m[1])
+
+    
 if config["Healpix"]["calculate"].lower()=="true":
     logger.info("Adding healpix index to eROSITA source list")
     add_healpix_col(config["Sources"]["ero_filename"], ofn=config["Sources"]["ero_filename_hp"], nside=config["Healpix"].getint("nside"), overwrite=True)
@@ -202,7 +212,7 @@ if config["Data sets"]["training"].lower()=="true":
     logger.debug("Random data sets for %i tiles." % len(idx))
     training_loop(idx, major_prefix=m_prex, major_postfix=m_posx, random_prefix=r_prex, random_postfix=r_posx, training_prefix=t_prex, training_postfix=t_posx, abs_dist=ad, rel_dist=rd)
 
-if config["Merging"]["shrink"]:
+if config["Merging"]["shrink"].lower()=="true":
     healpix_file = config["Healpix"].get("pix_file", None)
     index0 = config["Healpix"].getint("index0", 0)
     index1 = config["Healpix"].getint("index1", None)
@@ -220,12 +230,43 @@ if config["Merging"]["shrink"]:
     t_prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["training_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
     t_posx = ""
  
+    sh = config["Merging"]["shrink_postfix"]
     cols = config["Columns"]["keep"].split(",")
-    print("cols: ",cols)
-    file_loop_1to1(idx, prefix=t_prex, postfix=t_posx, method=shrink, cols=cols)
+    #print("cols: ",cols)
+    
+    for tt in ["random","training","major"]:
+        prex = config["Data sets"]["directory"]+"/"+config["Data sets"][tt+"_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        posx = ""
+        file_loop_1to1(idx, prefix=prex, postfix=posx, method=shrink, ofn_prefix=prex, ofn_postfix=posx+sh,cols=cols)
     
     
-#if config["Datasets"][1]
+if config["Merging"]["major"].lower() == "true":
+    if config["Merging"]["shrink"].lower()=="true":
+        which = "major_tiles_small"
+    else:
+        which = "major_tiles"
+    ofn = file4("major")    
+    fnames = file4(which)
+    merge_fits(fnames, ofn=ofn)
+
+if config["Merging"]["random"].lower() == "true":
+    if config["Merging"]["shrink"].lower()=="true":
+        which = "random_tiles_small"
+    else:
+        which = "random_tiles"
+    ofn = file4("random")    
+    fnames = file4(which)
+    merge_fits(fnames, ofn=ofn)
+    
+if config["Merging"]["training"].lower() == "true":
+    if config["Merging"]["shrink"].lower()=="true":
+        which = "training_tiles_small"
+    else:
+        which = "training_tiles"
+    ofn = file4("training")    
+    fnames = file4(which)
+    merge_fits(fnames, ofn=ofn)    
+
     
 exit()    
 

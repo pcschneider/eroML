@@ -1,5 +1,5 @@
 import unittest
-from eroML.ensemble import Ensemble, Astro_Object
+from eroML.ensemble import Ensemble, Astro_Object, fake_ensemble
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 import numpy as np
@@ -19,6 +19,20 @@ class TestEnsemble(unittest.TestCase):
             e.add_one_object(x)
         
         self.e = e
+    
+    def test_pm(self):
+        e = fake_ensemble(1, random_pos=False, pm=1e-10, seed=1, center=(10,10))
+        self.assertTrue(np.allclose(9.5, e.skyCoords(epoch=2020).ra.degree))
+        e = fake_ensemble(1, random_pos=False, pm=5000, seed=1, center=(10,10))
+        self.assertTrue(np.allclose(9.49532601, e.skyCoords(epoch=2020).ra.degree))
+    
+    def test_pm2(self):
+        e = fake_ensemble(1, random_pos=False, pm=1e-10, seed=1, center=(10,10))
+        e.array["RA"] = [219.87383306]
+        e.array["Dec"] = [-60.83222194]
+        e.array["pm_RA"] = [-3608]
+        e.array["pm_Dec"] = [686]
+        self.assertTrue(np.allclose(219.83065419, e.skyCoords(epoch=2021).ra.degree))
         
     def test_getitem(self):
         self.assertEqual(self.e["c"]["srcID"],"c")

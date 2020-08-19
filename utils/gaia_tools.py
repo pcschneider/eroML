@@ -16,20 +16,52 @@ import glob
 
 logger = logging.getLogger('eroML')
 
-def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwrite=False, verbose=1, edge=3., keep_VO=False):
+def get_alternate_gaia_file(glob_str):
+    """
+    Return 
+    """
+    print("CHECK checking ",glob_str)
+    #glob_str = pre+"*"+post
+    fnames = glob.glob(glob_str)
+    if len(fnames)==0:
+        return None
+    else:
+        good = None
+        for fn in fnames:
+            try: 
+                ff = Pyfits.open(fn)
+                good = fn
+            except:
+                continue
+        return good    
+
+def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwrite=False, verbose=1, edge=3., keep_VO=False, check_alternate=True):
     """
     Download all Gaia sources
     """
+
     if idx is None:
         idx = range(hp.nside2npix(nside))
     logger.info("Number of hpix: %i" % len(idx))   
     for j, i in enumerate(idx):
-        ofn = outdir+"/"+prefix+"_nside"+str(nside)+"_"+str(i)+".fits"
+        
+        pre  = outdir+"/"+prefix+"_nside"+str(nside)+"_"+str(i)
+        post = ".fits"
+        ofn = pre+post
+                
         logger.debug("Using \'%s\' for hpix=%i  (pix %i of %i)" % (ofn, i, j+1, len(idx)))
         if os.path.exists(ofn):
             logger.debug("  Skipping...")
             continue
-        download_one_Gaia_tile(ofn, i, nside, overwrite=overwrite, verbose=verbose, edge=edge, keep_VO=keep_VO)
+        
+        if check_alternate:
+            glob_str = outdir+"/Gaia_r*"+"_nside"+str(nside)+"_"+str(i)+".fits"
+            afn = get_alternate_gaia_file(glob_str)
+            if afn: 
+                os.symlink(afn, ofn)
+                continue
+        
+        download_one_Gaia_polytile(ofn, i, nside, overwrite=overwrite, verbose=verbose, edge=edge, keep_VO=keep_VO,)
         add_standard_cols(ofn, overwrite=True)
         #add_quality_column(ofn, ofn, overwrite=True)
 
@@ -46,11 +78,94 @@ def Gaia_tile_loop(idx, prefix=None, postfix=None):
         fn = prefix+str(i)+postfix+'.fits'
         logger.debug("Enriching Gaia tile: %s." % fn) 
         enrich_Gaia(fn)    
-         
-         
-def download_one_Gaia_tile(ofn, hpix, nside, overwrite=False, verbose=1, edge=3., keep_VO=False):
+
+
+def get_larger_poly(x, y, around=3):
+    """
+    Parameters
+    ----------
+    x, y : np.array of size 4 (float), 
+        RA, Dec of the polynom
+    around : float
+        increase size by this amount (in arcmin)
+    """
+    
+    minxi, maxxi = np.argmin(x), np.argmax(x)
+    minyi, maxyi = np.argmin(y), np.argmax(y)
+    
+    co = SkyCoord(ra=x[minxi], dec=y[minxi], unit=(u.degree, u.degree))
+    co1 = co.directional_offset_by(270*u.degree, around*u.arcmin)
+    x[minxi] = co1.ra.degree
+    y[minxi] = co1.dec.degree
+    
+    co = SkyCoord(ra=x[maxxi], dec=y[maxxi], unit=(u.degree, u.degree))
+    co1 = co.directional_offset_by(90*u.degree, around*u.arcmin)
+    x[maxxi] = co1.ra.degree
+    y[maxxi] = co1.dec.degree
+    
+    co = SkyCoord(ra=x[minyi], dec=y[minyi], unit=(u.degree, u.degree))
+    co1 = co.directional_offset_by(180*u.degree, around*u.arcmin)
+    x[minyi] = co1.ra.degree
+    y[minyi] = co1.dec.degree
+    
+    co = SkyCoord(ra=x[maxyi], dec=y[maxyi], unit=(u.degree, u.degree))
+    co1 = co.directional_offset_by(0*u.degree, around*u.arcmin)
+    x[maxyi] = co1.ra.degree
+    y[maxyi] = co1.dec.degree
+    
+    return x, y
+
+
+def download_one_Gaia_polytile(ofn, hpix, nside, overwrite=False, verbose=1, edge=3., keep_VO=False):
     """
     Download Gaia sources for specific healpix index
+    
+    Parameters
+    -----------
+    """
+    step=1
+    resol = hp.nside2resol(nside, arcmin=True)
+    pix_center = hp.pix2ang(nside, hpix, nest=True)
+    ra, dec = pix_center[1]/np.pi*180, 90. - pix_center[0]/np.pi*180
+    logger.log(10, "pos: "+str(pix_center)+ " resol: "+str(resol)+" RA, Dec: "+str(ra)+" "+str(dec))
+    logger.log(10, "pix_center: %f, %f " % (90-pix_center[0]*180/np.pi, pix_center[1]*180/np.pi))
+    
+    #ww= u.Quantity(resol, u.arcmin) + 2*edge*u.arcmin
+    #hh = u.Quantity(resol, u.arcmin) + 2*edge*u.arcmin
+
+    #width = ww.to(u.degree).value
+    #height = hh.to(u.degree).value
+    
+    
+    b = hp.boundaries(nside, hpix, nest=True, step=step).transpose()
+    v = hp.pixelfunc.vec2ang(b)
+    x0, y0 = v[1]/np.pi*180, 90.-v[0]/np.pi*180  
+
+    x, y = get_larger_poly(x0, y0, around=3*edge)
+     
+
+    tpl = (x[0], y[0], x[1], y[1], x[2], y[2], x[3], y[3])
+
+    query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.pmra, gaia_source.pmdec, gaia_source.ref_epoch, gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),POLYGON('ICRS', %f, %f, %f, %f, %f, %f, %f, %f))=1;" % tpl) 
+       
+    logger.log(5, "query_str: "+query_str)
+    #return    
+    job = Gaia.launch_job_async(query_str, dump_to_file=True)
+
+    if verbose>3: logger.log(0, " (job)"+str(job))
+    r = job.get_results()
+    
+    tmp_fn = job.outputFile
+    if ofn is not None:
+        vo2fits(tmp_fn, ofn, overwrite=overwrite)
+        
+    if keep_VO == False:
+        os.remove(tmp_fn)
+             
+         
+def download_one_Gaia_square_tile(ofn, hpix, nside, overwrite=False, verbose=1, edge=3., keep_VO=False):
+    """
+    Download Gaia sources within square centered on specific healpix index
     
     Parameters
     -----------
@@ -67,7 +182,7 @@ def download_one_Gaia_tile(ofn, hpix, nside, overwrite=False, verbose=1, edge=3.
     width = ww.to(u.degree).value
     height = hh.to(u.degree).value
     
-    query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),BOX('ICRS', %f, %f, %f, %f))=1;" % (ra, dec, width,height))   
+    query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.ra_error,gaia_source.dec,gaia_source.pmra, gaia_source.pmdec, gaia_source.ref_epoch,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),BOX('ICRS', %f, %f, %f, %f))=1;" % (ra, dec, width,height))   
        
     logger.log(5, "query_str: "+query_str)
     #return    
@@ -107,7 +222,7 @@ def vo2fits(ifn, ofn, verbose=1, overwrite=False):
         elif dtype == "float64":   
             fmt = "D"
         elif f=="phot_variable_flag":     
-            fmt = "10A"            
+            fmt = "25A"            
         elif dtype == "object":
             fmt = "L"
         else: fmt = None
@@ -117,6 +232,10 @@ def vo2fits(ifn, ofn, verbose=1, overwrite=False):
             c = pyfits.Column(name="RA", array=cc.data, format=fmt)
         elif f=="dec":
             c = pyfits.Column(name="Dec", array=cc.data, format=fmt)
+        elif f=="pmra":
+            c = pyfits.Column(name="pm_RA", array=cc.data, format=fmt)
+        elif f=="pmdec":
+            c = pyfits.Column(name="pm_Dec", array=cc.data, format=fmt)            
         else:
             c = pyfits.Column(name=f, array=cc.data, format=fmt)
         cols.append(c)

@@ -1,5 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except:
+    pass    
 import matplotlib.path as mpltPath
 from astropy.io import fits as pyfits
 import copy

@@ -1,9 +1,13 @@
 import healpy as hp
 from astropy.io import fits as pyfits
 import numpy as np
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except:
+    pass    
 import copy
 import logging
+import os
 
 logger = logging.getLogger('eroML')
 
@@ -53,7 +57,7 @@ def hpix2process(ifn, index0=0, index1=None, pix_file=None, colname="healpix", e
     return indices[gi]
     
     
-def generate_healpix_files(ifn, index0=0, index1=None, pix_file=None, prefix="", postfix="", colname="healpix", extension=1, overwrite=True, verbose=4):
+def generate_healpix_files(ifn, index0=0, index1=None, pix_file=None, prefix="", postfix="", colname="healpix", extension=1, overwrite=True, skip=True, verbose=4):
     """
     Split the full source list into sub-lists containing sources only for individual healpix
     
@@ -71,11 +75,16 @@ def generate_healpix_files(ifn, index0=0, index1=None, pix_file=None, prefix="",
         The column name containing the healpix index for each source
     extension : int
         The extension in the fits-file (in `ifn`)
+    skip : boolean
+        Skip file creation if file already exists.
     """
     idx = hpix2process(ifn, index0=index0, index1=index1, pix_file=pix_file, colname=colname, extension=extension)
 
     for i in idx:
         ofn=prefix+str(i)+postfix+'.fits'
+        if os.path.exists(ofn):
+            logger.warning("Skipping %s as it already exists (and `skip`==True)..." % ofn)
+            continue
         extract_healpix_range(ifn, ofn, min_index=i, max_index=i, colname=colname, extension=extension, overwrite=overwrite)
         
 
@@ -100,8 +109,7 @@ def extract_healpix_range(ifn, ofn=None, min_index=0, max_index=None, colname="h
     if ofn==ifn and overwrite==False:
         raise IOError("pixelize::extract_healpix_range - `ofn`==`ifn` and `overwrite`==False.")
     
-    if verbose>1:
-        print("pixelize::extract_healpix_range - Reading ",ifn)
+    logger.info("Reading %s" % ifn)
     
     ff = pyfits.open(ifn)
 
@@ -109,12 +117,12 @@ def extract_healpix_range(ifn, ofn=None, min_index=0, max_index=None, colname="h
     if max_index is None:
         max_index = max(index)+1
     gi = np.where(np.logical_and(index >= min_index, index <= max_index))[0]
-    if verbose>2:
-        print("pixelize::extract_healpix_range - ",len(gi), " objects in pixel range.")
-    if verbose>3:
-        for i in range(min_index, max_index+1):
-            ti = np.where(index==i)[0]
-            print("pixelize::extract_healpix_range - #entries for healpix %i:%i" % (i, len(ti)))
+    
+    logger.debug("     %i objects in pixel range." % len(gi))
+    #if verbose>3:
+        #for i in range(min_index, max_index+1):
+            #ti = np.where(index==i)[0]
+            #print("pixelize::extract_healpix_range - #entries for healpix %i:%i" % (i, len(ti)))
     
     hdu = copy.copy(ff[0]) 
     cols = ff[extension].columns
@@ -128,7 +136,7 @@ def extract_healpix_range(ifn, ofn=None, min_index=0, max_index=None, colname="h
     hdul = pyfits.HDUList([hdu, hdx])
         
     hdul.writeto(ofn, overwrite=overwrite)
-    if verbose>0: print('"pixelize::add_healpix_col - Written: ',ofn)
+    logger.info("Written %s with %i entries." % (ofn, len(gi)))
     
 
 def add_healpix_col(ifn, ofn=None, extension=1, overwrite=False, nside=16, verbose=3):
@@ -155,7 +163,7 @@ def add_healpix_col(ifn, ofn=None, extension=1, overwrite=False, nside=16, verbo
         logger.debug("pixelize::add_healpix_col - Approx. resolution at NSIDE {} is {:.2} deg".format(nside, hp.nside2resol(nside, arcmin=True) / 60))
     
     ff = pyfits.open(ifn)
-    ra, dec = copy.deepcopy(ff[extension].data["RA"]), copy.deepcopy(ff[1].data["Dec"])
+    ra, dec = copy.deepcopy(ff[extension].data["RA_CORR"]), copy.deepcopy(ff[1].data["DEC_CORR"])
 
     ra[ra<0]+=360
     phi = 90-dec

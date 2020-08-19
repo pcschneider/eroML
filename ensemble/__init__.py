@@ -36,9 +36,9 @@ def test():
     for i, t in enumerate(test_suits):
         for j, tt in enumerate(t):
             print(t)
-            for ttt in tt._tests:
-                print("Discovered test functions:", ttt._testMethodName)
-                print("   ",ttt.id())
+            #for ttt in tt._tests:
+                #print("Discovered test functions:", ttt._testMethodName)
+                #print("   ",ttt.id())
             print()
     testRunner = unittest.runner.TextTestRunner()
     r = testRunner.run(test_suits)

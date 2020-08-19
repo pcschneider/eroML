@@ -351,7 +351,7 @@ class Ensemble():
         if verbose>1: print("Ensemble::keep - Keeping only ",len(self), " from ",n_old," objects.")
 
 
-    def skyCoords(self, srcIDs=None, epoch=2000, verbose=1):
+    def skyCoords(self, srcIDs=None, epoch=None, verbose=1):
         """
         The SkyCoords for the objects in the `Ensemble`
         
@@ -366,20 +366,34 @@ class Ensemble():
         -------
         Coordinates : SkyCoord instance
         """
-        if srcIDs is None:
-            srcIDs = self.mapper.keys()
-        if verbose>3: print("astro_ensemble::Ensemble::skyCoords - Getting coords for ",srcIDs)    
+        #if srcIDs is None:
+            #srcIDs = self.mapper.keys()
+        #if verbose>3: print("astro_ensemble::Ensemble::skyCoords - Getting coords for ",srcIDs)    
         ra, dec = self.to_array(colnames=["RA","Dec"], array_type="array")
-        
-        if "pm_RA" in self.known_cols:
+        c = SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree))
+        #epoch=None
+        if "pm_RA" in self.known_cols and epoch is not None:
+            if verbose>4: print("astro_ensemble::Ensemble::skyCoords - advancing coordinates to epoch=%f" % epoch)
             dtime = epoch - self.array["ref_epoch"]
-            d_ra = self.array["pm_RA"] * dtime
-            d_dec = self.array["pm_Dec"] * dtime
             
-            #TODO: calc pos angle and add to coordinates
-        
+            pmra, pmdec = self.array["pm_RA"], self.array["pm_Dec"]
+            angle = np.arctan2(pmra, pmdec)
+            #print(angle, angle*180/np.pi)
+
+            d_ra = pmra * dtime / 1000
+            d_dec = pmdec * dtime /1000
+            dd = (d_ra**2 + d_dec**2)**0.5
+            #print(dd)
+            gi = np.isnan(dd)
+            #print(sum(gi), len(dd))
+            dd[gi] = 0
+            #print(dd)
+            if verbose>5: print("astro_ensemble::Ensemble::skyCoords - #coords",len(ra))
+            d = c.directional_offset_by(angle/np.pi*180*u.degree, dd*u.arcsec )
+            return d
+            
         if verbose>5: print("astro_ensemble::Ensemble::skyCoords - #coords",len(ra))    
-        return SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree))
+        return c
     
     
     def from_array(self, array, verbose=1, clean=True):
@@ -796,9 +810,10 @@ def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", center=(0, 0), width=
     
     Example
     -------
-    >>> from eroML.ensemble import random_ensemble
-    >>> e = random_ensemble(center=(10,45), pm=10, seed=1)
+    >>> from eroML.ensemble import fake_ensemble
+    >>> e = fake_ensemble(center=(10,45), pm=10, seed=1)
     >>> e["src_0"].RA
+    9.919194514403284
     
     Parameters
     ----------
@@ -845,17 +860,14 @@ def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", center=(0, 0), width=
     
     if pm:
         pm_ra, pm_dec = (np.random.rand(N)-0.5)*2*pm, (np.random.rand(N)-0.5)*2*pm
-        dt = [("srcID", type("X"),16), ("RA", float), ("Dec", float), ("pm_RA", float), ("pm_Dec", float), ("ref_epoch", float)]
+        dt = [("srcID", type("X"),32), ("RA", float), ("Dec", float), ("pm_RA", float), ("pm_Dec", float), ("ref_epoch", float)]
         rec = np.zeros(N, dtype=dt)
         rec["pm_RA"] = pm_ra
         rec["pm_Dec"] = pm_dec
         rec["ref_epoch"] = ref_epoch
     else:
         dt = [("srcID", '|S25'), ("RA", float), ("Dec", float)]
-        rec = np.zeros(N, dtype=dt)
-        
-    print(max(ra), min(ra))
-    print(max(dec), min(dec))    
+        rec = np.zeros(N, dtype=dt) 
         
     rec["srcID"] = ids
     rec["RA"] = ra
