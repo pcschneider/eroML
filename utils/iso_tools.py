@@ -73,7 +73,7 @@ def add_iso_column(e, iso_fn="aux_data/iso.dat", \
     mag = e.to_array(columns["Gmag"], array_type="array")
     abs_mag = mag - 5*np.log10(dist)+5
     points = np.array([color, abs_mag])
-    iso = within_iso(points.T, iso_fn)
+    iso = within_iso(points.T, iso_fn).astype(int)
     
     e.add_col(outcol, iso)
     

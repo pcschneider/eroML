@@ -24,5 +24,14 @@ The following properties are used to differentiate between real stellar associat
 6. Local sky density of eligible counter parts
     As 1/(number of sources within 3 arcmin)
     
-Creating the samples
+Classes
 ----------------------
+
+The following three classes exist
+  
+  0) Stars
+  1) Others
+  2) Random matches
+
+
+

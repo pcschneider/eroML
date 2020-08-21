@@ -1,7 +1,7 @@
 from .ensemble import *
 from .utils import *
 from .tile import *
-
+from .classify import *
 
 def test():
     modules = ["ensemble", "utils","tile"]

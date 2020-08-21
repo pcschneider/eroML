@@ -80,11 +80,12 @@ def generate_healpix_files(ifn, index0=0, index1=None, pix_file=None, prefix="",
     """
     idx = hpix2process(ifn, index0=index0, index1=index1, pix_file=pix_file, colname=colname, extension=extension)
 
-    for i in idx:
+    for j, i in enumerate(idx):
         ofn=prefix+str(i)+postfix+'.fits'
         if os.path.exists(ofn):
             logger.warning("Skipping %s as it already exists (and `skip`==True)..." % ofn)
             continue
+        logger.info("Generating %s (file %i/%i)" % (ofn, j+1, len(idx)))
         extract_healpix_range(ifn, ofn, min_index=i, max_index=i, colname=colname, extension=extension, overwrite=overwrite)
         
 

@@ -23,16 +23,18 @@ def get_alternate_gaia_file(glob_str):
     print("CHECK checking ",glob_str)
     #glob_str = pre+"*"+post
     fnames = glob.glob(glob_str)
+    print("fnames: ",fnames)
     if len(fnames)==0:
         return None
     else:
         good = None
         for fn in fnames:
             try: 
-                ff = Pyfits.open(fn)
+                ff = pyfits.open(fn)
                 good = fn
             except:
                 continue
+        print(" good: ",good)    
         return good    
 
 def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwrite=False, verbose=1, edge=3., keep_VO=False, check_alternate=True):
@@ -67,17 +69,17 @@ def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwri
 
 
 
-def Gaia_tile_loop(idx, prefix=None, postfix=None):
+def Gaia_tile_loop(idx, prefix=None, postfix=None, filterNr=3):
     """
     Loop through ero tiles and enrich them
     """
     from .enrich import enrich_Gaia
     logger.info("Enrichting %i Gaia source tiles." % len(idx))
     
-    for i in idx:
+    for j, i in enumerate(idx):
         fn = prefix+str(i)+postfix+'.fits'
-        logger.debug("Enriching Gaia tile: %s." % fn) 
-        enrich_Gaia(fn)    
+        logger.debug("Enriching Gaia tile: %s. (file %i/%i; filterNr=%i) " % (fn, j+1, len(idx), filterNr)) 
+        enrich_Gaia(fn, filterNr=filterNr)    
 
 
 def get_larger_poly(x, y, around=3):
@@ -325,7 +327,7 @@ def quality_filter(ff, filter_Nr=3):
 
 @fits_support
 def add_quality_column(e, colname="Gaia_quality", filter_Nr=2):
-    q = quality_filter(e.array, filter_Nr=filter_Nr).astype(bool)
+    q = quality_filter(e.array, filter_Nr=filter_Nr).astype(int)
     e.add_col(colname, q)
     return e
     #c = pyfits.Column(name=colname, array=q, format="L")

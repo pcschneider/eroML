@@ -8,6 +8,40 @@ import numpy as np
 from .astro_object import Astro_Object
 from collections import OrderedDict
 
+
+
+def view_fields(a, names):
+    """
+    `a` must be a numpy structured array.
+    `names` is the collection of field names to keep.
+
+    Returns a view of the array `a` (not a copy).
+    """
+    dt = a.dtype
+    formats = [dt.fields[name][0] for name in names]
+    offsets = [dt.fields[name][1] for name in names]
+    itemsize = a.dtype.itemsize
+    newdt = np.dtype(dict(names=names,
+                          formats=formats,
+                          offsets=offsets,
+                          itemsize=itemsize))
+    b = a.view(newdt)
+    return b
+
+
+def remove_fields(a, names):
+    """
+    `a` must be a numpy structured array.
+    `names` is the collection of field names to remove.
+
+    Returns a view of the array `a` (not a copy).
+    """
+    dt = a.dtype
+    keep_names = [name for name in dt.names if name not in names]
+    return view_fields(a, keep_names)
+
+
+
 class Ensemble():
     """
     Holds a number of  `Astro_Objects`
@@ -208,12 +242,18 @@ class Ensemble():
             Overwrite extsting content
         """
         #import numpy.lib.recfunctions as rfn
-        #print("Adding ",colname, self.known_cols)
+        print("Adding ",colname, self.known_cols)
         if colname in self.known_cols: 
-            if force:
-                return self.set_col(colname, array)
-            else:
+            if not force:
                 raise ValueError(str("Ensemble::add_col - Column with name \'%s\' alrady known." % colname))
+            else:
+                #print(self.array[colname].dtype, array.dtype)
+                if self.array[colname].dtype == array.dtype:
+                    return self.set_col(colname, array)
+                
+                else: 
+                    self.array = remove_fields(self.array, [colname])
+                    self.known_cols.remove(colname)
         #a = rfn.append_fields(a, 'USNG', np.empty(a.shape[0], dtype='|S100'), dtypes='|S100')
         #dt = array.dtype
         #self.array = rfn.append_fields(self.array, colname, array, dtypes=dt)
@@ -222,6 +262,7 @@ class Ensemble():
         for n in self.array.dtype.names:
             #print(n, self.array[n].dtype)
             dt.append((n, self.array[n].dtype))
+        print("array.dtype: ",array.dtype)
         dt.append((colname, array.dtype))
         tmp_arr = np.zeros(len(self), dtype=dt)
         for j, c in enumerate(self.array.dtype.names):
@@ -632,52 +673,39 @@ class Ensemble():
         for c in colnames:
             if c not in self.known_cols:
                 non_array_cols.append(c)
-        
+            
         if verbose>4: print("Ensemble::to_array: Getting data for cols=",colnames)
         if verbose>5: print("Ensemble::to_array: non_array_cols:",non_array_cols)        
         
         if len(non_array_cols)==0:
-            #if array_type=="recarray":
-                #if srcIDs is not None:
-                    #return self.filter_array_for_srcIDs(copy.deepcopy(self.array), srcIDs)
-                #else:
-                    #print("XX")
-                    #aa = self.array[colnames]
-                    #r = copy.copy(aa    )
-                    #print("yy")
-                    #return r
             if array_type=="array" or array_type=="recarray":
                 arr = []
                 dts = []
-                #print("XXXXXXXXXXXXX")
                 for c in colnames:
+                    print("Working on col ",c)
                     tmp = self.array[c]
-                    #print("len(tmp)", len(tmp))
                     dt = (c, str(tmp.dtype))
                     if "i" not in dt[1] and "f" not in dt[1]: 
-                        #print(c, type(tmp), dt)
                         tmp = np.array(tmp).astype(str)
                         dt = (c, '<U64')
                     elif "f" in dt[1]:
                         idx = np.isfinite(tmp)
-                        #print(idx)
                         tmp[idx == False] = np.nan
                     elif "i" in dt[1]:
                         pass
-                    
-                    #if c=="astrometric_excess_noise": continue
-                    #print(c, dt)
+
                     arr.append(np.array(tmp).astype(dt[1]))
-                    #dt.name = c
                     dts.append(dt)
-                #print()    
                 if array_type=="recarray":
-                    #print(dts, np.shape(arr))
+                    print("Creating recarray")
                     if len(colnames)>1:
-                        xxx = np.transpose(arr)
+                        print(dts, len(self))
+                        #xxx = np.transpose(arr)
+                        print("hhh0")
                         xxx = np.zeros(len(self), dtype=dts)
+                        print("hhh1")
                         for i, c in enumerate(colnames):
-                            #print(i, "ccc",c, "(",len(self),np.shape(self.array),len(np.unique(self.srcIDs())),")")
+                            print("recarray for ", c)
                             xxx[c] = arr[i]
                         return xxx
                     return np.array(np.array(arr).flatten(), dtype=dts)

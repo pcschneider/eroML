@@ -133,8 +133,10 @@ if config["Enrich Gaia"]["perform"].lower()=="true":
     prex = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
     posx = ""
     
-    logger.info("Enriching Gaia data files")
-    Gaia_tile_loop(idx, prefix=prex, postfix=posx)
+    filt = int(config["Enrich Gaia"]["filter"])
+    #print("filt: ",filt)
+    logger.info("Enriching Gaia data files (filt=%i)" % filt)
+    Gaia_tile_loop(idx, prefix=prex, postfix=posx, filterNr=filt)
     
 
 if config["Data sets"]["major"].lower()=="true":

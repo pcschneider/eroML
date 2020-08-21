@@ -83,9 +83,9 @@ def fits_support(func):
     return wrapper
 
 
-def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
+def from_fits2(fn, mapper={}, verbose=10, extension=1, maxN=None):
     """
-    Generate Astro_Ensemble from fits-file
+    OBSOLETE -- Generate Astro_Ensemble from fits-file
     
     Coordinates: It is important that columns srcID, RA, and Dec exist in input file. Otherwise, populate mapper accordingly.
     
@@ -119,6 +119,7 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     col_data = []
     names=[]
     for col in cols:
+        print("ensemble.tools::from_fits - working on ",col.name)
         if col.name in mapper.values(): continue
         if col_mapper(col.name) == "srcID":
             col_data.append(ff[extension].data[col.name][0:maxN].astype(str))
@@ -149,7 +150,112 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     ff.close()    
     return e
     
-def to_fits(ensemble, ofn=None, overwrite=False, verbose=1, mapper={}, maxN=None):
+
+
+
+
+
+
+
+def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
+    """
+    Generate Astro_Ensemble from fits-file
+    
+    Coordinates: It is important that columns srcID, RA, and Dec exist in input file. Otherwise, populate mapper accordingly.
+    
+    Parameters
+    ----------
+    fn : str
+      Filename
+    mapper : dictionary
+      Mapping between column-names in fits-file and property-name in Ensemlbe
+    extension : int
+      Fits-extension to use
+    maxN : int
+      Maximum number of rows to read from fits-file
+      
+    Returns
+    -------
+    ensemble of objects : Ensemble
+    """
+    col_mapper = lambda x:mapper[x] if x in mapper else x
+
+    def fits_fmt_mapper(fmt):
+        if "D" in fmt:
+            return "f"
+        elif "I" in fmt:
+            return "i"
+        elif "J" in fmt:
+            return "i"
+        elif "A" in fmt:
+            tmp = '<U'+fmt[0:-1]
+            return tmp
+ 
+    if verbose>0: print("ensemble.tools::from_fits - Reading ",fn, " (mapper: ",mapper,")")
+    ff = pyfits.open(fn)    
+    cols = ff[extension].columns
+    if verbose>5:
+        print("ensemble.tools::from_fits - ", fn, " contains ",cols)
+    
+    if maxN is None:
+        maxN = len(ff[extension].data[cols[0].name])
+        
+    # Generate np.recarray for array    
+    #col_data = []
+    #names=[]
+    dtype=[]
+    # asseble dtype
+    for col in cols:
+        #print("ensemble.tools::from_fits - working on ",col.name)
+        if col.name in mapper.values(): continue
+        if col_mapper(col.name) == "srcID":
+            dt = ("srcID", '<U64')
+            dtype.append(dt)
+            if col.name in mapper.keys():
+                dt = (col.name, fits_fmt_mapper(col.format))
+                dtype.append(dt)    
+        else:
+            if col.name in mapper.keys():
+                dtype.append( (col.name, fits_fmt_mapper(col.format)) )
+            dtype.append( (col_mapper(col.name),    fits_fmt_mapper(col.format)) )
+            
+        if verbose>6: print("ensemble.tools::from_fits - Using col: ",col.name, " (-> ", col_mapper(col.name),") with format: ",col.format, " -> dtype=",dtype[-1])
+        
+  
+    
+    xxx = np.zeros(maxN, dtype=dtype) 
+    
+    for col in cols:
+        #print("ensemble.tools::from_fits - populating ",col.name)
+        if col.name in mapper.values(): continue
+        if col_mapper(col.name) == "srcID":
+            xxx["srcID"] = ff[extension].data[col.name][0:maxN].astype(str)
+            
+            if col.name in mapper.keys():
+                xxx[col.name] = ff[extension].data[col.name][0:maxN]
+        else:
+            if col.name in mapper.keys():
+                xxx[col_data(col.name)] = ff[extension].data[col.name][0:maxN]                
+            xxx[col.name] = ff[extension].data[col.name][0:maxN]
+
+        if verbose>6: print("ensemble.tools::from_fits - Read data from col: ",col.name, " (-> ", col_mapper(col.name),") with format: ",col.format)
+    
+    
+    names = [dt[0] for dt in list(dtype)]
+    
+    if verbose>1: 
+        print("ensemble.tools::from_fits - Read ",np.shape(xxx), " entries with ",len(names)," properties from ",fn)
+    
+    e = Ensemble().from_array(xxx)
+    if verbose>0:
+        print("ensemble.tools::from_fits - Generated Ensemble with",np.shape(xxx), " entries and ",len(names)," properties")
+    ff.close()    
+    return e
+    
+
+
+    
+def to_fits(ensemble, ofn=None, overwrite=False, verbose=10, mapper={}, maxN=None):
     """
     Write Ensemble-data to fits-file
     
@@ -182,7 +288,8 @@ def to_fits(ensemble, ofn=None, overwrite=False, verbose=1, mapper={}, maxN=None
 
     if verbose>1:
         print("ensemble.tools::to_fits - Using cols: ",outcols)
-    array = ensemble.to_array(colnames=outcols)
+    array = ensemble.to_array(colnames=outcols, verbose=10)
+    print("ARRAY")
     if maxN is None:
         maxN = len(array)
     else:

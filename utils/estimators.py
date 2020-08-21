@@ -5,7 +5,80 @@ try:
 except:
     pass    
 import PyAstronomy.funcFit as fuf
+import astropy.units as u
 
+
+def sky_dens4coordinates(coord, around=3, verbose=1):
+    """
+    """
+    
+    def split(cc, N):
+        r = []
+        step = len(coord)//N
+        si = np.random.permutation(range(len(cc)))
+        i0, i1 = 0, step
+        for i in range(N):
+            if i==N-1:
+                i1 = len(coord)
+            r.append(si[i0:i1])
+            i0=i1
+            i1+=step
+        return r    
+    
+    if verbose>1:
+        print("sky_dens:: Searching around ",around, "arcmin for ",len(coord)," objects.")
+        print("sky_dens:: Coord range: (",min(coord.ra.degree), max(coord.ra.degree), " ; ", min(coord.dec.degree), max(coord.dec.degree),")")
+
+    ra_range0 = abs(max(coord.ra.degree) - min(coord.ra.degree))
+    ra_range1 = abs(max((coord.ra.degree  + 180) % 360)- min((coord.ra.degree + 180) % 360))
+    #print("ra_range0, ra_range1",ra_range0, ra_range1)
+    ra_range = ra_range0 if ra_range0<ra_range1 else ra_range1
+    dec_range = abs(max(coord.dec.degree) - min(coord.dec.degree))
+    sky_area = ra_range *dec_range * np.cos(np.nanmean(coord.dec.degree)/180*np.pi)
+    #print("cos", np.cos(np.nanmedian(coord.dec.degree/180*np.pi)))
+    sky_dens = len(coord)/sky_area/3600 # per arcmin^2
+    if verbose>0: 
+        print("sky_dens:: Sky area of Ensemble: ",sky_area, " (center: ",np.nanmedian(coord.ra.degree), np.nanmedian(coord.dec.degree),")")         
+        print("sky_dens::    ",ra_range, dec_range)
+        print("sky_dens::    Mean sky density: ",sky_dens," #stars/arcmin^2")
+    
+    N = len(coord)
+    ret = np.zeros(N)
+    ret[::] = np.nan
+    
+    if sky_dens > 3:
+        #return None
+        print("sky_dens:: splitting Ensemble...")
+        cc = split(coord, 3)
+        for c in cc:
+            #print("ccc",c, len(c), min(c), max(c))
+            ret[c] = sky_dens4coordinates(coord[c], around=around) * 3
+        #return ret
+    
+    #elif sky_dens > 1:
+        #ta = 0.5*u.arcmin
+        #idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, ta)
+        #uni, cnt = np.unique(idxc, return_counts=True)
+        ##print(uni)
+        ##print(cnt, min(cnt), max(cnt), around, np.mean(cnt), len(cnt))
+        #ret=np.array(cnt)/np.pi*(around/0.5)**2
+        #print("sky_dens:: Using 0.5 arcmin search radius and extrapolating.", np.nanmean(ret), len(ret))        
+    ##elif sky_dens > 3:
+        ##ta = 0.7*u.arcmin
+        ##idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, ta)
+        ##uni, cnt = np.unique(idxc, return_counts=True)
+        ##cnt=np.array(cnt)*(around/0.7)**2
+        ##print("sky_dens:: Using 0.7 arcmin search radius and extrapolating.")
+    else:
+        idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, around*u.arcmin)
+        uni, cnt = np.unique(idxc, return_counts=True)
+        ret = cnt/np.pi/around**2 / 2.
+        print("sky_dens:: Using ",around," arcmin search radius:", np.nanmean(ret))
+    
+    #print(ret)
+    print("sky_dens:: nanmean: ",np.nanmean(ret))
+    #print()
+    return ret
 
 class Dist_model(fuf.OneDFit):
     """
