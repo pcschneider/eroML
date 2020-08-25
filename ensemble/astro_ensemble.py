@@ -242,7 +242,7 @@ class Ensemble():
             Overwrite extsting content
         """
         #import numpy.lib.recfunctions as rfn
-        print("Adding ",colname, self.known_cols)
+        #print("Adding ",colname, self.known_cols)
         if colname in self.known_cols: 
             if not force:
                 raise ValueError(str("Ensemble::add_col - Column with name \'%s\' alrady known." % colname))
@@ -262,7 +262,7 @@ class Ensemble():
         for n in self.array.dtype.names:
             #print(n, self.array[n].dtype)
             dt.append((n, self.array[n].dtype))
-        print("array.dtype: ",array.dtype)
+        #print("array.dtype: ",array.dtype)
         dt.append((colname, array.dtype))
         tmp_arr = np.zeros(len(self), dtype=dt)
         for j, c in enumerate(self.array.dtype.names):
@@ -363,7 +363,7 @@ class Ensemble():
             raise IndexError(str("%s not in Ensemble." % obj_name))
 
 
-    def keep(self, srcIDs, verbose=10):
+    def keep(self, srcIDs, verbose=1):
         """
         Keep only given sources in Ensemble 
         
@@ -682,7 +682,7 @@ class Ensemble():
                 arr = []
                 dts = []
                 for c in colnames:
-                    print("Working on col ",c)
+                    #print("Working on col ",c)
                     tmp = self.array[c]
                     dt = (c, str(tmp.dtype))
                     if "i" not in dt[1] and "f" not in dt[1]: 
@@ -697,15 +697,15 @@ class Ensemble():
                     arr.append(np.array(tmp).astype(dt[1]))
                     dts.append(dt)
                 if array_type=="recarray":
-                    print("Creating recarray")
+                    #print("Creating recarray")
                     if len(colnames)>1:
-                        print(dts, len(self))
+                        #print(dts, len(self))
                         #xxx = np.transpose(arr)
-                        print("hhh0")
+                        #print("hhh0")
                         xxx = np.zeros(len(self), dtype=dts)
-                        print("hhh1")
+                        #print("hhh1")
                         for i, c in enumerate(colnames):
-                            print("recarray for ", c)
+                            #print("recarray for ", c)
                             xxx[c] = arr[i]
                         return xxx
                     return np.array(np.array(arr).flatten(), dtype=dts)

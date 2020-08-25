@@ -14,8 +14,9 @@ from astropy.io import fits as pyfits
 import numpy as np
 import functools
 
+gverbose=0
 
-def multi_fits_support(n):
+def multi_fits_support(n, verbose=gverbose):
     """
     Decorator to support that the `n`-first arguments can be filenames (strings) instead of ensembles.
     
@@ -36,7 +37,7 @@ def multi_fits_support(n):
             ens = []
             for i in range(n-1):
                 if type(args[i]) == type("xxx"):
-                    print("ensemle.tools::multi_fits_support - Assuming ", args[0], " is a fits-filename.")
+                    if verbose>0: print("ensemle.tools::multi_fits_support - Assuming ", args[0], " is a fits-filename.")
                     if "mapper" in kwargs:
                         e = from_fits(args[i], mapper=kwargs["mapper"])
                     else:
@@ -50,13 +51,13 @@ def multi_fits_support(n):
             #print("YYYYY", type(r), len(r))
 
             if len(args)>=n and type(args[n-1]) == type("xxx"):
-                print("ensemle.tools::multi_fits_support - Assuming ", args[n-1], " is a fits-filename.")
+                if verbose>0: print("ensemle.tools::multi_fits_support - Assuming ", args[n-1], " is a fits-filename.")
                 to_fits(r, ofn=args[n-1], overwrite=True)
             return r    
         return wrapper
     return multi_fits_support_func
 
-def fits_support(func):
+def fits_support(func, verbose=gverbose):
     """
     Decorator to support that the first arguments can be a filename (string) instead of an ensemble.
     """
@@ -68,7 +69,7 @@ def fits_support(func):
         else:
             raise TypeError("ensemle.tools::fits_support: Expecting at least one argument, but none provided.")
         if type(x) == type("xxx"):
-            print("ensemle.tools::fits_support - Assuming ", args[0], " is a fits-filename.")
+            if verbose>0: print("ensemle.tools::fits_support - Assuming ", args[0], " is a fits-filename.")
             if "mapper" in kwargs:
                 e = from_fits(x, mapper=kwargs["mapper"])
                 del kwargs["mapper"]
@@ -119,7 +120,7 @@ def from_fits2(fn, mapper={}, verbose=10, extension=1, maxN=None):
     col_data = []
     names=[]
     for col in cols:
-        print("ensemble.tools::from_fits - working on ",col.name)
+        #print("ensemble.tools::from_fits - working on ",col.name)
         if col.name in mapper.values(): continue
         if col_mapper(col.name) == "srcID":
             col_data.append(ff[extension].data[col.name][0:maxN].astype(str))
@@ -157,7 +158,7 @@ def from_fits2(fn, mapper={}, verbose=10, extension=1, maxN=None):
 
 
 
-def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
+def from_fits(fn, mapper={}, verbose=0, extension=1, maxN=None):
     """
     Generate Astro_Ensemble from fits-file
     
@@ -246,16 +247,16 @@ def from_fits(fn, mapper={}, verbose=1, extension=1, maxN=None):
     if verbose>1: 
         print("ensemble.tools::from_fits - Read ",np.shape(xxx), " entries with ",len(names)," properties from ",fn)
     
+    ff.close()        
     e = Ensemble().from_array(xxx)
     if verbose>0:
         print("ensemble.tools::from_fits - Generated Ensemble with",np.shape(xxx), " entries and ",len(names)," properties")
-    ff.close()    
     return e
     
 
 
     
-def to_fits(ensemble, ofn=None, overwrite=False, verbose=10, mapper={}, maxN=None):
+def to_fits(ensemble, ofn=None, overwrite=False, verbose=0, mapper={}, maxN=None):
     """
     Write Ensemble-data to fits-file
     
@@ -288,8 +289,8 @@ def to_fits(ensemble, ofn=None, overwrite=False, verbose=10, mapper={}, maxN=Non
 
     if verbose>1:
         print("ensemble.tools::to_fits - Using cols: ",outcols)
-    array = ensemble.to_array(colnames=outcols, verbose=10)
-    print("ARRAY")
+    array = ensemble.to_array(colnames=outcols, verbose=verbose)
+    #print("ARRAY")
     if maxN is None:
         maxN = len(array)
     else:

@@ -19,7 +19,7 @@ def shrink(e, cols=[]):
     """
     standard_cols = ["srcID", "RA", "Dec"]
     merged_cols = np.unique(standard_cols + cols)
-    print(merged_cols)
+    #print(merged_cols)
     tmp = e.to_array(colnames=standard_cols)
     f = Ensemble()
     f.from_array(tmp)
@@ -31,19 +31,19 @@ def shrink(e, cols=[]):
 
 
 def file_loop_1to1(idx, prefix="", postfix="", ofn_prefix="", ofn_postfix="", method=None, **kwargs):
-    for i in idx:
+    for j,i in enumerate(idx):
         fn = prefix+str(i)+postfix+".fits"
         ofn = ofn_prefix+str(i)+ofn_postfix+".fits"
-        logger.debug("Creating data set for fn=%s (ofn=%s)." % (fn, ofn))
+        logger.debug("Creating data set for fn=%s (ofn=%s; file# %i/%i)." % (fn, ofn, j+1, len(idx)))
         method(fn, ofn, **kwargs)
 
 
 def file_loop_2to1(idx, prefix1="", postfix1="", prefix2="", postfix2="", ofn_prefix="", ofn_postfix="", method=None, **kwargs):
-    for i in idx:
+    for j, i in enumerate(idx):
         fn1 = prefix1+str(i)+postfix1+".fits"
         fn2 = prefix2+str(i)+postfix2+".fits"
         ofn = ofn_prefix+str(i)+ofn_postfix+".fits"
-        logger.debug("Creating data set for fn1=%s and fn2=%s (ofn=%s)." % (fn1, fn2, ofn))
+        logger.debug("Creating data set for fn1=%s and fn2=%s (ofn=%s; file# %i/%i)." % (fn1, fn2, ofn, j+1, len(idx)))
         method(fn1, fn2, ofn, **kwargs)
 
 def major_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_postfix=None, major_prefix=None, major_postfix=None):
@@ -71,11 +71,11 @@ def random_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_p
 def training_loop(idx, major_prefix=None, major_postfix=None, random_prefix=None, random_postfix=None, training_prefix=None, training_postfix=None, abs_dist=2, rel_dist=1):
     """
     """
-    for i in idx:
+    for j, i in enumerate(idx):
         major_fn = major_prefix+str(i)+major_postfix+".fits"
         random_fn = random_prefix+str(i)+random_postfix+".fits"
         ofn = training_prefix+str(i)+training_postfix+".fits"
-        logger.debug("Creating training data set for major=%s and random=%s (ofn=%s)." % (major_fn, random_fn, ofn))
+        logger.debug("Creating training data set for major=%s and random=%s (ofn=%s; file# %i/%i)." % (major_fn, random_fn, ofn, j+1, len(idx)))
         training_set(major_fn, random_fn, ofn, abs_dist_cutoff=abs_dist, rel_dist_cutoff=rel_dist)
 
         

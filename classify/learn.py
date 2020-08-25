@@ -152,7 +152,7 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
         
     def update_displayed_dim0(valn):
         val = dim4name[valn]
-        print(valn, val)
+        print("abc",valn, val)
         
         if dims[0] == int(val):
             print("Dim 0 unchanged (",dims[0],")", val)
@@ -164,7 +164,14 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
         
         update_slider(dims[0], int(val))
         dims[0] = int(val)
-        sca.set_offsets(np.array([X[::,dims[0]], X[::,dims[1]]]).T)        
+        #sca.set_offsets(np.array([X[::,dims[0]], X[::,dims[1]]]).T)        
+        
+        gi = np.where(y==0)[0]
+        sca0.set_offsets(np.array([X[gi,dims[0]], X[gi,dims[1]]]).T) 
+        gi = np.where(y>0)[0]
+        sca1.set_offsets(np.array([X[gi,dims[0]], X[gi,dims[1]]]).T) 
+        #plt.legend()
+        
         fig.canvas.draw_idle()
         
     def update_displayed_dim1(valn):     
@@ -180,7 +187,14 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
         
         update_slider(dims[1], int(val))
         dims[1] = int(val)
-        sca.set_offsets(np.array([X[::,dims[0]], X[::,dims[1]]]).T)
+        
+        gi = np.where(y==0)[0]
+        sca0.set_offsets(np.array([X[gi,dims[0]], X[gi,dims[1]]]).T) 
+        gi = np.where(y>0)[0]
+        sca1.set_offsets(np.array([X[gi,dims[0]], X[gi,dims[1]]]).T) 
+        
+        
+        #sca.set_offsets(np.array([X[::,dims[0]], X[::,dims[1]]]).T)
         fig.canvas.draw_idle()
 
     
@@ -194,9 +208,9 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
     
     #sca = ax.scatter(X[::,dims[0]], X[::,dims[1]], c=y, s=30, alpha=0.1, cmap=plt.cm.Paired)
     gi = np.where(y==0)[0]
-    sca = ax.scatter(X[gi,dims[0]], X[gi,dims[1]], c=y[gi], s=30, alpha=0.7, vmin=0, vmax=1, cmap=plt.cm.Paired, label="Stars")
+    sca0 = ax.scatter(X[gi,dims[0]], X[gi,dims[1]], c=y[gi], s=30, alpha=0.7, vmin=0, vmax=1, cmap=plt.cm.Paired, label="Stars")
     gi = np.where(y>0)[0]
-    sca = ax.scatter(X[gi,dims[0]], X[gi,dims[1]], c=y[gi], s=30, alpha=0.7, vmin=0, vmax=1, cmap=plt.cm.Paired, label="others")
+    sca1 = ax.scatter(X[gi,dims[0]], X[gi,dims[1]], c=y[gi], s=30, alpha=0.7, vmin=0, vmax=1, cmap=plt.cm.Paired, label="others")
     #plt.legend()
 
     axcolor = 'lightgoldenrodyellow'
@@ -317,14 +331,14 @@ if __name__ == "__main__":
     #X, y = get_props("../merged_training.fits", prop_cols=props)
 
     props = ["logFx","logFg","pos","log_plx","bp_rp"]
-    props = ["bp_rp", "logFxFg","pos","log_plx"]
+    #props = ["pos", "logFxFg","bp_rp","log_plx"]
     
     #props = ["bp_rp", "logFg","logFx", "pos","log_plx"]
     
     X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
 
     #clf = svm.SVC(class_weight={1: 3}, probability=True)
-    clf = svm.SVC(C=10, kernel='poly', probability=True, degree=2,class_weight={1: 4})
+    clf = svm.SVC(C=5, kernel='poly', probability=True, degree=2,class_weight={0: 2})
     #clf = PCA(n_components=2)
     #clf = tree.DecisionTreeClassifier()
     #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
