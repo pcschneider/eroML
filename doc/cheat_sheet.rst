@@ -24,6 +24,13 @@ Count lines::
 python
 ------
 
+
+Run the stuff::
+
+    python3.7 -c 'from eroML.utils import NN_distribution ; print(NN_distribution("merged.fits", ofn="x"))'
+    python3.7 -c 'from eroML.utils.gaia_tools import gaia4ero ; gaia4ero("../eFEDS/SrcCat_V2T.fits", ofn="gaia.fits")'
+  
+
 Testing::
 
   p37 -c "import eroML ; eroML.test()"

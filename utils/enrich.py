@@ -196,7 +196,7 @@ def calc_gaia_quality(e, colname="Gaia_quality", overwrite=False, verbose=10, fi
 @fits_support
 def enrich_Gaia(e, filterNr=3):
     """
-    Add G-band flux
+    Add G-band flux, compatibility with an isochrone, the `eligible` column, and the sky density of eligible sources
     """
     arr = e.to_array(colnames=["phot_g_mean_mag"])
     FG = 10**(-0.4* arr["phot_g_mean_mag"])*3.660e-08*720
@@ -209,12 +209,7 @@ def enrich_Gaia(e, filterNr=3):
     sky_density(e, around=3, filter_prop="eligible_Gaia", filter_value=1, out_col="eligible_sky_density")
     #sky_density(e, around=3, filter_prop=None, out_col="sky_density")
     return e
-    
-    #ra = e.to_array(colnames=["ra"], array_type='array')
-    #dec = e.to_array(colnames=["dec"], array_type='array')
-    ##print(ra, type(ra))
-    #e.add_col("RA", ra)
-    #e.add_col("Dec", dec)
+
     
 @fits_support
 def enrich_eROSITA(e):

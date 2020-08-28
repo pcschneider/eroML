@@ -10,6 +10,17 @@ import astropy.units as u
 
 def sky_dens4coordinates(coord, around=3, verbose=1):
     """
+    Calculate the sky density using the provided coordinates
+    
+    Parameters
+    ----------
+    coord : SkyCoord instance
+    around : float
+        The default search area in arcmin (the search radius that is used may be smaller in high-density regions
+
+    Returns
+    -------
+    stars per arcmin^2 : np.array
     """
     
     def split(cc, N):
@@ -91,6 +102,7 @@ class Dist_model(fuf.OneDFit):
         self.sig = [1]
         self["sig"] = 1.
         self["err_scaling"] = 1.
+        self.gen_sigs([self["sig"]])
         
     def gen_sigs(self, sig_array):
         self.sig = np.random.choice(sig_array, self.Nsig)

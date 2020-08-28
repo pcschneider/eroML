@@ -6,71 +6,17 @@
 Welcome to eroML's documentation!
 =================================
   
-Run the stuff::
-
-    python3.7 -c 'from eroML.utils import NN_distribution ; print(NN_distribution("merged.fits", ofn="x"))'
-    python3.7 -c 'from eroML.utils.gaia_tools import gaia4ero ; gaia4ero("../eFEDS/SrcCat_V2T.fits", ofn="gaia.fits")'
-  
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    exploration.rst
+   training.rst 
    learning.rst
    submodules.rst
    cheat_sheet.rst
       
 
-Individual data sets
---------------------
-Names in brackets pertain to their corresponding name in the config-file (**idx** is the healpix index):
-Names in square brackets give the identifier for `file4`.
-
-  - eROSITA source list (*Sources:ero_filename*)[``ero_filename``]
-      This file is provided by the catalog team and will not be changed
-      
-  - eROSITA source list with healpix indices (*Sources:ero_filename_hp*)[``ero_filename_hp``]
-      
-  - eROSITA tiles (*data_dir* / *prefix* _nside *nside* _ **idx**.fits)[``ero_tiles``]
-      This file may be annotated, but shall always contain the full content. 
-  - Gaia tiles (*data_dir*  / *prefix* _nside *nside* _**idx**.fits)[``gaia_tiles``]    
-      This file may be annotated, but shall always contain the full content. 
-  - For each tile, the following sets
-      a) *major* [``major_tiles``]
-      b) *random* [``random_tiles``]
-      c) *training* [``training_tiles``]
-    Plus the same data sets in the _small_ incarnation [``*_small``]  
-  - Finally, the merged data sets
-      a) *major* [``major``]
-      b) *random* [``random``]
-      c) *training* [``training``]
-      
-      
-Description of individual processing Steps
---------------------------------------------
-
-1. Data preparation
-    a. eROSITA data 
-         - Annotate healpix, add FX
-         - Split into individual tiles (=files)  
-    b. Gaia data
-         - Download Gaia (takes a long time)
-         - Annotate Gaia (eligible, etc.)
-         
-2. Generate random eROSITA datasets        
-
-3. (Position) Matching
-    a. True eROSITA sources
-    b. Random sources (N times)
-    c. Enrich merged dataset(s)
-    
-4. Generate datasets
-    a. Training
-    b. Validation
-    
-5. Learn 
-
-6. Match
               
       
 Work Logic

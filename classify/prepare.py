@@ -5,9 +5,16 @@ try:
 except:
     pass    
 
+def generate():
+    pass
+
 def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     """
     Keep only relevant columns
+    
+    Parameters
+    ----------
+    
     """
     relevant_cols = ["srcID", "Fx","Fg","bp_rp","offset_sig","parallax","eligible_sky_density"]
     

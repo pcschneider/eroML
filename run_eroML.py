@@ -2,64 +2,16 @@ import argparse
 #import configparser
 from configparser import ConfigParser, ExtendedInterpolation
 from eroML.config import *
-from eroML.tile import loop, file4, merge_fits
-from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_files
-from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
-from eroML.utils import enrich_Gaia, ero_tile_loop
-from eroML.utils import major_loop, random_loop, training_loop
-from eroML.utils import file_loop_1to1, shrink
-import logging.handlers
-import logging
+#from eroML.tile import loop, file4, merge_fits
+#from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_files
+#from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
+#from eroML.utils import enrich_Gaia, ero_tile_loop
+#from eroML.utils import major_loop, random_loop, training_loop
+#from eroML.utils import file_loop_1to1, shrink
+from eroML.utils import setup_logger
+from eroML.tools import calculate_healpix
 import glob
 
-def discover_filenames(which):
-    """
-    """
-    if which.lower() == "gaia":
-        glob_str = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_*.fits"
-        fnames = glob.glob(glob_str)
-    return fnames
-
-
-def setup_logger(main_fn, debug_fn):
-    """Setup a Rotating File Handler"""
-    formatter = logging.Formatter('%(asctime)s - %(funcName)s - %(levelname)s - %(message)s')
-
-    logger = logging.getLogger("eroML")
-    logger.setLevel(4)#logging.DEBUG)
-    
-    logging.VERBOSE = 5
-    logging.addLevelName(logging.VERBOSE, "VERBOSE")
-    
-    #logging.Logger.verbose = lambda inst, msg, *args, **kwargs: inst.log(logging.VERBOSE, msg, *args, **kwargs)
-    #logging.verbose = lambda msg, *args, **kwargs: logging.log(logging.VERBOSE, msg, *args, **kwargs)
-    
-    handler = logging.handlers.RotatingFileHandler(main_fn, backupCount=5)
-    handler.setLevel(level=logging.INFO)
-    handler.setFormatter(formatter)
-    handler.doRollover()
-    logger.addHandler(handler)
-    
-    #x = hanlder.findCaller()
-    
-    handler = logging.handlers.RotatingFileHandler(debug_fn, backupCount=5)
-    handler.setLevel(logging.DEBUG)#level=logging.DEBUG)
-    handler.setFormatter(formatter)
-    handler.doRollover()
-    logger.addHandler(handler)
-    
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.VERBOSE)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-
-    
-    return logger
-
-
-# file logger
-#logger = setup_logger()
-#logger.info('Starting eroML')
 
 parser = argparse.ArgumentParser()
 parser.add_argument("conf_fn", nargs='?', default=None, help="Config-file")
@@ -82,8 +34,9 @@ for m in unlogged:
     
 if config["Healpix"]["calculate"].lower()=="true":
     logger.info("Adding healpix index to eROSITA source list")
-    add_healpix_col(config["Sources"]["ero_filename"], ofn=config["Sources"]["ero_filename_hp"], nside=config["Healpix"].getint("nside"), overwrite=True)
-
+    calculate_healpix(cconfig=config)
+    
+exit()    
 
 if config["eROSITA preparation"]["perform"].lower()=="true":
     logger.info("Preparing eROSITA data")

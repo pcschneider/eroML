@@ -1,14 +1,50 @@
-from eroML.config import *
+#from eroML.config import *
 from .pixelize import hpix2process
 import logging
 
 logger = logging.getLogger('eroML')
 
+def discover_filenames(which, config=None):
+    """
+    Discover the EXISITING filenames for a certain data set
+    
+    Options for `which` are: 
+      - gaia_tiles
+      - ero_tiles
+      
+    Returns
+    -------
+    filenames : array of str
+    """
+    if config is None:
+        from eroML.config import config
+    
+    if which.lower() == "gaia_tiles":
+        glob_str = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_*.fits"
+        fnames = glob.glob(glob_str)
+
+    elif which.lower() == "ero_tiles":
+        glob_str = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_*.fits"
+        fnames = glob.glob(glob_str) 
+        
+    return fnames
+
+
+
 def file4(which, cconfig=None):# which=""):
     """
     Options for `which`:
+      - ero_filename
       - ero_filename_hp : File containing ALL eROSITA sources with healpix indices
-    
+      - gaia_tiles
+      - ero_files
+      - major_tiles (plus _small)
+      - random_tiles  (plus _small)
+      - training_tiles  (plus _small)
+      - major 
+      - training
+      - random
+      
     Parameters
     ----------
     
@@ -24,8 +60,12 @@ def file4(which, cconfig=None):# which=""):
         return rr    
     
     if cconfig is not None:
+        from eroML.config import config, read_config
         logger.info("Using custom config-file: `%s` " % cconfig)
         read_config(cconfig)
+    elif config is None:
+        from eroML.config import config
+        
     
     idx = None
     

@@ -19,3 +19,9 @@ Pixelization
 
 .. automodule:: eroML.tile.pixelize
     :members:
+
+Filenames
+---------
+.. automodule:: eroML.tile.filenames
+    :members:
+    
