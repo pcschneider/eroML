@@ -11,6 +11,7 @@ from .enrich import enrich_merged, activity_filter, NN_Max
 import glob
 import logging
 
+
 logger = logging.getLogger('eroML')
     
 @multi_fits_support(2)    
@@ -77,7 +78,7 @@ def training_loop(idx, major_prefix=None, major_postfix=None, random_prefix=None
         ofn = training_prefix+str(i)+training_postfix+".fits"
         logger.debug("Creating training data set for major=%s and random=%s (ofn=%s; file# %i/%i)." % (major_fn, random_fn, ofn, j+1, len(idx)))
         training_set(major_fn, random_fn, ofn, abs_dist_cutoff=abs_dist, rel_dist_cutoff=rel_dist)
-
+        random_pos(ofn)
         
 @multi_fits_support(3)
 def major_set(ero, gaia, eligible_ero="eligible_eROSITA", eligible_gaia="eligible_Gaia", NN=3, verbose=10, overwrite=True):

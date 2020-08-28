@@ -331,14 +331,14 @@ if __name__ == "__main__":
     #X, y = get_props("../merged_training.fits", prop_cols=props)
 
     props = ["logFx","logFg","pos","log_plx","bp_rp"]
-    #props = ["pos", "logFxFg","bp_rp","log_plx"]
+    props = ["pos", "logFxFg","bp_rp","log_plx"]
     
     #props = ["bp_rp", "logFg","logFx", "pos","log_plx"]
     
     X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
 
     #clf = svm.SVC(class_weight={1: 3}, probability=True)
-    clf = svm.SVC(C=5, kernel='poly', probability=True, degree=2,class_weight={0: 2})
+    clf = svm.SVC(C=5, kernel='poly', probability=True, degree=1,class_weight={0: 2})
     #clf = PCA(n_components=2)
     #clf = tree.DecisionTreeClassifier()
     #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})

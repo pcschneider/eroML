@@ -1,6 +1,6 @@
 from eroML.tile import loop, file4, merge_fits
 from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_files
-from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
+from eroML.utils import Gaia_tile_loop
 from eroML.utils import enrich_Gaia, ero_tile_loop
 from eroML.utils import major_loop, random_loop, training_loop
 from eroML.utils import file_loop_1to1, shrink
@@ -8,6 +8,7 @@ from eroML.utils import setup_logger
 import logging
 from configparser import ConfigParser
 from eroML.config import config, read_config
+from eroML.tile import file4
 
 logger = logging.getLogger('eroML')
 
@@ -90,6 +91,87 @@ def prepare_Gaia_data(cconfig=None):
     Gaia_tile_loop(idx, prefix=prex, postfix=posx, filterNr=filt)
     
 
+def create_major_sets(cconfig=None):
+    cconfig = custom_config(cconfig)
+    
+    healpix_file = cconfig["Healpix"].get("pix_file", None)
+    index0 = cconfig["Healpix"].getint("index0", 0)
+    index1 = cconfig["Healpix"].getint("index1", None)
+
+    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    g_prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    g_posx = ""
+    
+    e_prex = cconfig["eROSITA preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    e_posx = ""
+    
+    m_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["major_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    m_posx = ""
+    
+    major_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, major_prefix=m_prex, major_postfix=m_posx)
+    
+
+def create_random_sets(cconfig=None):
+    cconfig = custom_config(cconfig)
+    
+    healpix_file = cconfig["Healpix"].get("pix_file", None)
+    index0 = cconfig["Healpix"].getint("index0", 0)
+    index1 = cconfig["Healpix"].getint("index1", None)
+
+    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    g_prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    g_posx = ""
+    
+    e_prex = cconfig["eROSITA preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    e_posx = ""
+    
+    r_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    r_posx = ""
+    
+    mino = float(cconfig["Data sets"]["min_random_offset"])
+    maxo = float(cconfig["Data sets"]["max_random_offset"])
+    multi= int(cconfig["Data sets"]["random_multi"])
+    logger.debug("Random data sets for %i tiles." % len(idx))
+    random_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, random_prefix=r_prex, random_postfix=r_posx, min_offset=mino, max_offset=maxo, multi=multi)
+    
+def create_training_sets(cconfig=None):
+    cconfig=custom_config(cconfig)
+    
+    healpix_file = cconfig["Healpix"].get("pix_file", None)
+    index0 = cconfig["Healpix"].getint("index0", 0)
+    index1 = cconfig["Healpix"].getint("index1", None)
+
+    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    
+    # random
+    r_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    r_posx = ""
+    
+    #major
+    m_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["major_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    m_posx = ""
+    
+    #training
+    t_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["training_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    t_posx = ""
+    
+    
+    ad = float(cconfig["Data sets"]["training_abs_dist"])
+    rd = float(cconfig["Data sets"]["training_rel_dist"])
+    
+    logger.debug("Random data sets for %i tiles." % len(idx))
+    training_loop(idx, major_prefix=m_prex, major_postfix=m_posx, random_prefix=r_prex, random_postfix=r_posx, training_prefix=t_prex, training_postfix=t_posx, abs_dist=ad, rel_dist=rd)
+
+def fake_positions(cconfig=None):
+    cconfig=custom_config(cconfig)
+    
+    
+    fn = file4("training", cconfig=cconfig)  
+    logger.debug("Generating random positions for training set ('%s')." % fn)
+    from eroML.tools import random_pos
+
+    random_pos(fn)
+    
 #if config["Data sets"]["major"].lower()=="true":
     
     #healpix_file = config["Healpix"].get("pix_file", None)
