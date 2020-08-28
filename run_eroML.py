@@ -9,7 +9,8 @@ from eroML.config import *
 #from eroML.utils import major_loop, random_loop, training_loop
 #from eroML.utils import file_loop_1to1, shrink
 from eroML.utils import setup_logger
-from eroML.tools import calculate_healpix
+from eroML.tools import calculate_healpix,prepare_Gaia_data, perform_Gaia_download,generate_ero_tiles, perform_ero_data_preparation
+
 import glob
 
 
@@ -36,61 +37,23 @@ if config["Healpix"]["calculate"].lower()=="true":
     logger.info("Adding healpix index to eROSITA source list")
     calculate_healpix(cconfig=config)
     
-exit()    
-
 if config["eROSITA preparation"]["perform"].lower()=="true":
     logger.info("Preparing eROSITA data")
-    prex = config["eROSITA preparation"]["directory"]+"/"+config["eROSITA preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
-    posx = ""
-    healpix_file = config["Healpix"].get("pix_file", None)
-    index0 = config["Healpix"].getint("index0", 0)
-    index1 = config["Healpix"].getint("index1", None)    
-    generate_healpix_files(config["Sources"]["ero_filename_hp"], prefix=prex, postfix=posx, index0=index0, index1=index1, pix_file=healpix_file)
+    generate_ero_tiles(cconfig=config)
 
 if config["eROSITA preparation"]["enrich"].lower()=="true":
-    healpix_file = config["Healpix"].get("pix_file", None)
-    index0 = config["Healpix"].getint("index0", 0)
-    index1 = config["Healpix"].getint("index1", None)
-
-    idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
-    logger.debug("Enriching %i ero-tiles." % len(idx))
-    prex = config["eROSITA preparation"]["directory"]+"/"+config["eROSITA preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
-    posx = ""
-    ero_tile_loop(idx, prefix=prex, postfix=posx)
+    logger.debug("Enriching ero-tiles.")
+    perform_ero_data_preparation(cconfig=config)
 
 if config["Gaia Download"]["perform"].lower()=="true":
     logger.info("Downloading Gaia data")
-    
-    healpix_file = config["Healpix"].get("pix_file", None)
-    index0 = config["Healpix"].getint("index0", 0)
-    index1 = config["Healpix"].getint("index1", None)
-    
-    idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
-    logger.debug("Downloading %i Gaia-tiles." % len(idx))
-    
-    download_Gaia_tiles(outdir=config["Gaia Download"]["directory"],\
-               prefix=config["Gaia Download"]["prefix"], idx=idx,\
-               nside=int(config["Healpix"]["nside"]),\
-               overwrite=config["Gaia Download"]["overwrite"],\
-               edge=float(config["Gaia Download"]["edge"]),\
-               verbose=int(config["Gaia Download"]["verbose"]))
-
+    perform_Gaia_download(cconfig=config)    
 
 if config["Enrich Gaia"]["perform"].lower()=="true":
-    healpix_file = config["Healpix"].get("pix_file", None)
-    index0 = config["Healpix"].getint("index0", 0)
-    index1 = config["Healpix"].getint("index1", None)
-
-    idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
-    logger.debug("Enriching %i ero-tiles." % len(idx))
-    prex = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
-    posx = ""
+    logger.info("Enriching Gaia data")
+    prepare_Gaia_data(cconfig=config)
     
-    filt = int(config["Enrich Gaia"]["filter"])
-    #print("filt: ",filt)
-    logger.info("Enriching Gaia data files (filt=%i)" % filt)
-    Gaia_tile_loop(idx, prefix=prex, postfix=posx, filterNr=filt)
-    
+exit()    
 
 if config["Data sets"]["major"].lower()=="true":
     

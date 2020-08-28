@@ -37,7 +37,8 @@ def hpix2process(ifn, index0=0, index1=None, pix_file=None, colname="healpix", e
         dd = np.genfromtxt(pix_file, dtype=int)
         indices = np.atleast_1d(dd)
     else:
-        indices = np.arange(hpix_range[0], hpix_range[1])
+        #indices = np.arange(hpix_range[0], hpix_range[1])
+        indices = hpix_all
         
     if index1==None: index1=max(indices)
     

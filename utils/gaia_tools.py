@@ -8,7 +8,7 @@ from astropy.io.votable import parse
 from astropy.io.votable import parse_single_table
 import tempfile
 import copy
-import os
+import os, re
 import healpy as hp
 import logging
 import glob
@@ -57,7 +57,7 @@ def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwri
             continue
         
         if check_alternate:
-            glob_str = outdir+"/Gaia_r*"+"_nside"+str(nside)+"_"+str(i)+".fits"
+            glob_str = outdir+"/Gaia_*"+"_nside"+str(nside)+"_"+str(i)+".fits"
             afn = get_alternate_gaia_file(glob_str)
             if afn: 
                 os.symlink(afn, ofn)
@@ -76,9 +76,32 @@ def Gaia_tile_loop(idx, prefix=None, postfix=None, filterNr=3):
     from .enrich import enrich_Gaia
     logger.info("Enrichting %i Gaia source tiles." % len(idx))
     
+    p = re.compile("(\S*)/Gaia_(\S*)_nside(\d+)_(\S*).fits")
+
     for j, i in enumerate(idx):
         fn = prefix+str(i)+postfix+'.fits'
         logger.debug("Enriching Gaia tile: %s. (file %i/%i; filterNr=%i) " % (fn, j+1, len(idx), filterNr)) 
+
+        if not os.path.exists(fn):
+            
+            mm = p.match(fn)
+            #print(mm, mm.group(0), mm.group(2))
+            if mm:
+                found = mm.group(3)
+                nside = int(found)
+            else:
+                logger.warning("Cannot find %s or alternative." % fn)
+                raise FileNotFoundError("Cannot find '%s' or alternative." % fn)
+
+            glob_str =  mm.group(1)+"/Gaia_*"+"_nside"+str(nside)+"_"+str(i)+".fits"
+            #print("GLOB:", glob_str)
+            afn = get_alternate_gaia_file(glob_str)    
+            #print("AFN", afn)
+            if afn:
+                logger.info("Using %s instead of %s." % (afn, fn))
+                os.symlink(afn, fn)
+                
+            
         enrich_Gaia(fn, filterNr=filterNr)    
 
 
