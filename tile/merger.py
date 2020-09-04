@@ -62,7 +62,11 @@ def merge_fits(fnames, ofn=None, overwrite=True, verbose=1):
             i0, i1 = i1, i1+M
             
         for c in cols:
-            col_dct[c.name]["array"][i0:i1] = ff[1].data[c.name]
+            try:
+                col_dct[c.name]["array"][i0:i1] = ff[1].data[c.name]
+            except:
+                col_dct[c.name]["array"][i0:i1] = np.array((i1-i0)*[np.nan])
+            
             col_dct[c.name]["col"] = c
         logger.debug("Merging objects - %i/%i    %s -> %i (of %i total)" % (k+1, len(fnames), fn, M, N))    
         ff.close()
@@ -72,7 +76,7 @@ def merge_fits(fnames, ofn=None, overwrite=True, verbose=1):
     for c in cols:
         #print(c)
         if c.name == "Gaia_quality" or c.name == "Gaia_Quality":
-            ar = np.array(col_dct[c.name]["array"])=="True"
+            ar = np.array(col_dct[c.name]["array"]).astype(int) == 1
             #print(ar, col_dct[c.name]["array"])
             col = pyfits.Column(name=c.name, array=ar, format="J")
         else:
@@ -82,7 +86,7 @@ def merge_fits(fnames, ofn=None, overwrite=True, verbose=1):
                 #print("XXX",c.name)
                 col = pyfits.Column(name=c.name, array=col_dct[c.name]["array"]=="True", format=col_dct[c.name]["col"].format)
         out_cols.append(col)
-    #print(out_cols)        
+    print(out_cols)        
     hdu = pyfits.PrimaryHDU()    
     cc = pyfits.ColDefs(out_cols)
     xx = pyfits.BinTableHDU.from_columns(cc)

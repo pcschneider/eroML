@@ -2,8 +2,9 @@ Data Description and Data Sets
 ===============================
 
 
-Individual data sets
---------------------
+The different data sets
+------------------------
+
 Names in brackets pertain to their corresponding name in the config-file (**idx** is the healpix index):
 Names in square brackets give the identifier for `file4`.
 
@@ -14,31 +15,72 @@ Names in square brackets give the identifier for `file4`.
       
   - eROSITA tiles (*data_dir* / *prefix* _nside *nside* _ **idx**.fits)[``ero_tiles``]
       This file may be annotated, but shall always contain the full content. 
+      
   - Gaia tiles (*data_dir*  / *prefix* _nside *nside* _**idx**.fits)[``gaia_tiles``]    
       This file may be annotated, but shall always contain the full content. 
+      
   - For each tile, the following sets
       a) *major* [``major_tiles``]
       b) *random* [``random_tiles``]
       c) *training* [``training_tiles``]
-    Plus the same data sets in the _small_ incarnation [``*_small``]  
+      
+      Plus the same data sets in the _small_ incarnation [``*_small``]
+      
   - Finally, the merged data sets
       a) *major* [``major``]
       b) *random* [``random``]
       c) *training* [``training``]
       
       
+.. Relevant content of data sets
+.. ------------------------------
+.. 
+.. Each data set has its specific, relevant columns:
+.. 
+..   - eROSITA source list (*Sources:ero_filename*)[``ero_filename``]
+
+
 Data Processing Steps
 --------------------------------------------
 
+The switch in the .ini-file is given as *[section][switch]*, column names 
+as ``colname``.
+
 1. Data preparation
     a. eROSITA data 
-         - Annotate healpix, add FX
-         - Split into individual tiles (=files)  
+         - *[Healpix][calculate]*: :func:`~eroML.tile.pixelize.add_healpix_col` 
+             Healpix index (``healpix``)
+         - *[eROSITA preparation][perform]*: :func:`~eroML.tile.pixelize.generate_healpix_files`
+             Split sources into healpix tiles
+         - *[eROSITA preparation][enrich]*: :func:`~eroML.utils.enrich.enrich_eROSITA` 
+             ``FX``, ``eligible_eROSITA``,  and the dummy columns ``pm_RA``, ``pm_Dec``, ``ref_epoch``
+             
+             This step also introduces a minimum positional uncertainty of 1 arcsec for the X-ray position.
+             
     b. Gaia data
-         - Download Gaia (takes a long time)
-         - Annotate Gaia (eligible, etc.); this step is required to work on the full data 
+         - *[Gaia Download][perform]*: :func:`~eroML.utils.gaia_tools.download_Gaia_tiles`  and :func:`~eroML.utils.gaia_tools.download_one_Gaia_polytile`
+           
+             Download Gaia and store in individual tiles (takes a long time)
+             
+         - *[Enrich Gaia][perform]*:  :func:`~eroML.utils.enrich.enrich_Gaia`
+             G-band flux (``Fg``), compatibility with isochrones (``iso_compatible``),
+             the Gaia quality (``Gaia_quality``), if the source fullfills the Gaia quality
+             criterium and is compatible with the isochrones (``eligible_Gaia``), and 
+             the sky density of the eligible Gaia sources (``eligible_sky_density``)
          
-2. Generate random eROSITA datasets        
+             This step is required to work on the full data 
+         
+2. Generate data sets        
+    a. *[Data sets][major]*: :func:`~eroML.utils.datasets.major_set`
+        Perform the positional matching up the 3. nearest neighbour.
+        
+        Extra columns: ``offset_sig``, ``match_dist``
+        
+        Plus the columns from the eROSITA and Gaia files. 
+    
+    b. Random set
+    c. Training set
+
 
 3. (Position) Matching
     a. True eROSITA sources
@@ -53,30 +95,32 @@ Data Processing Steps
 
 6. Match
 
-Use a sub-sample
-----------------------
 
-Once, each eROSITA source has an asigned healpix (`ifn`), one can generate random hpix list::
 
-  from eroML.tile import populated_hpix
-  import numpy as np
-  
-  # The filename containing the healpix-annotated source list
-  ifn = "../ero_data/eRASS1_hp.fits"
-  ofn = "hpix_list.dat"
-  N = 100
-  
-  hpix = populated_hpix(ifn)
-  out = hpix[np.random.choice(range(len(hpix)), size=N, replace=False)]
-  print(min(out), max(out))
-  np.savetxt(ofn, out, fmt="%i")
-  
-Now, one can add the following::
+Work Logic
+-----------
 
-  [Healpix]
-  pix_file=hpix_list.dat
-  
-to the config (`.ini`) and only those pixels will be used.
+Loop through Tiles 
+
+  0. (method: :func:`~eroML.tile.tile.loop`)
+
+  1. For each Tile: (method: :func:`~eroML.tile.tile.Tile.prepare_data`)
+      a) Get Gaia sources
+          - Get sky extent 
+          - Download Gaia sources from archive
+          - Convert Gaia data to fits-file
+      b)  Prepare data (method: :func:
+          - For Gaia, add columns: `Fg`, `iso_compatible`, `eligible`, `sky_density`, `sky_density_eligible`
+          - For eROSITA, add columns: `Fx`       
+          
+  2. Generate data sets  (method: :func:`~eroML.tile.tile.Tile.generate_sets`)
+      a) major set : Containing all matched sources (:func:`~eroML.utils.datasets.major_set`)
+      b) random set : Shift all source by a random amount and match  (:func:`~eroML.utils.datasets.random_set`)
+      c) training set : Best matching sources  (:func:`~eroML.utils.datasets.training_set`)
+      d) training+random : training set plus random source fullfilling the same criteria as the training set sources (:func:`~eroML.utils.datasets.training_random_set`)
+      
+..   3. Merge tiles (method: :func:``)
+   
 
 
 Sky Density
@@ -84,3 +128,25 @@ Sky Density
 The sky density can be displayed by running::
   
   p37 tools/sky_density.py
+  p37 tools/calculated_sky_density.py
+  
+The number of stars per healpix shows the structure of the Milky Way
+
+
+.. figure:: counts_all_stars_per_tile.png
+   :width: 70%
+   :alt: All Gaia stars
+   :align: center
+   
+   Number of all Gaia stars per healpix
+   
+while the density of the eligible stars mostly but not completely mirrors the 
+density of all stars. For example, large and small Magellanic Clouds represent
+depressions in the density of the eligible sources.
+  
+.. figure:: density_eligible_per_tile.png
+   :width: 70%
+   :alt: All Gaia stars
+   :align: center
+
+   Mean density of eligible sources per healpix (:math:`\text{arcmin}^{-2}`)

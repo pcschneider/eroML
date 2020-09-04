@@ -272,14 +272,15 @@ def random_set(ero0, gaia, multi=1, min_offset=60, max_offset=180):
     Generate a random set, i.e., shuffle the X-ray positions
    
     
-      Parameters
-      ----------
-      ifn, ofn : string, filenames for in- and output files
-      offsets : float, in arcsec
-      multi : int
+    Parameters
+    ----------
+    ifn, ofn : string, filenames for in- and output files
+    offsets : float, in arcsec
+    multi : int
           Increase size of sample by N
-      overwrite : boolean
+    overwrite : boolean
     """
+    
     #min_offset = 60 #arcsec
     #max_offset = 180
     

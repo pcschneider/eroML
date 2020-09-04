@@ -8,6 +8,20 @@ except:
 def generate():
     pass
 
+def gen_real_pos_offset(N, sigma=1.):
+        
+    rnd = np.random.rand(N)
+    rndx = np.sqrt(2*sigma**2 * (-np.log(1-rnd)))
+
+    return rndx
+
+def gen_random_pos_offset(N, dens=1.):
+
+    rnd = np.random.rand(N)
+    rndx = np.sqrt(-np.log(1-rnd)/(np.pi*dens))
+    return rndx
+
+
 def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     """
     Keep only relevant columns
@@ -49,13 +63,28 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     
     dst = ff[extension].data["match_dist"]
     err = ff[extension].data["RADEC_ERR"]
-    val = np.zeros(len(dst))
-    for i, (x, s) in enumerate(zip(dst, err)):
-        xxx = np.arange(0,x,0.001)
-        y = len(xxx)*[0.1]
-        y = xxx/s**2 * np.exp(-xxx**2/(2*s**2))
-        val[i] = 1- np.trapz(y, xxx)
-    #print(val)
+    
+    
+    dens = ff[extension].data['eligible_sky_density'] / 3600
+    
+    # random matches
+    gi = np.where(ff[extension].data["category"] == 2)[0] 
+    dst[gi] = gen_random_pos_offset(len(gi), dens = dens[gi])
+    
+    # real matches
+    gi = np.where(ff[extension].data["category"] < 2)[0] 
+    dst[gi] = gen_real_pos_offset(len(gi), sigma = err[gi])
+    
+    
+    
+    #val = np.zeros(len(dst))
+    #for i, (x, s) in enumerate(zip(dst, err)):
+        #xxx = np.arange(0,x,0.001)
+        #y = len(xxx)*[0.1]
+        #y = xxx/s**2 * np.exp(-xxx**2/(2*s**2))
+        #val[i] = 1- np.trapz(y, xxx)
+    val = 1 - np.exp(-dst**2/(2*err**2))        
+    print(val)
     #import matplotlib.pyplot as plt
     plt.hist(ff[extension].data["offset_sig"])
     plt.show()

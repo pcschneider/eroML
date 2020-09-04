@@ -5,7 +5,7 @@ Tile
 
 Tile
 ------------------------------------
-.. automodule:: eroML.tile.tile
+.. automodule:: eroML.tile.main
     :members:
 
 Pixelization

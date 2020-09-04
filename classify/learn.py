@@ -12,6 +12,7 @@ from matplotlib.text import Text
 from sklearn.decomposition import PCA
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
+from sklearn.model_selection import train_test_split
 
 def get_props(ifn, category_column="class", prop_cols=[], name_col=None, filter_column=None, filter_val=None, with_index=False):
     """
@@ -331,19 +332,29 @@ if __name__ == "__main__":
     #X, y = get_props("../merged_training.fits", prop_cols=props)
 
     props = ["logFx","logFg","pos","log_plx","bp_rp"]
-    #props = ["pos", "logFxFg","bp_rp","log_plx"]
+    #props = ["pos","log_plx", "logFxFg","bp_rp"]
     
     #props = ["bp_rp", "logFg","logFx", "pos","log_plx"]
     
     X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
+    
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.8, random_state=42)
 
+    
+    #N = 10000
+    #print(np.shape(X), np.shape(y))
+    #idx = np.random.choice(range(len(y)), size=N)
+    #X = X[idx]
+    #y = y[idx]
+    
     #clf = svm.SVC(class_weight={1: 3}, probability=True)
-    clf = svm.SVC(C=5, kernel='poly', probability=True, degree=2,class_weight={0: 2})
+    clf = svm.SVC(C=1, kernel='poly', probability=True, degree=2,class_weight={0: 2})
     #clf = PCA(n_components=2)
     #clf = tree.DecisionTreeClassifier()
     #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
     #clf = SGDClassifier(loss='hinge')
-    clf.fit(X, y)
+    clf.fit(X_train, y_train)
     b = clf.predict(X)
     recovery(y, b)
     print()

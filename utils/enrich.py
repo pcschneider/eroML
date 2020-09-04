@@ -213,6 +213,16 @@ def enrich_Gaia(e, filterNr=3):
     
 @fits_support
 def enrich_eROSITA(e):
+    """
+    Enrich the eROSITA data.
+    
+    Add:
+      - Fx
+      - eligible_eROSITA
+    as well as the dummy columns:
+      - pm_RA, pm_Dec
+      - ref_epoch
+    """
     err = e.to_array(colnames="RADEC_ERR", array_type="array")
     err[err<1.] = 1.
     e.set_col("RADEC_ERR", err)

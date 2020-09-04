@@ -92,11 +92,9 @@ Real vs Random
 
 With a mean positional uncertainty of about 4 arcsec, the distributions of 
 real and random sources equal each other for a density of *eligible* of 
-  :math:`36 \text{arcmin}^2`.
+:math:`36 \text{arcmin}^2`.
 
-    
 
-   
 Classes
 ----------------------
 
