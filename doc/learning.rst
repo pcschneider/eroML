@@ -94,7 +94,35 @@ With a mean positional uncertainty of about 4 arcsec, the distributions of
 real and random sources equal each other for a density of *eligible* of 
 :math:`36 \text{arcmin}^2`.
 
+Peak of the distribution
+~~~~~~~~~~~~~~~~~~~~~~~~
 
+The peak of the pdf is
+
+.. math::
+
+    \large
+    \begin{eqnarray}
+        \frac{d}{dx} pdf(x) & = & 0\\
+        \frac{d}{dx} 2\alpha \cdot x \cdot e^{-\alpha \cdot x^2} & = & 0\\
+        -2 \alpha \left( 2\alpha\cdot x^2 -1 \right) e^{-\alpha x^2} & = & 0\\
+    \end{eqnarray}
+    
+where :math:`\large \alpha = \sigma^{-2}/2` for real matches and :math:`\large \alpha=\pi \eta` 
+for random matches. Therefore, the peak is at 
+
+.. math::
+
+    \large
+        x =  \sqrt{\frac{1}{2\alpha}}
+        = \left\{ 
+          \begin{array}{ll}
+          \sigma ~~ \text{for real sources}\\
+          \sqrt{\frac{1}{2\pi\eta}}  ~~ \text{for random sources}\\
+          \end{array}
+          \right.
+    
+    
 Classes
 ----------------------
 

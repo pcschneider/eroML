@@ -8,7 +8,7 @@ import PyAstronomy.funcFit as fuf
 import astropy.units as u
 
 
-def sky_dens4coordinates(coord, around=3, verbose=1):
+def sky_dens4coordinates(coord, around=4,auto_adjust=True,  verbose=1):
     """
     Calculate the sky density using the provided coordinates
     
@@ -52,6 +52,7 @@ def sky_dens4coordinates(coord, around=3, verbose=1):
         print("sky_dens:: Sky area of Ensemble: ",sky_area, " (center: ",np.nanmedian(coord.ra.degree), np.nanmedian(coord.dec.degree),")")         
         print("sky_dens::    ",ra_range, dec_range)
         print("sky_dens::    Mean sky density: ",sky_dens," #stars/arcmin^2")
+        print("sky_dens::    Mean number of stars in search radius: ",sky_dens*np.pi*around**2)
     
     N = len(coord)
     ret = np.zeros(N)
@@ -66,8 +67,10 @@ def sky_dens4coordinates(coord, around=3, verbose=1):
             ret[c] = sky_dens4coordinates(coord[c], around=around) * 3
         #return ret
     
-    #elif sky_dens > 1:
-        #ta = 0.5*u.arcmin
+    elif (sky_dens*np.pi*around**2 < 10) and auto_adjust:
+        ta = (10/sky_dens/np.pi)**0.5
+        print("sky_dens:: Adjusting 'search_around' to ",ta)
+        return sky_dens4coordinates(coord, around=ta, auto_adjust=False)
         #idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, ta)
         #uni, cnt = np.unique(idxc, return_counts=True)
         ##print(uni)
@@ -83,12 +86,16 @@ def sky_dens4coordinates(coord, around=3, verbose=1):
     else:
         idxc, idxcatalog, d2d, d3d = coord.search_around_sky(coord, around*u.arcmin)
         uni, cnt = np.unique(idxc, return_counts=True)
-        ret = cnt/np.pi/around**2 / 2.
+        #print(cnt)
+        ret = (cnt-1)/np.pi/around**2
+        #ret = cnt/np.pi/around**2 / 2.
         print("sky_dens:: Using ",around," arcmin search radius:", np.nanmean(ret))
+        print("sky_dens::        median number of stars in search radius: ",np.median(cnt-1).astype(int))
+        print("sky_dens::        mean number of stars in search radius: ",np.mean(cnt-1).astype(int))
     
     #print(ret)
     print("sky_dens:: nanmean: ",np.nanmean(ret))
-    #print()
+    print()
     return ret
 
 class Dist_model(fuf.OneDFit):

@@ -883,6 +883,7 @@ def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", center=(0, 0), width=
         cos_ra_max = (center[0]+width[0]) * np.cos(center[1]/180*np.pi)
         ra = ((np.random.rand(N)-0.5) *  (cos_ra_max - cos_ra_min)) / 2 / np.cos(center[1]/180*np.pi) + center[0]
     else:
+        
         dec = np.linspace(center[1]-width[1]/2, center[1]+width[1]/2, N)
         ra  = np.linspace(center[0]-width[0]/2, center[0]+width[0]/2, N)
     

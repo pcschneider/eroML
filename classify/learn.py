@@ -13,6 +13,7 @@ from sklearn.decomposition import PCA
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
 
 def get_props(ifn, category_column="class", prop_cols=[], name_col=None, filter_column=None, filter_val=None, with_index=False):
     """
@@ -331,8 +332,8 @@ if __name__ == "__main__":
     #props = ["log_FG", "log_FX", "bp_rp", "offset_sig", "log_distance"]
     #X, y = get_props("../merged_training.fits", prop_cols=props)
 
-    props = ["logFx","logFg","pos","log_plx","bp_rp"]
-    #props = ["pos","log_plx", "logFxFg","bp_rp"]
+    #props = ["logFx","logFg","pos","log_plx","bp_rp"]
+    props = ["pos", "logFxFg","log_plx","bp_rp"]
     
     #props = ["bp_rp", "logFg","logFx", "pos","log_plx"]
     
@@ -342,11 +343,13 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.8, random_state=42)
 
     
-    #N = 10000
-    #print(np.shape(X), np.shape(y))
-    #idx = np.random.choice(range(len(y)), size=N)
-    #X = X[idx]
-    #y = y[idx]
+    N = 10000
+    print(np.shape(X), np.shape(y))
+    idx = np.random.choice(range(len(y)), size=N)
+    X = X[idx]
+    y = y[idx]
+    
+    #clf = MLPClassifier(solver='lbfgs', alpha=1e-4, hidden_layer_sizes=(6, 3), random_state=1, max_iter=1000)
     
     #clf = svm.SVC(class_weight={1: 3}, probability=True)
     clf = svm.SVC(C=1, kernel='poly', probability=True, degree=2,class_weight={0: 2})

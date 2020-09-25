@@ -61,7 +61,7 @@ def eligible_eROSITA(e, out_col="eligible_eROSITA"):
     
 
 @fits_support
-def sky_density(e, around=3, filter_prop="eligible_Gaia", filter_value=1, out_col="eligible_sky_density", verbose=1):
+def sky_density(e, around=5, filter_prop="eligible_Gaia", filter_value=1, out_col="eligible_sky_density", verbose=1):
     """
     Calculate the local sky density for each source
     
