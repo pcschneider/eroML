@@ -45,6 +45,7 @@ def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwri
     if idx is None:
         idx = range(hp.nside2npix(nside))
     logger.info("Number of hpix: %i" % len(idx))   
+    logger.info("Using Glim=%f" % Glim)
     for j, i in enumerate(idx):
         
         pre  = outdir+"/"+prefix+"_nside"+str(nside)+"_"+str(i)
@@ -53,7 +54,7 @@ def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwri
                 
         logger.debug("Using \'%s\' for hpix=%i  (pix %i of %i)" % (ofn, i, j+1, len(idx)))
         if os.path.exists(ofn):
-            logger.debug("  Skipping...")
+            logger.debug("  Skipping... (using existing file=\'%s\' instead)" % ofn)
             continue
         
         if check_alternate:
@@ -63,7 +64,7 @@ def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwri
                 os.symlink(afn, ofn)
                 continue
         
-        download_one_Gaia_polytile(ofn, i, nside, overwrite=overwrite, verbose=verbose, edge=edge, keep_VO=keep_VO,)
+        download_one_Gaia_polytile(ofn, i, nside, overwrite=overwrite, verbose=verbose, edge=edge, keep_VO=keep_VO,Glim=Glim)
         add_standard_cols(ofn, overwrite=True)
         #add_quality_column(ofn, ofn, overwrite=True)
 
@@ -169,9 +170,9 @@ def download_one_Gaia_polytile(ofn, hpix, nside, overwrite=False, verbose=1, edg
     x, y = get_larger_poly(x0, y0, around=3*edge)
      
 
-    tpl = (x[0], y[0], x[1], y[1], x[2], y[2], x[3], y[3])
+    tpl = (x[0], y[0], x[1], y[1], x[2], y[2], x[3], y[3], Glim)
 
-    query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.pmra, gaia_source.pmdec, gaia_source.ref_epoch, gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),POLYGON('ICRS', %f, %f, %f, %f, %f, %f, %f, %f))=1;" % tpl) 
+    query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.pmra, gaia_source.pmdec, gaia_source.ref_epoch, gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),POLYGON('ICRS', %f, %f, %f, %f, %f, %f, %f, %f))=1 AND gaiadr2.gaia_source.phot_g_mean_mag<%f;" % tpl) 
        
     logger.log(5, "query_str: "+query_str)
     #return    
@@ -180,6 +181,7 @@ def download_one_Gaia_polytile(ofn, hpix, nside, overwrite=False, verbose=1, edg
     if verbose>3: logger.log(0, " (job)"+str(job))
     r = job.get_results()
     
+    logger.log(5, "query finished.")
     tmp_fn = job.outputFile
     if ofn is not None:
         vo2fits(tmp_fn, ofn, overwrite=overwrite)

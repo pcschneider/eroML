@@ -69,7 +69,8 @@ def perform_Gaia_download(cconfig=None):
                nside=int(cconfig["Healpix"]["nside"]),\
                overwrite=cconfig["Gaia Download"]["overwrite"],\
                edge=float(cconfig["Gaia Download"]["edge"]),\
-               verbose=int(cconfig["Gaia Download"]["verbose"]))
+               verbose=int(cconfig["Gaia Download"]["verbose"]),\
+               Glim=float(cconfig["Gaia Download"]["Glim"]) )
 
 
 def prepare_Gaia_data(cconfig=None):
