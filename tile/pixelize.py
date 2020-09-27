@@ -165,7 +165,29 @@ def add_healpix_col(ifn, ofn=None, extension=1, overwrite=False, nside=16, verbo
         logger.debug("pixelize::add_healpix_col - Approx. resolution at NSIDE {} is {:.2} deg".format(nside, hp.nside2resol(nside, arcmin=True) / 60))
     
     ff = pyfits.open(ifn)
-    ra, dec = copy.deepcopy(ff[extension].data["RA_CORR"]), copy.deepcopy(ff[1].data["DEC_CORR"])
+    instrument = None
+    
+    try:
+        if ff[1].header["TELESCOP"] == "eROSITA": instrument = "eROSITA"
+        
+    except:
+        logger.warning("Cannot read `Telescope` from header.")
+    
+    if not instrument:
+        try:
+            if ff[1].header["ORIGIN"] == "ESO-MIDAS": instrument = "ROSAT"
+            
+        except:
+            logger.warning("Cannot read `Telescope` from header.")
+                
+    logger.info("Assuming X-ray source file is from %s." % instrument)
+    
+    if instrument == "eROSITA":
+        ra, dec = copy.deepcopy(ff[extension].data["RA_CORR"]), copy.deepcopy(ff[1].data["DEC_CORR"])
+    elif instrument == "ROSAT":
+        ra, dec = copy.deepcopy(ff[extension].data["RA_DEG"]), copy.deepcopy(ff[1].data["DEC_DEG"])
+    else:
+        raise ValueError("pixelize::add_healpix_col - Could not determine Instrument.")
 
     ra[ra<0]+=360
     phi = 90-dec

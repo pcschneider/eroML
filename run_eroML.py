@@ -37,11 +37,11 @@ if config["Healpix"]["calculate"].lower()=="true":
     logger.info("Adding healpix index to eROSITA source list")
     calculate_healpix(cconfig=config)
     
-if config["eROSITA preparation"]["perform"].lower()=="true":
+if config["X data preparation"]["perform"].lower()=="true":
     logger.info("Preparing eROSITA data")
     generate_ero_tiles(cconfig=config)
 
-if config["eROSITA preparation"]["enrich"].lower()=="true":
+if config["X data preparation"]["enrich"].lower()=="true":
     logger.debug("Enriching ero-tiles.")
     perform_ero_data_preparation(cconfig=config)
 

@@ -24,21 +24,21 @@ def custom_config(fn=None):
 def calculate_healpix(cconfig=None):
     cconfig = custom_config(cconfig)
     logger.info("Calculating healpix indices for eROSITA sources with ")
-    logger.info("    ero_filename: %s" % cconfig["Sources"]["ero_filename"])
-    logger.info("    ofn: %s" % cconfig["Sources"]["ero_filename_hp"])
+    logger.info("    ero_filename: %s" % cconfig["Sources"]["X_filename"])
+    logger.info("    ofn: %s" % cconfig["Sources"]["X_filename_hp"])
     logger.info("    nside: %i" % cconfig["Healpix"].getint("nside"))
-    add_healpix_col(cconfig["Sources"]["ero_filename"], ofn=cconfig["Sources"]["ero_filename_hp"], nside=cconfig["Healpix"].getint("nside"), overwrite=True)
+    add_healpix_col(cconfig["Sources"]["X_filename"], ofn=cconfig["Sources"]["X_filename_hp"], nside=cconfig["Healpix"].getint("nside"), overwrite=True)
     
 
 def generate_ero_tiles(cconfig=None):
     cconfig = custom_config(cconfig)
-    logger.info("Preparing eROSITA data")
-    prex = cconfig["eROSITA preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    logger.info("Preparing Xray data")
+    prex = cconfig["X data preparation"]["directory"]+"/"+cconfig["X data preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     posx = ""
     healpix_file = cconfig["Healpix"].get("pix_file", None)
     index0 = cconfig["Healpix"].getint("index0", 0)
     index1 = cconfig["Healpix"].getint("index1", None)    
-    generate_healpix_files(cconfig["Sources"]["ero_filename_hp"], prefix=prex, postfix=posx, index0=index0, index1=index1, pix_file=healpix_file)
+    generate_healpix_files(cconfig["Sources"]["X_filename_hp"], prefix=prex, postfix=posx, index0=index0, index1=index1, pix_file=healpix_file)
 
 def perform_ero_data_preparation(cconfig=None):
     cconfig = custom_config(cconfig)
@@ -46,9 +46,9 @@ def perform_ero_data_preparation(cconfig=None):
     index0 = cconfig["Healpix"].getint("index0", 0)
     index1 = cconfig["Healpix"].getint("index1", None)
 
-    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     logger.debug("Enriching %i ero-tiles." % len(idx))
-    prex = cconfig["eROSITA preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    prex = cconfig["X data preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     posx = ""
     ero_tile_loop(idx, prefix=prex, postfix=posx)
 
@@ -61,7 +61,7 @@ def perform_Gaia_download(cconfig=None):
     index0 = cconfig["Healpix"].getint("index0", 0)
     index1 = cconfig["Healpix"].getint("index1", None)
     
-    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     logger.debug("Downloading %i Gaia-tiles." % len(idx))
     
     download_Gaia_tiles(outdir=cconfig["Gaia Download"]["directory"],\
@@ -79,7 +79,7 @@ def prepare_Gaia_data(cconfig=None):
     index0 = cconfig["Healpix"].getint("index0", 0)
     index1 = cconfig["Healpix"].getint("index1", None)
 
-    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     logger.debug("Enriching %i ero-tiles." % len(idx))
     prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     posx = ""
@@ -98,7 +98,7 @@ def generate_major_sets(cconfig=None):
     index0 = cconfig["Healpix"].getint("index0", 0)
     index1 = cconfig["Healpix"].getint("index1", None)
 
-    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     g_prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     g_posx = ""
     
@@ -119,7 +119,7 @@ def generate_random_sets(cconfig=None):
     index0 = cconfig["Healpix"].getint("index0", 0)
     index1 = cconfig["Healpix"].getint("index1", None)
 
-    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     g_prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     g_posx = ""
     
@@ -143,7 +143,7 @@ def generate_training_sets(cconfig=None):
     index0 = cconfig["Healpix"].getint("index0", 0)
     index1 = cconfig["Healpix"].getint("index1", None)
 
-    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     
     # random
     r_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
@@ -172,7 +172,7 @@ def shrinking(cconfig=None):
     index0 = cconfig["Healpix"].getint("index0", 0)
     index1 = cconfig["Healpix"].getint("index1", None)
 
-    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     
     r_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     r_posx = ""

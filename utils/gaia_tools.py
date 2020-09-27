@@ -37,7 +37,7 @@ def get_alternate_gaia_file(glob_str):
         print(" good: ",good)    
         return good    
 
-def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwrite=False, verbose=1, edge=3., keep_VO=False, check_alternate=True):
+def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwrite=False, verbose=1, edge=3., keep_VO=False, check_alternate=True, Glim=23):
     """
     Download all Gaia sources
     """
@@ -141,7 +141,7 @@ def get_larger_poly(x, y, around=3):
     return x, y
 
 
-def download_one_Gaia_polytile(ofn, hpix, nside, overwrite=False, verbose=1, edge=3., keep_VO=False):
+def download_one_Gaia_polytile(ofn, hpix, nside, overwrite=False, verbose=1, edge=3., keep_VO=False, Glim=23):
     """
     Download Gaia sources for specific healpix index
     
@@ -188,7 +188,7 @@ def download_one_Gaia_polytile(ofn, hpix, nside, overwrite=False, verbose=1, edg
         os.remove(tmp_fn)
              
          
-def download_one_Gaia_square_tile(ofn, hpix, nside, overwrite=False, verbose=1, edge=3., keep_VO=False):
+def download_one_Gaia_square_tile(ofn, hpix, nside, overwrite=False, verbose=1, edge=3., keep_VO=False, Glim=23):
     """
     Download Gaia sources within square centered on specific healpix index
     

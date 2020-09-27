@@ -243,6 +243,40 @@ def enrich_eROSITA(e):
     eligible_eROSITA(e)    
     return e
 
+
+@fits_support
+def enrich_ROSAT(e):
+    """
+    Enrich the ROSAT sources.
+    
+    Add:
+      - Fx
+      - eligible_X
+    as well as the dummy columns:
+      - pm_RA, pm_Dec
+      - ref_epoch
+    """
+    err = e.to_array(colnames="RADEC_ERR", array_type="array")
+    err[err<1.] = 1.
+    e.set_col("RADEC_ERR", err)
+
+    Fx = e.to_array(colnames="ML_FLUX_0", array_type="array")
+    if "Fx" in e.known_cols:
+        e.set_col("Fx", Fx)
+    else:
+        e.add_col("Fx", Fx)
+     
+    t0 = e.to_array(colnames="TSTART", array_type="array")
+    t1 = e.to_array(colnames="TSTOP", array_type="array") 
+    
+    e.add_col("pm_RA", np.zeros(len(err)))
+    e.add_col("pm_Dec",np.zeros(len(err)))
+    e.add_col("ref_epoch", np.ones(len(err))*2020.25)
+    
+    eligible_eROSITA(e)    
+    return e
+
+
 @fits_support
 def enrich_merged(e):
     offset_sig = e.to_array(colnames="RADEC_ERR", array_type="array")
