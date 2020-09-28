@@ -218,7 +218,7 @@ def enrich_eROSITA(e):
     
     Add:
       - Fx
-      - eligible_eROSITA
+      - eligible_X
     as well as the dummy columns:
       - pm_RA, pm_Dec
       - ref_epoch
@@ -242,6 +242,45 @@ def enrich_eROSITA(e):
     
     eligible_eROSITA(e)    
     return e
+
+
+
+@fits_support
+def enrich_ROSAT(e):
+    """
+    Enrich the ROSAT data.
+    
+    Add:
+      - Fx
+      - eligible_X
+    as well as the dummy columns:
+      - pm_RA, pm_Dec
+      - ref_epoch
+    """
+    Xerr = e.to_array(colnames="Xerr", array_type="array")
+    Yerr = e.to_array(colnames="Yerr", array_type="array")
+    err = np.sqrt(Xerr**2+Yerr**2)
+    err[err<5.] = 5.
+    e.set_col("RADEC_ERR", err)
+
+    Fx = e.to_array(colnames="CRate", array_type="array")
+    #Fx = e.to_array(colnames="ML_FLUX_0", array_type="array")
+    
+    if "Fx" in e.known_cols:
+        e.set_col("Fx", Fx)
+    else:
+        e.add_col("Fx", Fx)
+     
+    t0 = e.to_array(colnames="TSTART", array_type="array")
+    t1 = e.to_array(colnames="TSTOP", array_type="array") 
+    
+    e.add_col("pm_RA", np.zeros(len(err)))
+    e.add_col("pm_Dec",np.zeros(len(err)))
+    e.add_col("ref_epoch", np.ones(len(err))*2020.25)
+    
+    eligible_eROSITA(e)    
+    return e
+
 
 
 @fits_support
