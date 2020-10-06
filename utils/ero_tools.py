@@ -1,20 +1,42 @@
 import logging
-from .enrich import enrich_eROSITA
+from .enrich import enrich_eROSITA, enrich_ROSAT
+#from astropy.io import fits as pyfits
+from ..ensemble import from_fits, to_fits
 
 logger = logging.getLogger('eroML')
 
 
-def ero_tile_loop(idx, prefix=None, postfix=None):
+def X_tile_loop(idx, prefix=None, postfix=None):
     """
     Loop through ero tiles and enrich them
     """
-    logger.info("Enrichting %i eROISTA source tiles." % len(idx))
+    logger.info("Enrichting %i X-ray source tiles." % len(idx))
     
     for j, i in enumerate(idx):
         fn = prefix+str(i)+postfix+'.fits'
-        logger.debug("Enriching eROISTA tile: %s (file %i/%i." % (fn, j+1, len(idx))) 
-        try:
-            enrich_eROSITA(fn, mapper={"DETUID":"srcID", "RA_CORR":"RA", "DEC_CORR":"Dec"})
-        except:
-            enrich_eROSITA(fn)
+        logger.info("Enriching X-ray tile: %s (file %i/%i." % (fn, j+1, len(idx))) 
+        
+        
+        
+        e = None
+        
+        try: # Genuie eROSITA source file
+            logger.debug("Trying eROSITA source file...")
+            e = from_fits(fn, mapper={"DETUID":"srcID", "RA_CORR":"RA", "DEC_CORR":"Dec"})
+            e.instrument = "eROSITA"
+        except ValueError:  # Genuie ROSAT source file
+            logger.debug("Trying ROSAT source file...")
+            e = from_fits(fn, mapper={"IAU_NAME":"srcID", "RA_DEG":"RA", "DEC_DEG":"Dec"})
+            e.instrument = "ROSAT"
+        else: # Already enriched source files
+            logger.debug("Trying regular source file...")
+            e = from_fits(fn)
+        
+        if "RATE_1rxs" in e.known_cols:
+            logger.debug("Enriching a ROSAT source file...")
+            enrich_ROSAT(e)
+        else:            
+            logger.debug("Enriching a ROSAT source file...")
+            enrich_eROSITA(e)
             
+        to_fits(e, ofn=fn, overwrite=True)

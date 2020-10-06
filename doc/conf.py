@@ -28,7 +28,7 @@ release = '0.1'
 
 
 # -- General configuration ---------------------------------------------------
-
+master_doc = 'index'
 
 numpydoc_show_class_members = True # <----
 numpydoc_class_members_toctree = False

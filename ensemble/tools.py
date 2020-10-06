@@ -179,6 +179,8 @@ def from_fits(fn, mapper={}, verbose=0, extension=1, maxN=None):
     -------
     ensemble of objects : Ensemble
     """
+    verbose=1
+    
     col_mapper = lambda x:mapper[x] if x in mapper else x
 
     def fits_fmt_mapper(fmt):
@@ -232,11 +234,11 @@ def from_fits(fn, mapper={}, verbose=0, extension=1, maxN=None):
         if col_mapper(col.name) == "srcID":
             xxx["srcID"] = ff[extension].data[col.name][0:maxN].astype(str)
             
-            if col.name in mapper.keys():
+            if col.name in mapper.keys(): # Keep original column if mapped
                 xxx[col.name] = ff[extension].data[col.name][0:maxN]
         else:
             if col.name in mapper.keys():
-                xxx[col_data(col.name)] = ff[extension].data[col.name][0:maxN]                
+                xxx[col_mapper(col.name)] = ff[extension].data[col.name][0:maxN]                
             xxx[col.name] = ff[extension].data[col.name][0:maxN]
 
         if verbose>6: print("ensemble.tools::from_fits - Read data from col: ",col.name, " (-> ", col_mapper(col.name),") with format: ",col.format)

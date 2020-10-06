@@ -1,7 +1,7 @@
 from eroML.tile import loop, file4, merge_fits
 from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_files
 from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
-from eroML.utils import enrich_Gaia, ero_tile_loop
+from eroML.utils import enrich_Gaia, X_tile_loop
 from eroML.utils import major_loop, random_loop, training_loop
 from eroML.utils import file_loop_1to1, shrink
 from eroML.utils import setup_logger
@@ -48,9 +48,9 @@ def perform_ero_data_preparation(cconfig=None):
 
     idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     logger.debug("Enriching %i ero-tiles." % len(idx))
-    prex = cconfig["X data preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    prex = cconfig["X data preparation"]["directory"]+"/"+cconfig["X data preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     posx = ""
-    ero_tile_loop(idx, prefix=prex, postfix=posx)
+    X_tile_loop(idx, prefix=prex, postfix=posx)
 
 def perform_Gaia_download(cconfig=None):
     cconfig = custom_config(cconfig)

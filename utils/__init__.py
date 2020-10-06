@@ -3,7 +3,7 @@ from eroML.utils.enrich import enrich_Gaia, enrich_eROSITA, enrich_merged, sky_d
 from eroML.utils.estimators import NN_distribution, Dist_model
 from eroML.utils.gaia_tools import get_gaia, download_Gaia_tiles, Gaia_tile_loop
 from eroML.utils.iso_tools import *
-from eroML.utils.ero_tools import ero_tile_loop
+from eroML.utils.ero_tools import X_tile_loop
 from .gaia_tools import vo2fits
 from .ero_logger import setup_logger
 

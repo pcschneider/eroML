@@ -47,7 +47,7 @@ def eligible_Gaia(e, out_col="eligible_Gaia", verbose=5):
 
 
 @fits_support
-def eligible_eROSITA(e, out_col="eligible_eROSITA"):
+def eligible_eROSITA(e, out_col="eligible_X"):
     det_likeli = e.to_array(colnames="DET_LIKE_0", array_type="array")
     gi = np.where(det_likeli > 5)[0]
     el = np.zeros(len(e))
@@ -59,6 +59,21 @@ def eligible_eROSITA(e, out_col="eligible_eROSITA"):
 
     return e
     
+
+
+@fits_support
+def eligible_ROSAT(e, out_col="eligible_X"):
+    ext_ml = e.to_array(colnames="EXT_ML", array_type="array")
+    det_likeli = e.to_array(colnames="EXI_ML", array_type="array")
+    gi = np.where((det_likeli > 6) & (ext_ml == 0))[0]
+    el = np.zeros(len(e))
+    el[gi] = 1
+    logger.debug("Number of eligible sources: %i (%5.3f%%)" % (len(gi),len(gi)/len(e) * 100))
+
+    if out_col not in e.known_cols: e.add_col(out_col, el.astype(int))
+    else: e.set_col(out_col, el.astype(int))
+
+    return e
 
 @fits_support
 def sky_density(e, around=5, filter_prop="eligible_Gaia", filter_value=1, out_col="eligible_sky_density", verbose=1):
@@ -257,63 +272,66 @@ def enrich_ROSAT(e):
       - pm_RA, pm_Dec
       - ref_epoch
     """
-    Xerr = e.to_array(colnames="Xerr", array_type="array")
-    Yerr = e.to_array(colnames="Yerr", array_type="array")
-    err = np.sqrt(Xerr**2+Yerr**2)
-    err[err<5.] = 5.
-    e.set_col("RADEC_ERR", err)
+    Xerr = e.to_array(colnames="XERR", array_type="array")
+    Yerr = e.to_array(colnames="YERR", array_type="array")
+    err = np.sqrt(Xerr**2+Yerr**2) * 45 / 2.
+    err[err<3.] = 3.
+    e.add_col("RADEC_ERR", err)
 
-    Fx = e.to_array(colnames="CRate", array_type="array")
+    HR = e.to_array(colnames="HR_1", array_type="array")
+    CR = e.to_array(colnames="RATE", array_type="array")
+    Fx = (5.3*HR + 8.31) * 1e-12
+    ni = np.where(np.isfinite(Fx) == False)[0]
+    Fx[ni] = 6e-12 * CR[ni]
+    
+    if "Fx" in e.known_cols:
+        e.set_col("Fx", Fx)
+    else:
+        e.add_col("Fx", Fx)
+     
+    #t0 = e.to_array(colnames="TSTART", array_type="array")
+    #t1 = e.to_array(colnames="TSTOP", array_type="array") 
+    
+    e.add_col("pm_RA", np.zeros(len(err)))
+    e.add_col("pm_Dec",np.zeros(len(err)))
+    e.add_col("ref_epoch", np.ones(len(err))*1991.5)
+    
+    eligible_ROSAT(e)    
+    return e
+
+
+
+#@fits_support
+#def enrich_ROSAT(e):
+    #"""
+    #Enrich the ROSAT sources.
+    
+    #Add:
+      #- Fx
+      #- eligible_X
+    #as well as the dummy columns:
+      #- pm_RA, pm_Dec
+      #- ref_epoch
+    #"""
+    #err = e.to_array(colnames="RADEC_ERR", array_type="array")
+    #err[err<1.] = 1.
+    #e.set_col("RADEC_ERR", err)
+
     #Fx = e.to_array(colnames="ML_FLUX_0", array_type="array")
-    
-    if "Fx" in e.known_cols:
-        e.set_col("Fx", Fx)
-    else:
-        e.add_col("Fx", Fx)
+    #if "Fx" in e.known_cols:
+        #e.set_col("Fx", Fx)
+    #else:
+        #e.add_col("Fx", Fx)
      
-    t0 = e.to_array(colnames="TSTART", array_type="array")
-    t1 = e.to_array(colnames="TSTOP", array_type="array") 
+    #t0 = e.to_array(colnames="TSTART", array_type="array")
+    #t1 = e.to_array(colnames="TSTOP", array_type="array") 
     
-    e.add_col("pm_RA", np.zeros(len(err)))
-    e.add_col("pm_Dec",np.zeros(len(err)))
-    e.add_col("ref_epoch", np.ones(len(err))*2020.25)
+    #e.add_col("pm_RA", np.zeros(len(err)))
+    #e.add_col("pm_Dec",np.zeros(len(err)))
+    #e.add_col("ref_epoch", np.ones(len(err))*2020.25)
     
-    eligible_eROSITA(e)    
-    return e
-
-
-
-@fits_support
-def enrich_ROSAT(e):
-    """
-    Enrich the ROSAT sources.
-    
-    Add:
-      - Fx
-      - eligible_X
-    as well as the dummy columns:
-      - pm_RA, pm_Dec
-      - ref_epoch
-    """
-    err = e.to_array(colnames="RADEC_ERR", array_type="array")
-    err[err<1.] = 1.
-    e.set_col("RADEC_ERR", err)
-
-    Fx = e.to_array(colnames="ML_FLUX_0", array_type="array")
-    if "Fx" in e.known_cols:
-        e.set_col("Fx", Fx)
-    else:
-        e.add_col("Fx", Fx)
-     
-    t0 = e.to_array(colnames="TSTART", array_type="array")
-    t1 = e.to_array(colnames="TSTOP", array_type="array") 
-    
-    e.add_col("pm_RA", np.zeros(len(err)))
-    e.add_col("pm_Dec",np.zeros(len(err)))
-    e.add_col("ref_epoch", np.ones(len(err))*2020.25)
-    
-    eligible_eROSITA(e)    
-    return e
+    #eligible_eROSITA(e)    
+    #return e
 
 
 @fits_support
