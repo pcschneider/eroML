@@ -32,6 +32,11 @@ Names in square brackets give the identifier for `file4`.
       c) *training* [``training``]
       
       
+How to download Gaia tiles
+---------------------------
+
+TBD
+
 .. Relevant content of data sets
 .. ------------------------------
 .. 

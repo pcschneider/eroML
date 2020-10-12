@@ -1,5 +1,5 @@
-Tile
-=====
+Description of Tile module
+===========================
 
 .. autosummary::  eroML.tile
 

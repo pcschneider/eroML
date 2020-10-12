@@ -49,11 +49,11 @@ def file_loop_2to1(idx, prefix1="", postfix1="", prefix2="", postfix2="", ofn_pr
 def major_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_postfix=None, major_prefix=None, major_postfix=None):
     """
     """
-    for i in idx:
+    for j, i in enumerate(idx):
         ero_fn = ero_prefix+str(i)+ero_postfix+".fits"
         gaia_fn = gaia_prefix+str(i)+gaia_postfix+".fits"
         ofn = major_prefix+str(i)+major_postfix+".fits"
-        logger.debug("Creating major set for ero=%s and Gaia=%s (ofn=%s)." % (ero_fn, gaia_fn, ofn))
+        logger.debug("Creating major set for\n           ero=\'%s\' \n      and Gaia=\'%s\' \n    (%i/%i; ofn=\'%s\')." % (ero_fn, gaia_fn, j+1, len(idx), ofn))
         major_set(ero_fn, gaia_fn, ofn)
 
 
@@ -80,7 +80,7 @@ def training_loop(idx, major_prefix=None, major_postfix=None, random_prefix=None
 
         
 @multi_fits_support(3)
-def major_set(ero, gaia, eligible_ero="eligible_eROSITA", eligible_gaia="eligible_Gaia", NN=3, verbose=10, overwrite=True):
+def major_set(ero, gaia, eligible_ero="eligible_X", eligible_gaia="eligible_Gaia", NN=3, verbose=10, overwrite=True):
     """
     Merge eROSITA and Gaia sources into one fits-file. 
     

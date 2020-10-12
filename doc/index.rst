@@ -9,7 +9,8 @@ Welcome to eroML's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+   
+   eFEDS_example.rst
    exploration.rst
    learning.rst
    cheat_sheet.rst

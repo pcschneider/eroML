@@ -103,7 +103,7 @@ def generate_major_sets(cconfig=None):
     g_prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     g_posx = ""
     
-    e_prex = cconfig["eROSITA preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    e_prex = cconfig["X data preparation"]["directory"]+"/"+cconfig["X data preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     e_posx = ""
     
     m_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["major_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"

@@ -24,13 +24,26 @@ def X_tile_loop(idx, prefix=None, postfix=None):
             logger.debug("Trying eROSITA source file...")
             e = from_fits(fn, mapper={"DETUID":"srcID", "RA_CORR":"RA", "DEC_CORR":"Dec"})
             e.instrument = "eROSITA"
-        except ValueError:  # Genuie ROSAT source file
+            logger.debug("Successfully read regular eROSITA file: \'%s'\." % fn)
+        except:
+            logger.debug("Not an original eROSITA source file (%s)" % fn)
+        
+        
+        try:    
             logger.debug("Trying ROSAT source file...")
             e = from_fits(fn, mapper={"IAU_NAME":"srcID", "RA_DEG":"RA", "DEC_DEG":"Dec"})
             e.instrument = "ROSAT"
-        else: # Already enriched source files
+            logger.debug("Successfully read regular ROSAT file: \'%s\'." % fn)
+        except:
+            logger.debug("Not an original ROSAT source file (%s)" % fn)
+            
+        try: # Already enriched source files
             logger.debug("Trying regular source file...")
             e = from_fits(fn)
+            logger.debug("Successfully read regular source file: \'%s\'." %fn)
+        except:
+            logger.debug("Not a regular source file (%s)" % fn)
+            raise Exception("Cannot read source file (%s)" % fn)
         
         if "RATE_1rxs" in e.known_cols:
             logger.debug("Enriching a ROSAT source file...")
