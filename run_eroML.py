@@ -12,7 +12,7 @@ from eroML.utils import setup_logger
 from eroML.tools import calculate_healpix,prepare_Gaia_data, perform_Gaia_download,generate_ero_tiles, perform_ero_data_preparation
 from eroML.tools import generate_major_sets, generate_random_sets, generate_training_sets, shrinking
 import glob
-
+from classify import prepare_classify
 
 parser = argparse.ArgumentParser()
 parser.add_argument("conf_fn", nargs='?', default=None, help="Config-file")
@@ -71,7 +71,7 @@ if config["Data sets"]["training"].lower()=="true":
     
 if config["Merging"]["shrink"].lower()=="true":
     logger.debug("Shrinking files.")    
-    merging(cconfig=config)
+    shrinking(cconfig=config)
     
 
 if config["Merging"]["training"].lower() == "true":
@@ -103,16 +103,36 @@ if config["Merging"]["random"].lower() == "true":
     merge_fits(fnames, ofn=ofn)
     
 
+if config["Classification"]["prepare"].lower() == "true":
+    
+    logger.info("Preparing major file for classification...")
+    ifn = file4("major")
+    ofn = config["Classification"]["major_filename"]
+    ovwr = config["Classification"]["overwrite"].lower() == "true"
+    prepare_classify(ifn, ofn=ofn, overwrite=ovwr)
+    
+    
+    logger.info("Preparing training file for classification...")
+    ifn = file4("training")
+    ofn = config["Classification"]["training_filename"]
+    ovwr = config["Classification"]["overwrite"].lower() == "true"
+    prepare_classify(ifn, ofn=ofn, overwrite=ovwr)
+    
+    logger.info("Preparing random file for classification...")
+    ifn = file4("random")
+    ofn = config["Classification"]["random_filename"]
+    ovwr = config["Classification"]["overwrite"].lower() == "true"
+    prepare_classify(ifn, ofn=ofn, overwrite=ovwr)
     
 exit()    
 
 #loop(config["Sources"]["ero_fn"],ofn=config["Healpix"]["ero_fn_hp"], NSIDE=int(config["Healpix"]["hp_nside"]), rID=config["Sources"]["rID"])
 
 # Merge
-# Training:
-glob_str = config["Sources"]["data_dir"] +"/*rID"+config["Sources"]["rID"]+"_training_random.fits"
-print("Merging ",glob_str," -> ",config["Sources"]["training_fn"])
-merger.merge_matching(glob_str,ofn=config["Sources"]["training_fn"], overwrite=True)
+## Training:
+#glob_str = config["Sources"]["data_dir"] +"/*rID"+config["Sources"]["rID"]+"_training_random.fits"
+#print("Merging ",glob_str," -> ",config["Sources"]["training_fn"])
+#merger.merge_matching(glob_str,ofn=config["Sources"]["training_fn"], overwrite=True)
 
 ## Random
 #glob_str = config["Sources"]["data_dir"] +"/*rID"+config["Sources"]["rID"]+"_random.fits"

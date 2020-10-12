@@ -338,7 +338,7 @@ if __name__ == "__main__":
     #props = ["bp_rp", "logFg","logFx", "pos","log_plx"]
     
     X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
-    
+    #X, y = get_props("../../ero_data/training_eFEDS.fits", prop_cols=props,category_column="category")
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.8, random_state=42)
 
@@ -422,11 +422,11 @@ if __name__ == "__main__":
     #fn = "test_catalog.fits"
     #fn = "stellar_test_sources.fits"
     #ofn = "stellar_test_proba.fits"
-    fn = "random_matches.fits"
-    ofn = "random_proba.fits"
+    fn = "../../ero_data/major_eFEDS.fits"
+    ofn = "major_proba.fits"
     
     
-    Y, eid, idx = get_props(fn, category_column=None, prop_cols=props, name_col="id_ero", with_index=True)
+    Y, eid, idx = get_props(fn, category_column=None, prop_cols=props, name_col="srcID", with_index=True)
     print("Shape of property array", np.shape(Y))
     print("eid", eid)
     #print(np.sum(np.isfinite(Y[0])))

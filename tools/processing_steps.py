@@ -124,7 +124,7 @@ def generate_random_sets(cconfig=None):
     g_prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     g_posx = ""
     
-    e_prex = cconfig["eROSITA preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    e_prex = cconfig["X data preparation"]["directory"]+"/"+cconfig["X data preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     e_posx = ""
     
     r_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
@@ -271,32 +271,25 @@ def shrinking(cconfig=None):
     #logger.debug("Random data sets for %i tiles." % len(idx))
     #training_loop(idx, major_prefix=m_prex, major_postfix=m_posx, random_prefix=r_prex, random_postfix=r_posx, training_prefix=t_prex, training_postfix=t_posx, abs_dist=ad, rel_dist=rd)
 
-#if config["Merging"]["shrink"].lower()=="true":
-    #healpix_file = config["Healpix"].get("pix_file", None)
-    #index0 = config["Healpix"].getint("index0", 0)
-    #index1 = config["Healpix"].getint("index1", None)
+def shrinking(cconfig=None):
+    cconfig = custom_config(cconfig)
 
-    #idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    healpix_file = cconfig["Healpix"].get("pix_file", None)
+    index0 = cconfig["Healpix"].getint("index0", 0)
+    index1 = config["Healpix"].getint("index1", None)
+
+    idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     
-    #r_prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
-    #r_posx = ""
-    
-    ##major
-    #m_prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
-    #m_posx = ""
-    
-    ##training
-    #t_prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["training_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
-    #t_posx = ""
+    r_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    r_posx = ""
  
-    #sh = config["Merging"]["shrink_postfix"]
-    #cols = config["Columns"]["keep"].split(",")
-    ##print("cols: ",cols)
-    
-    #for tt in ["random","training","major"]:
-        #prex = config["Data sets"]["directory"]+"/"+config["Data sets"][tt+"_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
-        #posx = ""
-        #file_loop_1to1(idx, prefix=prex, postfix=posx, method=shrink, ofn_prefix=prex, ofn_postfix=posx+sh,cols=cols)
+    sh = cconfig["Merging"]["shrink_postfix"]
+    cols = cconfig["Columns"]["keep"].split(",")
+    logger.debug("Shrinking files and keeping only: %s " % str(cols))
+    for tt in ["random","training","major"]:
+        prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"][tt+"_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+        posx = ""
+        file_loop_1to1(idx, prefix=prex, postfix=posx, method=shrink, ofn_prefix=prex, ofn_postfix=posx+sh,cols=cols)
     
     
 #if config["Merging"]["major"].lower() == "true":

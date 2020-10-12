@@ -24,7 +24,7 @@ def discover_filenames(which, config=None):
         fnames = glob.glob(glob_str)
 
     elif which.lower() == "ero_tiles":
-        glob_str = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_*.fits"
+        glob_str = config["X data preparation"]["directory"]+"/"+config["X data preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_*.fits"
         fnames = glob.glob(glob_str) 
         
     return fnames
@@ -34,8 +34,8 @@ def discover_filenames(which, config=None):
 def file4(which, cconfig=None):# which=""):
     """
     Options for `which`:
-      - ero_filename
-      - ero_filename_hp : File containing ALL eROSITA sources with healpix indices
+      - X_filename
+      - X_filename_hp : File containing ALL eROSITA sources with healpix indices
       - gaia_tiles
       - ero_files
       - major_tiles (plus _small)
@@ -73,14 +73,14 @@ def file4(which, cconfig=None):# which=""):
         healpix_file = config["Healpix"].get("pix_file", None)
         index0 = config["Healpix"].getint("index0", 0)
         index1 = config["Healpix"].getint("index1", None)
-        idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+        idx = hpix2process(config["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
         logger.debug("Creating filenames for %i tiles." % len(idx))
 
-    if which=="ero_filename":
-        return config["Sources"]["ero_filename"]
+    if which=="X_filename":
+        return config["Sources"]["X_filename"]
     
-    elif which=="ero_filename_hp":
-        return config["Sources"]["ero_filename_hp"]
+    elif which=="X_filename_hp":
+        return config["Sources"]["X_filename_hp"]
     
     elif which=="gaia_tiles":
         prex = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
@@ -88,7 +88,7 @@ def file4(which, cconfig=None):# which=""):
         return ff4idx(prex, posx)
     
     elif which=="ero_tiles":
-        prex = config["eROSITA preparation"]["directory"]+"/"+config["eROSITA preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["X data preparation"]["directory"]+"/"+config["X data preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = ""
         return ff4idx(prex, posx)
              

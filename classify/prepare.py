@@ -67,14 +67,16 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     
     dens = ff[extension].data['eligible_sky_density'] / 3600
     
-    # random matches
-    gi = np.where(ff[extension].data["category"] == 2)[0] 
-    dst[gi] = gen_random_pos_offset(len(gi), dens = dens[gi])
-    
-    # real matches
-    gi = np.where(ff[extension].data["category"] < 2)[0] 
-    dst[gi] = gen_real_pos_offset(len(gi), sigma = err[gi])
-    
+    if "category" in ff[extension].data.columns.names:
+        # random matches
+        gi = np.where(ff[extension].data["category"] == 2)[0] 
+        dst[gi] = gen_random_pos_offset(len(gi), dens = dens[gi])
+        
+        # real matches
+        gi = np.where(ff[extension].data["category"] < 2)[0] 
+        dst[gi] = gen_real_pos_offset(len(gi), sigma = err[gi])
+    else:
+        print("No category column.")
     
     
     #val = np.zeros(len(dst))
@@ -87,8 +89,13 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     print(val)
     #import matplotlib.pyplot as plt
     plt.hist(ff[extension].data["offset_sig"])
+    plt.title(ifn)
+    plt.xlabel("Offset sig")
     plt.show()
     plt.scatter(ff[extension].data["offset_sig"], val)
+    plt.xlabel("offset sig")
+    plt.ylabel("pos")
+    plt.title(ifn)
     plt.show()
     print("pos",np.nanmean(val), np.nanmedian(val), np.nanstd(val))
     col = pyfits.Column(name="pos", array=val, format=columns["match_dist"])    
@@ -106,10 +113,11 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     col = pyfits.Column(name="log_sk", array=arr, format=columns["eligible_sky_density"])    
     cols.append(col)
         
-    arr = ff[extension].data["category"]
-    print("category",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name="category", array=arr, format=columns["category"])    
-    cols.append(col)
+    if "category" in ff[extension].data.columns.names:
+        arr = ff[extension].data["category"]
+        print("category",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+        col = pyfits.Column(name="category", array=arr, format=columns["category"])    
+        cols.append(col)
          
     hdu = pyfits.PrimaryHDU()    
     cc = pyfits.ColDefs(cols)
