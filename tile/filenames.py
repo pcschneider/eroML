@@ -62,10 +62,11 @@ def file4(which, cconfig=None):# which=""):
     if cconfig is not None:
         from eroML.config import config, read_config
         logger.info("Using custom config-file: `%s` " % cconfig)
-        read_config(cconfig)
+        tmp = read_config(cconfig)
+        print(tmp)
     else:
         from eroML.config import config
-        
+        print("XXX")        
     
     idx = None
     

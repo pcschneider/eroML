@@ -2,7 +2,8 @@ from eroML.tile import loop, file4, merge_fits
 from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_files
 from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
 from eroML.utils import enrich_Gaia, X_tile_loop
-from eroML.utils import major_loop, random_loop, training_loop
+from eroML.utils import major_set, random_set, training_set
+from eroML.utils import file_loop_2to1
 from eroML.utils import file_loop_1to1, shrink
 from eroML.utils import setup_logger
 import logging
@@ -110,7 +111,10 @@ def generate_major_sets(cconfig=None):
     m_posx = ""
     
     logger.debug("Major sets for %i tiles." % len(idx))
-    major_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, major_prefix=m_prex, major_postfix=m_posx)
+    #major_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, major_prefix=m_prex, major_postfix=m_posx)
+    file_loop_2to1(idx, prefix1=e_prex, postfix1=e_posx, prefix2=g_prex, postfix2=g_posx, ofn_prefix=m_prex, ofn_postfix=m_posx, method=major_set)
+    
+    
     
    
 def generate_random_sets(cconfig=None):
@@ -134,8 +138,8 @@ def generate_random_sets(cconfig=None):
     maxo = float(cconfig["Data sets"]["max_random_offset"])
     multi= int(cconfig["Data sets"]["random_multi"])
     logger.debug("Random data sets for %i tiles." % len(idx))
-    random_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, random_prefix=r_prex, random_postfix=r_posx, min_offset=mino, max_offset=maxo, multi=multi)
-       
+    #random_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, random_prefix=r_prex, random_postfix=r_posx, min_offset=mino, max_offset=maxo, multi=multi)
+    file_loop_2to1(idx, prefix1=e_prex, postfix1=e_posx, prefix2=g_prex, postfix2=g_posx, ofn_prefix=r_prex, ofn_postfix=r_posx, method=random_set, multi=multi, min_offset=mino, max_offset=maxo)   
    
 def generate_training_sets(cconfig=None):
     cconfig = custom_config(cconfig)
@@ -163,7 +167,8 @@ def generate_training_sets(cconfig=None):
     rd = float(cconfig["Data sets"]["training_rel_dist"])
     
     logger.debug("Random data sets for %i tiles." % len(idx))
-    training_loop(idx, major_prefix=m_prex, major_postfix=m_posx, random_prefix=r_prex, random_postfix=r_posx, training_prefix=t_prex, training_postfix=t_posx, abs_dist=ad, rel_dist=rd)
+    #training_loop(idx, major_prefix=m_prex, major_postfix=m_posx, random_prefix=r_prex, random_postfix=r_posx, training_prefix=t_prex, training_postfix=t_posx, abs_dist=ad, rel_dist=rd)
+    file_loop_2to1(idx, prefix1=m_prex, postfix1=m_posx, prefix2=r_prex, postfix2=r_posx, ofn_prefix=t_prex, ofn_postfix=t_posx, abs_dist=ad, rel_dist=rd, method=training_set)
    
 
 def shrinking(cconfig=None):

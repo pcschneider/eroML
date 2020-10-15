@@ -64,7 +64,12 @@ def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwri
                 os.symlink(afn, ofn)
                 continue
         
-        download_one_Gaia_polytile(ofn, i, nside, overwrite=overwrite, verbose=verbose, edge=edge, keep_VO=keep_VO,Glim=Glim)
+        try:
+            download_one_Gaia_polytile(ofn, i, nside, overwrite=overwrite, verbose=verbose, edge=edge, keep_VO=keep_VO,Glim=Glim)
+        except Exception as ee:
+            logger.error("Cannot download for tile %i (%s)" % (i, ee))
+            continue
+        
         add_standard_cols(ofn, overwrite=True)
         #add_quality_column(ofn, ofn, overwrite=True)
 

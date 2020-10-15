@@ -95,7 +95,6 @@ def sky_dens4coordinates(coord, around=4,auto_adjust=True,  verbose=1):
     
     #print(ret)
     print("sky_dens:: nanmean: ",np.nanmean(ret))
-    print()
     return ret
 
 class Dist_model(fuf.OneDFit):

@@ -98,7 +98,7 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     plt.title(ifn)
     plt.show()
     print("pos",np.nanmean(val), np.nanmedian(val), np.nanstd(val))
-    col = pyfits.Column(name="pos", array=val, format=columns["match_dist"])    
+    col = pyfits.Column(name="pos", array=val*100, format=columns["match_dist"])    
     cols.append(col)
     
     arr = np.log10(ff[extension].data["parallax"])
@@ -112,6 +112,16 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     print("sky_density",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
     col = pyfits.Column(name="log_sk", array=arr, format=columns["eligible_sky_density"])    
     cols.append(col)
+        
+    arr = ff[extension].data["offset_sig"]
+    print("offset_sig",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="offset_sig", array=arr, format=columns["offset_sig"])    
+    cols.append(col)
+    
+    arr = ff[extension].data["NN"]
+    print("NN",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="NN", array=arr, format=columns["NN"])    
+    cols.append(col)        
         
     if "category" in ff[extension].data.columns.names:
         arr = ff[extension].data["category"]

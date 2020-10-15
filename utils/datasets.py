@@ -46,15 +46,15 @@ def file_loop_2to1(idx, prefix1="", postfix1="", prefix2="", postfix2="", ofn_pr
         logger.debug("Creating data set for fn1=%s and fn2=%s (ofn=%s; file# %i/%i)." % (fn1, fn2, ofn, j+1, len(idx)))
         method(fn1, fn2, ofn, **kwargs)
 
-def major_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_postfix=None, major_prefix=None, major_postfix=None):
-    """
-    """
-    for j, i in enumerate(idx):
-        ero_fn = ero_prefix+str(i)+ero_postfix+".fits"
-        gaia_fn = gaia_prefix+str(i)+gaia_postfix+".fits"
-        ofn = major_prefix+str(i)+major_postfix+".fits"
-        logger.debug("Creating major set for\n           ero=\'%s\' \n      and Gaia=\'%s\' \n    (%i/%i; ofn=\'%s\')." % (ero_fn, gaia_fn, j+1, len(idx), ofn))
-        major_set(ero_fn, gaia_fn, ofn)
+#def major_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_postfix=None, major_prefix=None, major_postfix=None):
+    #"""
+    #"""
+    #for j, i in enumerate(idx):
+        #ero_fn = ero_prefix+str(i)+ero_postfix+".fits"
+        #gaia_fn = gaia_prefix+str(i)+gaia_postfix+".fits"
+        #ofn = major_prefix+str(i)+major_postfix+".fits"
+        #logger.debug("Creating major set for\n           ero=\'%s\' \n      and Gaia=\'%s\' \n    (%i/%i; ofn=\'%s\')." % (ero_fn, gaia_fn, j+1, len(idx), ofn))
+        #major_set(ero_fn, gaia_fn, ofn)
 
 
 
@@ -87,6 +87,8 @@ def major_set(ero, gaia, eligible_ero="eligible_X", eligible_gaia="eligible_Gaia
     Matching is based on the sky-distance. The `NN`-argument determines the n-th nearest match that enters 
     the merged table. Since sources must be unique, the second nearest neighbor will be added as `srcID`_NN2, i.e., 
     a new source is created. The original srcID is kept in the field `original_srcID`.
+    
+    Sources that are farther than 50 :math:`\sigma` or 1000 arcsc will be dropped from final list.
     
     Parameters
     ----------

@@ -335,24 +335,25 @@ if __name__ == "__main__":
     #props = ["logFx","logFg","pos","log_plx","bp_rp"]
     props = ["pos", "logFxFg","log_plx","bp_rp"]
     
-    #props = ["bp_rp", "logFg","logFx", "pos","log_plx"]
+    #props = ["bp_rp", "logFg","logFx", "pos","log_plx", "log_sk"]
     
-    X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
-    #X, y = get_props("../../ero_data/training_eFEDS.fits", prop_cols=props,category_column="category")
+    #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
+    #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
+    X, y = get_props("../../ero_data/training_eFEDS.fits", prop_cols=props,category_column="category")
     
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.8, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     
-    N = 10000
-    print(np.shape(X), np.shape(y))
-    idx = np.random.choice(range(len(y)), size=N)
-    X = X[idx]
-    y = y[idx]
+    #N = 10000
+    #print(np.shape(X), np.shape(y))
+    #idx = np.random.choice(range(len(y)), size=N)
+    #X = X[idx]
+    #y = y[idx]
     
     #clf = MLPClassifier(solver='lbfgs', alpha=1e-4, hidden_layer_sizes=(6, 3), random_state=1, max_iter=1000)
     
     #clf = svm.SVC(class_weight={1: 3}, probability=True)
-    clf = svm.SVC(C=1, kernel='poly', probability=True, degree=2,class_weight={0: 2})
+    clf = svm.SVC(C=0.1, kernel='poly', probability=True, degree=2,class_weight={0: 0.3})
     #clf = PCA(n_components=2)
     #clf = tree.DecisionTreeClassifier()
     #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
@@ -416,14 +417,18 @@ if __name__ == "__main__":
     #plt.show()
 
     print(80*"=")
-    fn = "major_catalog.fits"
-    ofn = "major_proba.fits"
+    #fn = "major_catalog.fits"
+    #ofn = "major_proba.fits"
     
     #fn = "test_catalog.fits"
     #fn = "stellar_test_sources.fits"
     #ofn = "stellar_test_proba.fits"
     fn = "../../ero_data/major_eFEDS.fits"
     ofn = "major_proba.fits"
+
+    #fn = "../../ero_data/random_eFEDS.fits"
+    #ofn = "random_proba.fits"
+    
     
     
     Y, eid, idx = get_props(fn, category_column=None, prop_cols=props, name_col="srcID", with_index=True)
@@ -441,7 +446,7 @@ if __name__ == "__main__":
     #print(pp0+pp1)
     plt.scatter(c, pp1)
     plt.show()
-    print("# recovered", np.sum(c), " from ",np.shape(pp1))
+    print("# recovered", np.sum(c)/2, " from ",np.shape(pp1))
     #print(len(np.where(pp1>0.5)[0]))
     
     
