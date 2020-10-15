@@ -10,7 +10,7 @@ Welcome to eroML's documentation!
    :maxdepth: 2
    :caption: Contents:
    
-   eFEDS_example.rst
+   howto.rst
    exploration.rst
    learning.rst
    cheat_sheet.rst
