@@ -22,7 +22,7 @@ def gen_random_pos_offset(N, dens=1.):
     return rndx
 
 
-def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
+def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, display=False):
     """
     Keep only relevant columns
     
@@ -64,8 +64,18 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     dst = ff[extension].data["match_dist"]
     err = ff[extension].data["RADEC_ERR"]
     
+    if "category" in ff[extension].data.columns.names:
+        dist = 1000/ff[extension].data["parallax"] 
+        Lx = 4*np.pi*(3.1e18*dist)**2  * ff[extension].data["Fx"]      
+        ci = np.where(ff[extension].data["category"] == 0)[0]
+        gi = np.where(Lx[ci] > 2e31)[0]
+        print("all: ",len(ci)," Lx filter: ",len(gi), "(max Lx: ",max(Lx[ci]),")")
+        ff[extension].data["category"][ci[gi]] = 1
+    
     
     dens = ff[extension].data['eligible_sky_density'] / 3600
+    
+    
     
     if "category" in ff[extension].data.columns.names:
         # random matches
@@ -88,24 +98,25 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     val = 1 - np.exp(-dst**2/(2*err**2))        
     print(val)
     #import matplotlib.pyplot as plt
-    plt.hist(ff[extension].data["offset_sig"])
-    plt.title(ifn)
-    plt.xlabel("Offset sig")
-    plt.show()
-    plt.scatter(ff[extension].data["offset_sig"], val)
-    plt.xlabel("offset sig")
-    plt.ylabel("pos")
-    plt.title(ifn)
-    plt.show()
+    if display:
+        plt.hist(ff[extension].data["offset_sig"])
+        plt.title(ifn)
+        plt.xlabel("Offset sig")
+        plt.show()
+        plt.scatter(ff[extension].data["offset_sig"], val)
+        plt.xlabel("offset sig")
+        plt.ylabel("pos")
+        plt.title(ifn)
+        plt.show()
     print("pos",np.nanmean(val), np.nanmedian(val), np.nanstd(val))
-    col = pyfits.Column(name="pos", array=val, format=columns["match_dist"])    
+    col = pyfits.Column(name="pos", array=val*20, format=columns["match_dist"])    
     cols.append(col)
     
     arr = np.log10(ff[extension].data["parallax"])
     gi = np.where(np.isnan(arr))[0]
     arr[gi] = -1
     print("plx",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name="log_plx", array=arr, format=columns["parallax"])    
+    col = pyfits.Column(name="log_plx", array=arr*10, format=columns["parallax"])    
     cols.append(col)
     
     arr = np.log10(ff[extension].data["eligible_sky_density"])
@@ -113,12 +124,22 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     col = pyfits.Column(name="log_sk", array=arr, format=columns["eligible_sky_density"])    
     cols.append(col)
         
+    arr = ff[extension].data["offset_sig"]
+    print("offset_sig",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="offset_sig", array=arr, format=columns["offset_sig"])    
+    cols.append(col)
+    
+    arr = ff[extension].data["NN"]
+    print("NN",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="NN", array=arr, format=columns["NN"])    
+    cols.append(col)        
+        
     if "category" in ff[extension].data.columns.names:
         arr = ff[extension].data["category"]
         print("category",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
         col = pyfits.Column(name="category", array=arr, format=columns["category"])    
         cols.append(col)
-         
+        
     hdu = pyfits.PrimaryHDU()    
     cc = pyfits.ColDefs(cols)
     xx = pyfits.BinTableHDU.from_columns(cc)

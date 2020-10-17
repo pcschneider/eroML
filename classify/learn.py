@@ -346,9 +346,9 @@ if __name__ == "__main__":
     #X, y = get_props("../merged_training.fits", prop_cols=props)
 
     #props = ["logFx","logFg","pos","log_plx","bp_rp"]
-    props = ["pos", "logFxFg","log_plx","bp_rp"]
+    #props = ["pos", "logFxFg","log_plx","bp_rp"]
     
-    props = ["bp_rp", "logFg","logFx", "pos","log_plx", "log_sk"]
+    props = ["bp_rp", "logFg","logFx", "pos","log_plx"]
     
     #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
     #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
@@ -367,13 +367,17 @@ if __name__ == "__main__":
     #clf = MLPClassifier(solver='lbfgs', alpha=1e-4, hidden_layer_sizes=(6, 3), random_state=1, max_iter=1000)
     
     #clf = svm.SVC(class_weight={1: 3}, probability=True)
-    clf = svm.SVC(C=1, kernel='poly', probability=True, degree=2,class_weight={0: 0.3})
+    clf = svm.SVC(C=20, kernel='rbf', probability=True, degree=3,class_weight={0: 0.5})
+    # Greater C: less missclassification
+    # Smaller C: More missclassification         
+    #
     #clf = PCA(n_components=2)
     #clf = tree.DecisionTreeClassifier()
     #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
     #clf = SGDClassifier(loss='hinge')
     
-    clf.fit(X_train, y_train)
+    #clf.fit(X_train, y_train)
+    clf.fit(X,  y)
 
     #scoring = {'AUC': 'roc_auc', 'Accuracy': make_scorer(accuracy_score),\
         #"hinge":make_scorer(hinge_loss, greater_is_better=False),\
