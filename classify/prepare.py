@@ -22,6 +22,22 @@ def gen_random_pos_offset(N, dens=1.):
     return rndx
 
 
+def repeat_fits(hdu, multi=10):
+    """
+    """
+    NN0 = len(hdu.data["srcID"])
+    cols = []
+    for c in hdu.columns:
+        #print(c)
+        col = pyfits.Column(name=c.name, array=np.repeat(hdu.data[c.name], multi), format=c.format)    
+        cols.append(col)
+    cc = pyfits.ColDefs(cols)    
+    xx = pyfits.BinTableHDU.from_columns(cc)
+    xx.header = hdu.header
+    #print("repeat: ",NN0, len(xx.data["srcID"]))
+    return xx
+    
+
 def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, display=False):
     """
     Keep only relevant columns
@@ -33,6 +49,9 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
     relevant_cols = ["srcID", "Fx","Fg","bp_rp","offset_sig","parallax","eligible_sky_density"]
     
     ff = pyfits.open(ifn)
+    
+    if "category" in ff[extension].data.columns.names:
+        ff[extension] = repeat_fits(ff[extension], multi=10)
     
     cols = []
     columns = {col.name:col.format for col in ff[extension].columns}
@@ -109,19 +128,24 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
         plt.title(ifn)
         plt.show()
     print("pos",np.nanmean(val), np.nanmedian(val), np.nanstd(val))
-    col = pyfits.Column(name="pos", array=val*20, format=columns["match_dist"])    
+    col = pyfits.Column(name="pos", array=(val*6)**2, format=columns["match_dist"])    
     cols.append(col)
     
     arr = np.log10(ff[extension].data["parallax"])
     gi = np.where(np.isnan(arr))[0]
     arr[gi] = -1
     print("plx",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name="log_plx", array=arr*10, format=columns["parallax"])    
+    col = pyfits.Column(name="log_plx", array=arr*5, format=columns["parallax"])    
     cols.append(col)
     
     arr = np.log10(ff[extension].data["eligible_sky_density"])
     print("sky_density",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
     col = pyfits.Column(name="log_sk", array=arr, format=columns["eligible_sky_density"])    
+    cols.append(col)
+
+    arr = ff[extension].data["eligible_sky_density"]
+    print("sky_density",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="skd", array=arr, format=columns["eligible_sky_density"])    
     cols.append(col)
         
     arr = ff[extension].data["offset_sig"]

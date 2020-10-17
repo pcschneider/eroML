@@ -52,6 +52,20 @@ for p in props:
 #exit()    
 
 fn = "../classify/major_proba.fits"
+ff = pyfits.open(fn)
+gi = np.where(ff[1].data["predicted"]==0)[0]
+print("Predicted eligible: ",len(gi))
+srcIDs = np.unique(ff[1].data["srcID"][gi])
+print(len(srcIDs))
+
+#for i in gi:
+    #NN = ff[1].data["NN"][i]
+    #if NN>1:
+        #osrcID = ff[1].data["srcID"][i][0:7]
+        #print(ff[1].data["srcID"][i], osrcID)
+        #si = np.where(ff[1].data["srcID"] == osrcID)[0]
+        #print(ff[1].data["predicted"][si])
+        #print()
 fn = "../classify/random_proba.fits"
 #fn = "../../ero_data/training_eFEDS.fits"
 ff = pyfits.open(fn)
@@ -64,17 +78,17 @@ if "category" in ff[1].data.columns.names:
     plt.show()             
     gi = np.where((ff[1].data["category"]==0) & (ff[1].data["NN"]<MM)  & (ff[1].data["pos"]<110))[0]
 else:
-    gi = np.where((ff[1].data["predicted"]==0) & (ff[1].data["NN"]<MM)  & (ff[1].data["pos"]<21))[0]
+    gi = np.where((ff[1].data["predicted"]==0) & (ff[1].data["NN"]<MM)  & (ff[1].data["pos"]<110))[0]
     
 
 dist = 1000/10**ff[1].data["log_plx"][gi]
 iii = np.where(dist<1000)[0]
 print(len(gi), len(iii))
-gi = np.where((ff[1].data["predicted"]==0) & (ff[1].data["NN"]<MM)  & (ff[1].data["pos"]<19))[0]
+gi = np.where((ff[1].data["predicted"]==0) & (ff[1].data["NN"]<MM)  & (ff[1].data["pos"]<110))[0]
 dist = 1000/10**ff[1].data["log_plx"][gi]
 iii = np.where(dist>1000)[0]
 print(len(gi), len(iii))
-gi = np.where((ff[1].data["predicted"]==0) & (ff[1].data["NN"]<2)  & (ff[1].data["pos"]<19))[0]
+gi = np.where((ff[1].data["predicted"]==0) & (ff[1].data["NN"]<MM)  & (ff[1].data["pos"]<35))[0]
 dist = 1000/10**ff[1].data["log_plx"][gi]
 iii = np.where(dist>1000)[0]
 print(len(gi), len(iii))
@@ -87,6 +101,13 @@ plt.hist(dist, bins=logbins)
 plt.xlabel("d (pc)")
 plt.ylabel("N")
 plt.xscale("log")
+plt.show()
+
+
+plt.scatter(ff[1].data["pos"], ff[1].data["skd"])
+plt.scatter(ff[1].data["pos"][gi], ff[1].data["skd"][gi])
+plt.xlabel("pos")
+plt.ylabel("skd")
 plt.show()
 
 
@@ -111,11 +132,6 @@ plt.show()
 
 
 
-plt.scatter(ff[1].data["pos"], ff[1].data["log_sk"])
-plt.scatter(ff[1].data["pos"][gi], ff[1].data["log_sk"][gi])
-plt.xlabel("pos")
-plt.ylabel("log_sk")
-plt.show()
 
 
 
