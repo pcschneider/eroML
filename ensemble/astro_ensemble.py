@@ -750,7 +750,7 @@ class Ensemble():
             raise LookupError("Ensemble::array - `array_type` must be in [recarray, array, dict], but is " +str(array_type))
 
 
-    def append(self, other, postfix=None, cols="all", verbose=1):
+    def append(self, other, postfix=None, cols="all", duplicates="rename", verbose=1):
         """
         Append another Ensemble
         
@@ -759,6 +759,10 @@ class Ensemble():
         other : Ensemble
         postfitx : str
             append `postfix` to `srcID` if object with the same `srcID` already exists in `self`.
+        duplicates : str
+            How objects with identical srcIDs are treated. Options are:
+              - `rename` : add object but append `postfix`
+              - `ignore` : ignore duplicates in `other`
         cols : str or tuple
             How to handle columns existing in only one Ensemble
             - `all` : keep all columns and use np.nan for the entries in the other Ensemble
@@ -806,10 +810,14 @@ class Ensemble():
         if verbose>5: print("Ensemble::append - shared_ids", shared_ids)
         if len(shared_ids)>0 and postfix is None:
             raise ValueError("Ensemble::append - Name conflicts, but no `postfix` given.")
-            
-        for si in shared_ids:
-            other.rename(si, si+postfix)
-
+        
+        if duplicates == "rename":
+            for si in shared_ids:
+                other.rename(si, si+postfix)
+        else:
+            for si in shared_ids:
+                other.del_object(si)
+                
         # Construct new array
         new_arr = np.zeros(N0+N1, dtype=dt)
         for c in outcols:
