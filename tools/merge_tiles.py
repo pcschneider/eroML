@@ -16,7 +16,6 @@ print(len(e0))
 
 for hp in hpx[1:]:
     fn = "../../ero_data/Gaia_ID2_nside32_"+str(hp)+".fits"
-    print(fn)
     e = from_fits(fn)
     e0.append(e)
 

@@ -52,19 +52,20 @@ def get_props(ifn, category_column="class", prop_cols=[], name_col=None, filter_
     idx = np.arange(N)
     
     
-    
+    rcols = []
     for pc in prop_cols:
-        print("Reading col \'",pc,"\'")
+        #print("Reading col \'",pc,"\'")
+        rcols.append(pc)
         tmp = ff[1].data[pc].flatten()
         gi = np.where(np.isfinite(tmp)!=True)[0]
         use[gi] = 0
         #print(np.shape(tmp), np.sum(use))
         props.append(tmp)
-        
+    print("Read cols",", ".join(rcols))    
     props = np.array(props)    
     #print(np.shape(props))
     props = props.T[use, ::]
-    print("    final property array.shape: ", np.shape(props)) 
+    #print("    final property array.shape: ", np.shape(props)) 
     
     
     
@@ -346,10 +347,12 @@ if __name__ == "__main__":
     #X, y = get_props("../merged_training.fits", prop_cols=props)
 
     #props = ["logFx","logFg","pos","log_plx","bp_rp"]
-    props = ["pos", "logFxFg","log_plx","bp_rp"]
+    #props = ["pos", "logFxFg","log_plx","bp_rp"]
     
-    props = ["bp_rp", "logFg","logFx", "pos","log_plx", "log_sk"]
-    
+    props = ["bp_rp", "logFg","logFx", "pos","log_plx","skd"]
+    props = ["bp_rp", "logFg","logFx", "offset_sig","log_plx","skd"]
+    #props = ["bp_rp", "logFg", "logFxFg", "pos","log_plx","skd"]
+    #props = ["pos","skd"]
     #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
     #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
     X, y = get_props("../../ero_data/training_eFEDS.fits", prop_cols=props,category_column="category")
@@ -364,23 +367,28 @@ if __name__ == "__main__":
     #X = X[idx]
     #y = y[idx]
     
-    #clf = MLPClassifier(solver='lbfgs', alpha=1e-4, hidden_layer_sizes=(6, 3), random_state=1, max_iter=1000)
+    #clf = MLPClassifier(solver='adam', alpha=1e-1, hidden_layer_sizes=(6, 4), random_state=1, max_iter=10000)
     
     #clf = svm.SVC(class_weight={1: 3}, probability=True)
-    clf = svm.SVC(C=1, kernel='poly', probability=True, degree=2,class_weight={0: 0.3})
+    clf = svm.SVC(C=30, kernel='rbf', probability=True, degree=3,class_weight={0: 0.24})
+    clf = svm.SVC(C=45, kernel='rbf', probability=True, degree=3,class_weight={0: 0.15})
+    # Greater C: less missclassification
+    # Smaller C: More missclassification         
+    #
     #clf = PCA(n_components=2)
     #clf = tree.DecisionTreeClassifier()
     #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
     #clf = SGDClassifier(loss='hinge')
     
-    clf.fit(X_train, y_train)
+    #clf.fit(X_train, y_train)
+    clf.fit(X,  y)
 
     #scoring = {'AUC': 'roc_auc', 'Accuracy': make_scorer(accuracy_score),\
         #"hinge":make_scorer(hinge_loss, greater_is_better=False),\
         #"balanced": make_scorer(balanced_accuracy_score), 'fp': make_scorer(fp)}
 
     
-    #gs = GridSearchCV(svm.SVC(C=1, kernel='poly', degree=2, class_weight={1: 1.0}, probability=True),
+    #gs = GridSearchCV(svm.SVC(C=1, kernel='poly', degree=3, class_weight={1: 1.0}, probability=True),
                     #param_grid={'C': np.logspace(-1.5,0.5,15), 'class_weight':[{1: w} for w in np.logspace(-1,1,15)]},
                     #scoring=scoring, refit='AUC', return_train_score=True, cv=5)
 
@@ -388,13 +396,13 @@ if __name__ == "__main__":
     #results = gs.cv_results_
     #print(gs.best_estimator_)
     #print(gs.best_params_)
-    ##print(gs.scorer_)
+    ###print(gs.scorer_)
 
 
     #clf = gs.best_estimator_
 
     
-    #clf.fit(X_train, y_train)
+    ##clf.fit(X_train, y_train)
     b = clf.predict(X)
     recovery(y, b)
     print()
