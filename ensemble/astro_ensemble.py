@@ -317,9 +317,14 @@ class Ensemble():
             i1 = N
             n0 = 0
             n1 = N
-            
-        self.array[i0:i1] = np.roll(self.array, dN)[n0:n1]        
-        self.array.resize(N+dN)
+        print("N: ",N, " i0",i0," i1",i1, "n0",n0, "n1", n1)    
+        if i0==-1:
+            n1-=1
+            self.array[0:i1] = np.roll(self.array, dN)[n0:n1]        
+            self.array.resize(N+dN)
+        else:
+            self.array[i0:i1] = np.roll(self.array, dN)[n0:n1]        
+            self.array.resize(N+dN)
 
 
     def rebuild_row_mapper(self, dN, n0=None):
@@ -340,21 +345,26 @@ class Ensemble():
                 self.row_mapper[si]+=dN
 
         
-    def del_object(self, obj_name, verbose=1):
+    def del_object(self, obj_name, verbose=10):
         """
         Remove object from `Ensemble`
         """
         if verbose>5: print("Ensemble::del_object - Removing ",obj_name)
-        if obj_name in self.mapper:
-            N = len(self)            
-            uid = self.mapper[obj_name.strip()]
-            del self.mapper[obj_name.strip()]
-            if uid in self.objects:
-                del self.objects[uid]
+        if obj_name in self.row_mapper:
+            N = len(self)          
+            try:
+                uid = self.mapper[obj_name.strip()]
+                del self.mapper[obj_name.strip()]
+                if uid in self.objects:
+                    del self.objects[uid]
+            except:
+                print("Ensemble::del_object - ",obj_name," not in `mapper`")
+                uid = None
             n0 = self.row_mapper[obj_name]
             if verbose>6:
                 print("Ensemble::del_object - Removing ",obj_name," which has row index: ",n0, " and uid: ",uid)
             del self.row_mapper[obj_name]    
+            print(len(self.row_mapper))
             self.shift_array(-1, n0=n0)
             self.rebuild_row_mapper(-1, n0=n0)
             if verbose>6:
@@ -820,6 +830,7 @@ class Ensemble():
                 other.del_object(si)
                 
         # Construct new array
+        N1 = len(other)
         new_arr = np.zeros(N0+N1, dtype=dt)
         for c in outcols:
             left  = self.array[c] if c in self.known_cols else np.array(N0*[np.nan])
