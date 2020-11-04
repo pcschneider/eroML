@@ -358,7 +358,7 @@ class Ensemble():
                 if uid in self.objects:
                     del self.objects[uid]
             except:
-                print("Ensemble::del_object - ",obj_name," not in `mapper`")
+                if verbose>3: print("Ensemble::del_object - ",obj_name," not in `mapper`")
                 uid = None
             n0 = self.row_mapper[obj_name]
             if verbose>6:
