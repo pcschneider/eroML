@@ -317,7 +317,7 @@ class Ensemble():
             i1 = N
             n0 = 0
             n1 = N
-        print("N: ",N, " i0",i0," i1",i1, "n0",n0, "n1", n1)    
+        #print("N: ",N, " i0",i0," i1",i1, "n0",n0, "n1", n1)    
         if i0==-1:
             n1-=1
             self.array[0:i1] = np.roll(self.array, dN)[n0:n1]        
@@ -345,7 +345,7 @@ class Ensemble():
                 self.row_mapper[si]+=dN
 
         
-    def del_object(self, obj_name, verbose=10):
+    def del_object(self, obj_name, verbose=1):
         """
         Remove object from `Ensemble`
         """
@@ -364,7 +364,7 @@ class Ensemble():
             if verbose>6:
                 print("Ensemble::del_object - Removing ",obj_name," which has row index: ",n0, " and uid: ",uid)
             del self.row_mapper[obj_name]    
-            print(len(self.row_mapper))
+            #print(len(self.row_mapper))
             self.shift_array(-1, n0=n0)
             self.rebuild_row_mapper(-1, n0=n0)
             if verbose>6:
