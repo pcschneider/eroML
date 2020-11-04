@@ -22,7 +22,7 @@ def gen_random_pos_offset(N, dens=1.):
     return rndx
 
 
-def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
+def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, display=False):
     """
     Keep only relevant columns
     
@@ -88,24 +88,25 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1):
     val = 1 - np.exp(-dst**2/(2*err**2))        
     print(val)
     #import matplotlib.pyplot as plt
-    plt.hist(ff[extension].data["offset_sig"])
-    plt.title(ifn)
-    plt.xlabel("Offset sig")
-    plt.show()
-    plt.scatter(ff[extension].data["offset_sig"], val)
-    plt.xlabel("offset sig")
-    plt.ylabel("pos")
-    plt.title(ifn)
-    plt.show()
+    if display:
+        plt.hist(ff[extension].data["offset_sig"])
+        plt.title(ifn)
+        plt.xlabel("Offset sig")
+        plt.show()
+        plt.scatter(ff[extension].data["offset_sig"], val)
+        plt.xlabel("offset sig")
+        plt.ylabel("pos")
+        plt.title(ifn)
+        plt.show()
     print("pos",np.nanmean(val), np.nanmedian(val), np.nanstd(val))
-    col = pyfits.Column(name="pos", array=val*100, format=columns["match_dist"])    
+    col = pyfits.Column(name="pos", array=val*10, format=columns["match_dist"])    
     cols.append(col)
     
     arr = np.log10(ff[extension].data["parallax"])
     gi = np.where(np.isnan(arr))[0]
     arr[gi] = -1
     print("plx",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name="log_plx", array=arr, format=columns["parallax"])    
+    col = pyfits.Column(name="log_plx", array=arr*10, format=columns["parallax"])    
     cols.append(col)
     
     arr = np.log10(ff[extension].data["eligible_sky_density"])
