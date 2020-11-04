@@ -808,8 +808,9 @@ class Ensemble():
         # Resolve ID conflicts:
         shared_ids = np.intersect1d(srcIDs1, srcIDs2)
         if verbose>5: print("Ensemble::append - shared_ids", shared_ids)
-        if len(shared_ids)>0 and postfix is None:
-            raise ValueError("Ensemble::append - Name conflicts, but no `postfix` given.")
+        if len(shared_ids)>0:
+            if duplicates=="rename" and postfix is None:
+                raise ValueError("Ensemble::append - Name conflicts, but no `postfix` given.")
         
         if duplicates == "rename":
             for si in shared_ids:
