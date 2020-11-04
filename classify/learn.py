@@ -350,6 +350,7 @@ if __name__ == "__main__":
     #props = ["pos", "logFxFg","log_plx","bp_rp"]
     
     props = ["bp_rp", "logFg","logFx", "pos","log_plx","skd"]
+    props = ["bp_rp", "logFg","logFx", "offset_sig","log_plx","skd"]
     #props = ["bp_rp", "logFg", "logFxFg", "pos","log_plx","skd"]
     #props = ["pos","skd"]
     #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
@@ -370,6 +371,7 @@ if __name__ == "__main__":
     
     #clf = svm.SVC(class_weight={1: 3}, probability=True)
     clf = svm.SVC(C=30, kernel='rbf', probability=True, degree=3,class_weight={0: 0.24})
+    clf = svm.SVC(C=45, kernel='rbf', probability=True, degree=3,class_weight={0: 0.15})
     # Greater C: less missclassification
     # Smaller C: More missclassification         
     #

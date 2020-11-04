@@ -117,19 +117,25 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
     val = 1 - np.exp(-dst**2/(2*err**2))        
     print(val)
     #import matplotlib.pyplot as plt
+    if "category" in ff[extension].data.columns.names:
+        display=True
     if display:
         plt.hist(ff[extension].data["offset_sig"])
         plt.title(ifn)
         plt.xlabel("Offset sig")
         plt.show()
-        plt.scatter(ff[extension].data["offset_sig"], val)
+        plt.scatter(ff[extension].data["offset_sig"], (val*6)**2)
         plt.xlabel("offset sig")
         plt.ylabel("pos")
         plt.title(ifn)
         plt.show()
     print("pos",np.nanmean(val), np.nanmedian(val), np.nanstd(val))
+    col = pyfits.Column(name="pos", array=(val*6)**2, format=columns["match_dist"])
     col = pyfits.Column(name="pos", array=(val*6)**2, format=columns["match_dist"])    
     cols.append(col)
+    
+    
+    
     
     arr = np.log10(ff[extension].data["parallax"])
     gi = np.where(np.isnan(arr))[0]
@@ -148,10 +154,23 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
     col = pyfits.Column(name="skd", array=arr, format=columns["eligible_sky_density"])    
     cols.append(col)
         
-    arr = ff[extension].data["offset_sig"]
-    print("offset_sig",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name="offset_sig", array=arr, format=columns["offset_sig"])    
-    cols.append(col)
+    if "category" in ff[extension].data.columns.names:
+        sigma = np.sqrt(-2*np.log(1-val))
+        print(sigma)
+        col = pyfits.Column(name="offset_sig", array=sigma, format=columns["offset_sig"])    
+        cols.append(col)
+        plt.scatter(np.exp(val), sigma)
+        plt.xlabel("pos")
+        plt.ylabel("offset_sig")
+        plt.title(ifn)
+        plt.show()
+    else:
+        arr = ff[extension].data["offset_sig"]
+        print("offset_sig",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+        col = pyfits.Column(name="offset_sig", array=arr, format=columns["offset_sig"])    
+        cols.append(col)
+        
+    
     
     arr = ff[extension].data["NN"]
     print("NN",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))

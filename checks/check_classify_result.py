@@ -5,24 +5,25 @@ import glob
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-props = ["log_plx", "logFxFg","bp_rp", "pos", "log_sk"]
+props = ["offset_sig","log_plx", "logFxFg","bp_rp", "pos", "log_sk"]
 
 
 tfn = "../../ero_data/training_eFEDS.fits"
 mfn = "../classify/major_proba.fits"
 rfn = "../classify/random_proba.fits"
 
+norm=False
 for p in props:
     for what, fn in zip(["random", "training", "real"],[rfn, tfn, mfn]):
         ff = pyfits.open(fn)
         if what=="random":
-            y, xx = np.histogram(ff[1].data[p], density=True, bins=20)
+            y, xx = np.histogram(ff[1].data[p], density=norm, bins=40)
             x = (xx[1:] + xx[0:-1])/2
-            line, = plt.plot(x, y,label="random all", ls='--')
+            line, = plt.plot(x, y/10,label="random all", ls='--')
             line.set_drawstyle("steps-mid")
             gi = np.where(ff[1].data["predicted"] == 0)[0]
             print(what, len(gi))
-            y, xx = np.histogram(ff[1].data[p][gi], density=True, bins=xx)
+            y, xx = np.histogram(ff[1].data[p][gi], density=norm, bins=xx)
             gi = np.where((ff[1].data["predicted"] == 0) & (ff[1].data["NN"]==1))[0]
             print("    NN==1: ", len(gi))
             x = (xx[1:] + xx[0:-1])/2
@@ -31,7 +32,7 @@ for p in props:
         elif what=="training":
             gi = np.where(ff[1].data["category"] == 0)[0]
             print(what, len(gi))
-            y, xx = np.histogram(ff[1].data[p][gi], density=True, bins=xx)
+            y, xx = np.histogram(ff[1].data[p][gi], density=norm, bins=xx)
             gi = np.where((ff[1].data["category"] == 0) & (ff[1].data["NN"]==1))[0]
             print("    NN==1: ", len(gi))
             x = (xx[1:] + xx[0:-1])/2
@@ -40,7 +41,7 @@ for p in props:
         elif what=="real":
             gi = np.where(ff[1].data["predicted"] == 0)[0]
             print(what, len(gi))
-            y, xx = np.histogram(ff[1].data[p][gi], density=True, bins=xx)
+            y, xx = np.histogram(ff[1].data[p][gi], density=norm, bins=xx)
             gi = np.where((ff[1].data["predicted"] == 0) & (ff[1].data["NN"]==1))[0]
             print("    NN==1: ", len(gi))
             x = (xx[1:] + xx[0:-1])/2

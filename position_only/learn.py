@@ -178,12 +178,14 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
     
     
 dd = np.genfromtxt("offs.dat", unpack=True)
-X = np.transpose(dd[0:2])
-y = dd[2]
+#dd[1]*=100
+X = np.transpose(dd[0:3])
+y = dd[3]
+y[y>0] = 1
 #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
 
 #clf = svm.SVC(class_weight={1: 3}, probability=True)
-clf = svm.SVC(C=1000, kernel='poly', degree=2)#,class_weight={0: 2})
+clf = svm.SVC(C=100, kernel='rbf', degree=3,class_weight={0: 4}, gamma=0.01)
 #clf = PCA(n_components=2)
 #clf = tree.DecisionTreeClassifier()
 #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
@@ -201,11 +203,17 @@ print()
 gi = np.where(b == y)[0]
 print("Correct: ",len(gi), " of ",len(b))
 
-gi = np.where((b == 0) & (y==2))[0]
+gi = np.where((b == 0) & (y==0))[0]
+print("star as star: ",len(gi), " of ",len(np.where(y==0)[0]))
+
+gi = np.where((b == 1) & (y==1))[0]
+print("random as random: ",len(gi), " of ",len(np.where(y==1)[0]))
+
+gi = np.where((b == 0) & (y==1))[0]
 print("random as star: ",len(gi), " of ",len(b))
-gi = np.where((b == 2) & (y==0))[0]
+gi = np.where((b == 1) & (y==0))[0]
 print("star as random: ",len(gi), " of ",len(b))
 
 #exit()
-multidim_visualization(clf, X, y, names={0:"offset", 1:"sky_dens"})
+multidim_visualization(clf, X, y, names={1:"offset", 2:"sky_dens", 0:"sig"})
 #exit()    
