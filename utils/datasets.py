@@ -43,7 +43,7 @@ def file_loop_2to1(idx, prefix1="", postfix1="", prefix2="", postfix2="", ofn_pr
         fn1 = prefix1+str(i)+postfix1+".fits"
         fn2 = prefix2+str(i)+postfix2+".fits"
         ofn = ofn_prefix+str(i)+ofn_postfix+".fits"
-        logger.debug("Creating data set for fn1=%s and fn2=%s (ofn=%s; file# %i/%i)." % (fn1, fn2, ofn, j+1, len(idx)))
+        logger.debug("Creating data set for\n          fn1=%s\n      and fn2=%s\n         (ofn=%s; file# %i/%i)." % (fn1, fn2, ofn, j+1, len(idx)))
         method(fn1, fn2, ofn, **kwargs)
 
 #def major_loop(idx, ero_prefix=None, ero_postfix=None, gaia_prefix=None, gaia_postfix=None, major_prefix=None, major_postfix=None):
@@ -142,17 +142,20 @@ def major_set(ero, gaia, eligible_ero="eligible_X", eligible_gaia="eligible_Gaia
 
 
 @multi_fits_support(3)
-def training_set(major0, random0, abs_dist_cutoff=3, rel_dist_cutoff=2):
+def training_set(major0, random0, abs_dist=3, rel_dist=2):
+    
     major = copy.deepcopy(major0)
     random = copy.deepcopy(random0)
     
-    #print("len", len(major), len(random))
-    
+    logger.debug("Creating training set; #major: %i, #random: %i" % (len(major), len(random)))
+    logger.debug("Using abs_dist=%f and rel_dist=%f" % (abs_dist, rel_dist))
+        
     for e in [major, random]:
-        abs_dist = e.to_array("match_dist", array_type="array")
-        rel_dist = e.to_array("offset_sig", array_type="array")
+        adist = e.to_array("match_dist", array_type="array")
+        rdist = e.to_array("offset_sig", array_type="array")
         #print(abs_dist)
-        gi = np.where( (abs_dist < abs_dist_cutoff) & (rel_dist < rel_dist_cutoff) )[0]
+        gi = np.where( (adist < abs_dist) & (rdist < rel_dist) )[0]
+        logger.debug("%i sources fullfil match distance criteria for training sources." % len(gi))
         sids = np.array(e.srcIDs())[gi]
         e.keep(sids)
     
@@ -176,6 +179,7 @@ def training_set(major0, random0, abs_dist_cutoff=3, rel_dist_cutoff=2):
     
     major.append(random, postfix="_rnd")
     #print(len(major))
+    logger.debug("Training sample includes %i sources." %len(major))
     return major
     
     #print("unique: ",np.unique(cl), below)

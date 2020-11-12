@@ -11,6 +11,25 @@ import os
 
 logger = logging.getLogger('eroML')
 
+def calc_hpix(ra, dec, nside=32):
+    """
+    Calculate hpix index
+    
+    Parameters
+    ----------
+    ra, dec : arrays (float), in degree
+    
+    Returns
+    -------
+    idx : array (of int)
+    """
+    ra[ra<0]+=360
+    phi = 90-dec
+    theta = ra
+
+    x = hp.pixelfunc.ang2pix(nside, phi/180*np.pi, theta/180*np.pi, nest=True, lonlat=False)
+    return x
+
 def populated_hpix(fn, colname="healpix", extension=1):
     """
     The populated healpix 
@@ -83,7 +102,7 @@ def generate_healpix_files(ifn, index0=0, index1=None, pix_file=None, prefix="",
 
     for j, i in enumerate(idx):
         ofn=prefix+str(i)+postfix+'.fits'
-        if os.path.exists(ofn):
+        if os.path.exists(ofn) and skip:
             logger.warning("Skipping %s as it already exists (and `skip`==True)..." % ofn)
             continue
         logger.info("Generating %s (file %i/%i)" % (ofn, j+1, len(idx)))
@@ -188,6 +207,8 @@ def add_healpix_col(ifn, ofn=None, extension=1, overwrite=False, nside=16, verbo
         ra, dec = copy.deepcopy(ff[extension].data["RA_DEG"]), copy.deepcopy(ff[1].data["DEC_DEG"])
     else:
         raise ValueError("pixelize::add_healpix_col - Could not determine Instrument.")
+
+    logger.info("Source file contains %i sources." % len(ra))
 
     ra[ra<0]+=360
     phi = 90-dec

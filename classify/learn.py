@@ -210,7 +210,7 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
         names = {i:"dim"+str(i) for i in range(sh[1])}
     dim4name = {name:i for i,name in enumerate(names.values())}    
     fig, ax = plt.subplots()
-    plt.subplots_adjust(left=0.25, bottom=0.25)
+    plt.subplots_adjust(left=0.25, bottom=0.35, top=0.98)
     ax.margins(x=0)
     
     #sca = ax.scatter(X[::,dims[0]], X[::,dims[1]], c=y, s=30, alpha=0.1, cmap=plt.cm.Paired)
@@ -233,7 +233,7 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
     f0 = 1
     a0 = 1
     delta_f = 1
-    ypos = 0.15
+    ypos = 0.25
     sliders = []
     axsliders = []
     for i in range(sh[1]):
@@ -350,7 +350,13 @@ if __name__ == "__main__":
     #props = ["pos", "logFxFg","log_plx","bp_rp"]
     
     props = ["bp_rp", "logFg","logFx", "pos","log_plx","skd"]
-    props = ["bp_rp", "logFg","logFx", "offset_sig","log_plx","skd"]
+    props = ["sigma_r","match_dist", "bp_rp", "logFg","logFx", "log_plx","skd"]
+    props = ["sigma_r","match_dist", "skd"]
+    props = ["sigma_r","match_dist", "skd", "bp_rp", "logFg","logFx", "log_plx"]
+    
+    props = ["expected_rnd","offset_sig", "bp_rp", "logFg","logFx", "log_plx"]
+    #props =  ["bp_rp", "logFxFg", "expected_rnd","offset_sig", "log_plx"]
+    
     #props = ["bp_rp", "logFg", "logFxFg", "pos","log_plx","skd"]
     #props = ["pos","skd"]
     #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
@@ -370,8 +376,10 @@ if __name__ == "__main__":
     #clf = MLPClassifier(solver='adam', alpha=1e-1, hidden_layer_sizes=(6, 4), random_state=1, max_iter=10000)
     
     #clf = svm.SVC(class_weight={1: 3}, probability=True)
-    clf = svm.SVC(C=30, kernel='rbf', probability=True, degree=3,class_weight={0: 0.24})
-    clf = svm.SVC(C=45, kernel='rbf', probability=True, degree=3,class_weight={0: 0.15})
+    #clf = svm.SVC(C=30, kernel='rbf', probability=True, degree=3,class_weight={0: 0.24})
+    #clf = svm.SVC(C=45, kernel='rbf', probability=True, degree=3,class_weight={0: 0.15})
+    #clf = svm.SVC(C=10, kernel='rbf', probability=True, degree=3,class_weight={0: 0.2})
+    clf = svm.SVC(C=30, kernel='poly', probability=True, degree=3,class_weight={0: 0.3})
     # Greater C: less missclassification
     # Smaller C: More missclassification         
     #
@@ -417,7 +425,7 @@ if __name__ == "__main__":
     #-------------------------------
     #-------------------------------
     #-------------------------------
-    #multidim_visualization(clf, X, y, names={i:props[i] for i in range(len(props))})
+    multidim_visualization(clf, X, y, names={i:props[i] for i in range(len(props))})
     #-------------------------------
     #-------------------------------
     #-------------------------------

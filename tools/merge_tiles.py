@@ -11,7 +11,7 @@ print(hpx)
 ff.close()
 
 fn = "../../ero_data/Gaia_ID2_nside32_"+str(hpx[0])+".fits"
-e0 = from_fits(fn, maxN=100)
+e0 = from_fits(fn)
 print(len(e0))
 
 for hp in hpx[1:]:

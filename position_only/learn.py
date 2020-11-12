@@ -185,7 +185,7 @@ y[y>0] = 1
 #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
 
 #clf = svm.SVC(class_weight={1: 3}, probability=True)
-clf = svm.SVC(C=100, kernel='rbf', degree=3,class_weight={0: 4}, gamma=0.01)
+clf = svm.SVC(C=10, kernel='poly', degree=3,class_weight={0: 2}, gamma=0.01)
 #clf = PCA(n_components=2)
 #clf = tree.DecisionTreeClassifier()
 #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
