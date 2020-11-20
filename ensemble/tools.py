@@ -233,7 +233,6 @@ def from_fits(fn, mapper={}, verbose=0, extension=1, maxN=None):
         if col.name in mapper.values(): continue
         if col_mapper(col.name) == "srcID":
             xxx["srcID"] = ff[extension].data[col.name][0:maxN].astype(str)
-            
             if col.name in mapper.keys(): # Keep original column if mapped
                 xxx[col.name] = ff[extension].data[col.name][0:maxN]
         else:
@@ -248,7 +247,7 @@ def from_fits(fn, mapper={}, verbose=0, extension=1, maxN=None):
     
     if verbose>1: 
         print("ensemble.tools::from_fits - Read ",np.shape(xxx), " entries with ",len(names)," properties from ",fn)
-    
+        print(xxx.dtype)
     ff.close()        
     e = Ensemble().from_array(xxx)
     if verbose>0:

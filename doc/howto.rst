@@ -1,6 +1,21 @@
 How to
 ======
 
+Usage
+-----
+The software is controlled by ini-files, individual steps can be also selected
+on the command line::
+
+  p37 run_eroML.py -h
+
+
+
+Default values are provided in::
+
+  default.ini
+  
+  
+
 Potentially useful entry points
 --------------------------------
 
@@ -12,12 +27,14 @@ Once the Gaia data has been downloaded, one may
 eFEDS example
 -------------------
 
+As an example, we describe the processing of the eFEDS.
+
 Required input Data
 ~~~~~~~~~~~~~~~~~~~~
 
 The eFEDS source file::
 
-  ../eFEDS/SrcCat_V2T.fits
+  ../ero_data/eFEDS_c001_hs.fits
   
 The Gaia source tiles (expected number of files: 6305)::
 
@@ -29,8 +46,8 @@ How to download the Gaia tiles is described in
 Generate required files
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-We need to transform the eROSITA into the merged file containing all relevant
-source properties. This can be done by setting::
+We need to transform the eROSITA files into the merged file containing all 
+relevant source properties. This can be done by setting::
 
   p37 run_eroML.py eFEDS_all.ini
   

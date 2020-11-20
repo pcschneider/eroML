@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 fn = "Tile_training.fits"
 fn = "tile/test_merged.fits"
 
-fn = "merged_training.fits"
+fn = "../../ero_data/training_eFEDS.fits"
 #fn = "../ero_data/merged_random_test120.fits"
 
 ff = pyfits.open(fn)[1].data
@@ -41,10 +41,10 @@ plt.legend()
 plt.show()
 
 gi = np.where(ff["category"] > 0)
-plt.hist(ff["pos"][gi], label="others", bins=20, range=(0,1))
+plt.hist(ff["match_dist"][gi], label="others", bins=20, range=(0,100))
 
 gi = np.where(ff["category"] == 0)
-plt.hist(ff["pos"][gi],label="stars", bins=20, range=(0,1))
+plt.hist(ff["match_dist"][gi],label="stars", bins=20, range=(0,100))
 
 plt.legend()
 plt.show()

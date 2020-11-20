@@ -8,7 +8,7 @@ from astropy.io.votable import parse
 from astropy.io.votable import parse_single_table
 import tempfile
 import copy
-import os, re
+import os, re, shutil
 import healpy as hp
 import logging
 import glob
@@ -41,27 +41,39 @@ def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwri
     """
     Download all Gaia sources
     """
-
+    
+    if type(overwrite)==str:
+        overwrite=True if overwrite.lower()=="true" else False
+        
     if idx is None:
         idx = range(hp.nside2npix(nside))
     logger.info("Number of hpix: %i" % len(idx))   
-    logger.info("Using Glim=%f" % Glim)
+    logger.info("Using Glim=%f (check_alternate=%s, overwrite=%s)" % (Glim, check_alternate, overwrite))
     for j, i in enumerate(idx):
         
         pre  = outdir+"/"+prefix+"_nside"+str(nside)+"_"+str(i)
         post = ".fits"
         ofn = pre+post
                 
-        logger.debug("Using \'%s\' for hpix=%i  (pix %i of %i)" % (ofn, i, j+1, len(idx)))
-        if os.path.exists(ofn):
-            logger.debug("  Skipping... (using existing file=\'%s\' instead)" % ofn)
+        logger.debug("Using fn=\'%s\' for hpix=%i  (pix %i of %i)" % (ofn, i, j+1, len(idx)))
+        if os.path.exists(ofn) and overwrite==False:
+            logger.debug("   Skipping... (using existing file=\'%s\')" % ofn)
             continue
         
         if check_alternate:
+            logger.debug("   Cheking alternative for fn=\'%s\'" % ofn)
+            if os.path.exists(ofn) and overwrite==True:
+              logger.debug(" Using existing %s." % ofn)
+              add_standard_cols(ofn, overwrite=True)
+              continue            
+        
+            
             glob_str = outdir+"/Gaia_*"+"_nside"+str(nside)+"_"+str(i)+".fits"
             afn = get_alternate_gaia_file(glob_str)
-            if afn: 
-                os.symlink(afn, ofn)
+            if afn:
+                shutil.copyfile(afn, ofn)
+                logger.debug(" Created a copy of %s as %s." % (afn, ofn))
+                add_standard_cols(ofn, overwrite=True)
                 continue
         
         try:
@@ -289,7 +301,7 @@ def vo2fits(ifn, ofn, verbose=1, overwrite=False):
 
     
 
-def quality_filter(ff, filter_Nr=3):
+def quality_filter(ff, filter_Nr=4):
     """
     Determine Gaia-sources for which certain filter criteria are fullfilled
     
@@ -297,7 +309,7 @@ def quality_filter(ff, filter_Nr=3):
     ----------
     ff : pyfits.HDUList
     filter_Nr : int
-        There are three filters defined (0, 1, 2, 3). Filter-Nr 0 corresponds to the tightest contrains and equals the criteria 
+        There are three filters defined (0, 1, 2, 3, 4). Filter-Nr 0 corresponds to the tightest contrains and equals the criteria 
         defined in <> to obtain a well-defined HR diagram.
     """
     #filter_Nr = 3
@@ -348,6 +360,14 @@ def quality_filter(ff, filter_Nr=3):
             (d["phot_bp_rp_excess_factor"] > 1.0+0.015*(d["phot_bp_mean_mag"]-d["phot_rp_mean_mag"])**2) &\
             (d["visibility_periods_used"]>4) &\
             (d["astrometric_chi2_al"]/(d["astrometric_n_good_obs_al"]-5)<1.44*tmp))[0]
+    elif filter_Nr==4:
+       gi = np.where((d["parallax"]/d["parallax_error"] > 3) & (d["phot_g_mean_flux_over_error"]>30) &\
+            (d["phot_rp_mean_flux_over_error"]>10) & (d["phot_bp_mean_flux_over_error"]>10) &\
+            (d["phot_bp_rp_excess_factor"] < 1.3+0.06 *(d["phot_bp_mean_mag"]-d["phot_rp_mean_mag"])**2) &\
+            (d["phot_bp_rp_excess_factor"] > 1.0+0.015*(d["phot_bp_mean_mag"]-d["phot_rp_mean_mag"])**2) &\
+            (d["astrometric_chi2_al"]/(d["astrometric_n_good_obs_al"]-5)<1.44*tmp))[0]
+
+        
 
         
     q = np.zeros(N)
@@ -379,17 +399,19 @@ def add_standard_cols(ifn, overwrite=True):
     ff = pyfits.open(ifn)
     cols = ff[1].columns
     srcIDs = ff[1].data["source_id"].astype(str)
-    c = pyfits.Column(name="srcID", array=srcIDs, format="38A")
-    
+    if "srcID" not in ff[1].data.names:
+        c = pyfits.Column(name="srcID", array=srcIDs, format="38A")
+        cols.add_col(c)
     
     #print("#rows: %i, good quality: %i, fraction: %f" % (len(ff[1].data[cols[0].name]), np.sum(q),np.sum(q)/len(ff[1].data[cols[0].name]) ))
-    cols.add_col(c)
+    
     hdu = copy.copy(ff[0]) 
     #hdu = ff[0]
     hdx = pyfits.BinTableHDU.from_columns(cols)
     hdul = pyfits.HDUList([hdu, hdx])
     hdul.writeto(ifn, overwrite=overwrite)    #hdul = pyfits.HDUList([hdu, ff[1])
     ff.close()
+    logger.debug("Added standard cols to \'%s\'." % ifn)
     
  
 def get_gaia(ifn, ofn, overwrite=False, verbose=1):

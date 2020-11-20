@@ -20,11 +20,11 @@ def discover_filenames(which, config=None):
         from eroML.config import config
     
     if which.lower() == "gaia_tiles":
-        glob_str = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_*.fits"
+        glob_str = config["Gaia_Download"]["directory"]+"/Gaia_"+config["Gaia_Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_*.fits"
         fnames = glob.glob(glob_str)
 
     elif which.lower() == "ero_tiles":
-        glob_str = config["X data preparation"]["directory"]+"/"+config["X data preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_*.fits"
+        glob_str = config["Xdata_preparation"]["directory"]+"/"+config["Xdata_preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_*.fits"
         fnames = glob.glob(glob_str) 
         
     return fnames
@@ -84,42 +84,42 @@ def file4(which, cconfig=None):# which=""):
         return config["Sources"]["X_filename_hp"]
     
     elif which=="gaia_tiles":
-        prex = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["Gaia_Download"]["directory"]+"/"+config["Gaia_Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = ""
         return ff4idx(prex, posx)
     
     elif which=="ero_tiles":
-        prex = config["X data preparation"]["directory"]+"/"+config["X data preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["Xdata_preparation"]["directory"]+"/"+config["Xdata_preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = ""
         return ff4idx(prex, posx)
              
     elif which=="major_tiles":
-        prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["Datasets"]["directory"]+"/"+config["Data sets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = ""
         return ff4idx(prex, posx)
     
     elif which=="random_tiles":
-        prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["Data sets"]["directory"]+"/"+config["Datasets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = ""
         return ff4idx(prex, posx)
     
     elif which=="training_tiles":
-        prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["training_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["training_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = ""
         return ff4idx(prex, posx)
     
     elif which=="major_tiles_small":
-        prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = config["Merging"]["shrink_postfix"]
         return ff4idx(prex, posx)
     
     elif which=="random_tiles_small":
-        prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = config["Merging"]["shrink_postfix"]
         return ff4idx(prex, posx)
     
     elif which=="training_tiles_small":
-        prex = config["Data sets"]["directory"]+"/"+config["Data sets"]["training_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["training_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = config["Merging"]["shrink_postfix"]
         return ff4idx(prex, posx)
     

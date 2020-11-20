@@ -51,7 +51,7 @@ def sp(x, y, gi):
     ax_histx.hist(x[gi], bins=xbins)
     ax_histy.hist(y[gi], bins=ybins, orientation='horizontal')
     xx = np.linspace(0,20,100)
-    ax_histx.plot(xx,65*xx**2)
+    #ax_histx.plot(xx,65*xx**2)
 
 
     ax_histx.set_xlim(ax_scatter.get_xlim())
@@ -60,9 +60,10 @@ def sp(x, y, gi):
 
 
 dd = np.genfromtxt("offs.dat", unpack=True)
-#pos_off, skdens, sigout, cls
+#sigout, pos_off, skdens*1000, cls
+
 gi = np.where(dd[3]==1)[0]
-ax = sp(dd[2], dd[0], gi)
+ax = sp(dd[0], dd[1], gi)
 
 
 ax.set_xlabel("sigma")
@@ -71,14 +72,14 @@ ax.set_xlim(0,20)
 ax.set_ylim(0,100)
 plt.show()
 
-ax = sp(dd[1], dd[0],gi)
+ax = sp(dd[2], dd[1],gi)
 #ax.scatter(dd[1][gi], dd[0][gi],s=1)
 
 
 
 ax.set_xlabel("sk_dens")
 ax.set_ylabel("pos_off")
-ax.set_xlim(0,0.01)
+ax.set_xlim(0,11)
 ax.set_ylim(0,100)
 plt.show()
 
