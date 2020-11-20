@@ -60,7 +60,7 @@ cc = pyfits.ColDefs(fcols)
 xx = pyfits.BinTableHDU.from_columns(cc)
 hdu = pyfits.PrimaryHDU()    
 hdul = pyfits.HDUList([hdu, xx])
-hdul.writeto("SVM_new.fits", overwrite=True)
+hdul.writeto("SVM_new2.fits", overwrite=True)
 
 print(len(np.unique(xx.data["ero_ID"])))
 exit()

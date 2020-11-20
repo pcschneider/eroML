@@ -27,6 +27,8 @@ Once the Gaia data has been downloaded, one may
 eFEDS example
 -------------------
 
+As an example, we describe the processing of the eFEDS.
+
 Required input Data
 ~~~~~~~~~~~~~~~~~~~~
 

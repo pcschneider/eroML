@@ -34,13 +34,13 @@ for m in unlogged:
     out = getattr(logger, m[0])
     out(m[1])
 
-if "Datasets" in args.steps[0]:
+if args.steps is not None and "Datasets" in args.steps[0]:
     args.steps[0].remove("Datasets")
     args.steps[0].append("Datasets/major")
     args.steps[0].append("Datasets/random")
     args.steps[0].append("Datasets/training")
 
-if "Merging" in args.steps[0]:
+if args.steps is not None and "Merging" in args.steps[0]:
     args.steps[0].remove("Merging")
     args.steps[0].append("Merging/major")
     args.steps[0].append("Merging/random")

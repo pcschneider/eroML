@@ -9,10 +9,11 @@ def generate():
     pass
 
 def gen_real_pos_offset(N, sigma=1.):
-        
     rnd = np.random.rand(N)
     rndx = np.sqrt(2*sigma**2 * (-np.log(1-rnd)))
+    #rndx = 2*sigma**2 * (-np.log(1-rnd))
 
+    #rndx = np.sqrt(
     return rndx
 
 def gen_random_pos_offset(dens=1., NN=3):
@@ -105,33 +106,67 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
         print("all: ",len(ci)," Lx filter: ",len(gi), "(max Lx: ",max(Lx[ci]),")")
         ff[extension].data["category"][ci[gi]] = 1
     
-    
-    
-    
     dens = ff[extension].data['eligible_sky_density'] / 3600
-    
-    
     
     if "category" in ff[extension].data.columns.names:
         # random matches
         gi = np.where(ff[extension].data["category"] == 2)[0] 
         NN = ff[extension].data["NN"]
-        dst[gi] = gen_random_pos_offset(dens = dens[gi], NN=NN[gi])
+        sgm = 1/np.sqrt(dens[gi]*2*np.pi)
+        dst[gi] = gen_real_pos_offset(len(gi), sigma = sgm)
+        #dst[gi] = gen_random_pos_offset(dens = dens[gi], NN=NN[gi])
+        
+        
+        bns = np.histogram(dst[gi], range=(0, 100), bins=30, density=True)
+
+        bnx = (bns[1][1:] + bns[1][0:-1])/2
+
+        bny = bns[0]
+
+        plt.hist(dst[gi], bins=30, range=(0, 100), density=True)
+        plt.bar(bnx, height=bny, color='r')
+        
+        
+        M = len(bnx)
+        N = len(gi)
+        xx = bnx.repeat(N).reshape((M,N))
+        sigma = sgm
+        zz = xx/sigma**2*np.exp(-xx**2/(2*sigma**2))        
+        mm = np.mean(zz, axis=1)
+        plt.plot(bnx, mm)
+        plt.title("Random")
+        plt.xlabel("Radius (arcsec)")
+        plt.show()
         
         # real matches
         gi = np.where(ff[extension].data["category"] < 2)[0] 
         dst[gi] = gen_real_pos_offset(len(gi), sigma = err[gi])
+        
+        plt.hist(dst[gi], bins=30, range=(0, 30), density=True)
+        
+        bnx = np.linspace(0,30, 1000)
+        M = len(bnx)
+        N = len(gi)
+        xx = bnx.repeat(N).reshape((M,N))
+        sigma = err[gi]
+        zz = xx/sigma**2*np.exp(-xx**2/(2*sigma**2))        
+        mm = np.mean(zz, axis=1)
+        plt.plot(bnx, mm)
+
+        plt.title("Real")
+        plt.xlabel("Radius (arcsec)")
+        plt.show()
+        
         print("dst", dst)
+        
         col = pyfits.Column(name="match_dist", array=dst, format=columns["match_dist"])    
         cols.append(col)
         col = pyfits.Column(name="sigma_r", array=ff[extension].data["RADEC_ERR"], format=columns["RADEC_ERR"])    
         cols.append(col)
         col = pyfits.Column(name="offset_sig", array=dst/err, format=columns["offset_sig"])    
         cols.append(col)
-        
-        
-    
-        arr = ff[extension].data["eligible_sky_density"] * dst**2 * np.pi/3600
+            
+        arr = ff[extension].data["eligible_sky_density"] * dst**2 * 4*np.pi/3600
         print("expected_rnd",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
         col = pyfits.Column(name="expected_rnd", array=arr*10, format=columns["match_dist"])    
         cols.append(col)        
@@ -149,8 +184,10 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
         col = pyfits.Column(name="offset_sig", array=arr, format=columns["offset_sig"])    
         cols.append(col)
     
-    
-        arr = ff[extension].data["eligible_sky_density"] * ff[extension].data["match_dist"]**2 * np.pi/3600
+        arr = ff[extension].data["eligible_sky_density"]
+        print("eligible_sky_density",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr), min(arr), max(arr))
+        
+        arr = ff[extension].data["eligible_sky_density"] * ff[extension].data["match_dist"]**2 * 4*np.pi/3600
         print("expected_rnd",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
         col = pyfits.Column(name="expected_rnd", array=arr*10, format=columns["match_dist"])    
         cols.append(col)        
@@ -172,13 +209,13 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
             plt.title(ifn)
             plt.xlabel("Offset sig")
             plt.show()
-            plt.scatter(ff[extension].data["offset_sig"], (val*6)**2)
+            plt.scatter(ff[extension].data["offset_sig"], val)
             plt.xlabel("offset sig")
             plt.ylabel("pos")
             plt.title(ifn)
             plt.show()
     print("pos",np.nanmean(val), np.nanmedian(val), np.nanstd(val))
-    col = pyfits.Column(name="pos", array=(val*6)**2, format=columns["match_dist"])
+    col = pyfits.Column(name="pos", array=val, format=columns["match_dist"])
     #col = pyfits.Column(name="pos", array=(val*6)**2, format=columns["match_dist"])    
     cols.append(col)
     
