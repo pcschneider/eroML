@@ -2,6 +2,7 @@ from .ensemble import *
 from .utils import *
 from .tile import *
 from .classify import *
+from. positions import *
 
 def test():
     modules = ["ensemble", "utils","tile"]

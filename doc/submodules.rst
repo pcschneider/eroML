@@ -7,3 +7,4 @@ Description of submodules
    ensemble.rst
    utils.rst
    tile.rst
+   positions.rst
