@@ -28,6 +28,10 @@ The following properties are used to differentiate between real stellar associat
 Distance-based Classification
 ------------------------------
 
+The on-sky distance between eROSITA and Gaia sources plays a crucial role for 
+the classification. Therefore, the properties of the matching distance are 
+described below.
+
 Real matches
 ~~~~~~~~~~~~~~~~~~~~~~~
 The (on-sky) distance between real sources is described by 
@@ -123,14 +127,13 @@ for random matches. Therefore, the peak is at
           \right.
     
     
-Classes
-----------------------
+Implementation
+~~~~~~~~~~~~~~
 
-The following three classes exist
+In the folder::
+
+  ...eroML/position_only/
   
-  0) Stars
-  1) Others
-  2) Random matches
+are scripts to perform a classification based on position only.
 
-
-
+Specifically, 

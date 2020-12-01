@@ -1,5 +1,15 @@
 Data Description and Data Sets
 ===============================
+    
+    
+Object Classes
+----------------------
+
+The following three classes exist
+  
+  0) Stars
+  1) Others
+  2) Random matches
 
 
 The different data sets

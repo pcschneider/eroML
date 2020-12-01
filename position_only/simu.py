@@ -55,29 +55,6 @@ def gen_random_pos_offset2(dens=1., max_dist=70, sigma_in=None):
     return sigma_simu, dens_simu, offs
 
 
-
-
-
-
-
-#dens = np.linspace(0.1, 0.3, 3)
-#xx = gen_random_pos_offset(12, dens=dens)
-#print(xx)
-#exit()
-#Nreal=int(1e7)
-#Nrnd = int(1e7)
-#SIG = 4
-#real = gen_real_pos_offset(Nreal, sig=SIG)
-#fake = gen_random_pos_offset(Nrnd, dens=1/32/np.pi)
-
-#plt.hist(real, alpha=0.5, label="Real", bins=40, range=(0, 20))
-#plt.hist(fake, alpha=0.5, label="Fake", bins=40, range=(0, 20))
-#plt.legend()
-#plt.show()
-#exit()
-
-
-
 #sk_array = [0.0003, 0.0001, 0.001, 0.003, 0.01, 0.03, 0.1]
 Nreal=2000
 Nrnd = 5000
