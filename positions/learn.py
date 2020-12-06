@@ -10,11 +10,19 @@ from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 from eroML.classify import multidim_visualization
 from sklearn.model_selection import GridSearchCV
-
+from sklearn.metrics import make_scorer 
 
 def my_custom_loss_func(y_true, y_pred):
-     
-     return np.log1p(diff)
+    random_as_star = np.where((y_true==1) & (y_pred==0))[0]
+    star_as_random = np.where((y_true==0) & (y_pred==1))[0]
+    stars_predicted = len(y_pred) - np.sum(y_pred)
+    stars_true = len(y_true) - np.sum(y_true)
+    #print(stars_predicted - stars_true, "diff:", len(random_as_star) - len(star_as_random))
+    sc = (stars_predicted - stars_true)**2 * (100 + (len(random_as_star) - len(star_as_random)))**2
+    print(stars_predicted, stars_true,  "diff:", len(random_as_star) - len(star_as_random), " -- ",len(random_as_star), len(star_as_random), " -> ", sc)
+    return sc
+
+scoring = make_scorer(my_custom_loss_func, greater_is_better=False)
 
 #oo = np.transpose([sigout, pos_off, skdens*3600, nth, cls])
 dd = np.genfromtxt("../offs.dat", unpack=True)
@@ -37,19 +45,32 @@ X = np.transpose(dd[0:2,gi])
 print(np.shape(X))
 y = dd[4][gi]
 y[y>0] = 1
+
+print("#true stars: ",len(y) - np.sum(y))
 #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
 
 #clf = svm.SVC(class_weight={1: 3}, probability=True)
 clf = svm.SVC(C=100, probability=True, kernel='poly', degree=2,class_weight={1: 10, 0:0.5}, gamma=50)
+#https://scikit-learn.org/stable/tutorial/statistical_inference/putting_together.html
 
-
-parameters = {'C':np.linspace(1,100,3), 'class_weight':[{1:2}, {1:2.5},{1:3}]}
+parameters = {'C':np.linspace(10,100,3), 'class_weight':[{1:2.5},{1:3}]}
 
 sv = svm.SVC(probability=True, kernel='poly', degree=2)
-grid = GridSearchCV(sv, parameters)
+grid = GridSearchCV(sv, parameters, scoring=scoring)
+
+grid = GridSearchCV(make_pipeline(StandardScaler(), sv), parameters, scoring=scoring)
+
 grid.fit(X, y)
+print(grid.cv_results_.keys())
+for k in grid.cv_results_.keys():
+    print(k, grid.cv_results_[k])
+print()
+print(grid.best_params_)
+print()
+print(grid.best_index_)
 print("optimized")
 
+exit()
 clf = svm.SVC(C=25, probability=True, kernel='poly', degree=3, class_weight={1: 2.7}, gamma=2.77e-4)
 
 
