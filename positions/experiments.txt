@@ -1,0 +1,30 @@
+dd[1]*=3
+clf = svm.SVC(C=38, probability=True, kernel='poly', degree=2,class_weight={1: 3.1}, gamma=3e-4)
+gi = np.where(y==0)[0]
+sw = np.ones(len(y))
+sw[gi] = 1.3
+
+
+Correct:  29155  of  30000
+star as star:  1577  of  2000
+random as random:  27578  of  28000
+random as star:  422  of  30000
+star as random:  423  of  30000
+Objects as star classified:  1999
+
+===================================================
+
+clf = svm.SVC(C=38, probability=True, kernel='poly', degree=2,class_weight={1: 3.1}, gamma=3e-4)
+gi = np.where(y==0)[0]
+sw = np.ones(len(y))
+sw[gi] = 1.3
+
+gamma: 0.0005 coeff0:  0.0
+class_weight {1: 2.98} degree 2
+
+Correct:  29150  of  30000
+star as star:  1574  of  2000
+random as random:  27576  of  28000
+random as star:  424  of  30000
+star as random:  426  of  30000
+Objects as star classified:  1998

@@ -9,10 +9,16 @@ from sklearn.decomposition import PCA
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 from eroML.classify import multidim_visualization
+from sklearn.model_selection import GridSearchCV
+
+
+def my_custom_loss_func(y_true, y_pred):
+     
+     return np.log1p(diff)
 
 #oo = np.transpose([sigout, pos_off, skdens*3600, nth, cls])
 dd = np.genfromtxt("../offs.dat", unpack=True)
-#dd[1]*=100
+#dd[1]*=3
 gi = np.where(dd[3] == 1)[0] # Only nearest neighbour
 X = np.transpose(dd[0:2,gi])
 #for i in range(X.shape[1]):
@@ -36,22 +42,31 @@ y[y>0] = 1
 #clf = svm.SVC(class_weight={1: 3}, probability=True)
 clf = svm.SVC(C=100, probability=True, kernel='poly', degree=2,class_weight={1: 10, 0:0.5}, gamma=50)
 
-clf = svm.SVC(C=10, probability=True, kernel='poly', degree=2,class_weight={1: 2})
+
+parameters = {'C':np.linspace(1,100,3), 'class_weight':[{1:2}, {1:2.5},{1:3}]}
+
+sv = svm.SVC(probability=True, kernel='poly', degree=2)
+grid = GridSearchCV(sv, parameters)
+grid.fit(X, y)
+print("optimized")
+
+clf = svm.SVC(C=25, probability=True, kernel='poly', degree=3, class_weight={1: 2.7}, gamma=2.77e-4)
 
 
 #clf = PCA(n_components=2)
 #clf = tree.DecisionTreeClassifier()
 #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
 #clf = SGDClassifier(loss='hinge')
-gi = np.where(y==0)[0]
+gi = np.where(X[::,1] < 0.7*X[::,0])[0]
 sw = np.ones(len(y))
-sw[gi] = 30
+print("#Weighted: ",len(gi))
+sw[gi] = 2.5
 print(dir(clf))
 print("gamma:", clf.gamma, "coeff0: ",clf.coef0)
 print("class_weight",clf.class_weight, "degree", clf.degree)
 #clf.fit(X, y)
 
-clf.fit(X, y)#, sample_weight=sw)
+clf.fit(X, y, sample_weight=sw)
 b = clf.predict(X)
 pp = clf.predict_proba(X)
 #print(pp.shape)
