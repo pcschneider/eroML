@@ -6,104 +6,11 @@ from eroML.config import *
 import argparse
 import os
 from astropy.io import fits as pyfits
-
-def gen_real_pos_offset(N, sig=1.):
-        
-    rnd = np.random.rand(N)
-    rndx = np.sqrt(2*sig**2 * (-np.log(1-rnd)))
-
-    return rndx
+from eroML.positions import gen_random_pos_offset, gen_real_pos_offset
 
 
-#def gen_random_pos_offset(Nrnd, dens=1.):
-    #"""
-    #Parameters
-    #-----------
-    #dens : array of float
-        #Density (arcsec-2) of stars
-
-    #Returns
-    #-------
-    #dens_simu, offs
-    #"""
-    #if type(dens) != float:
-        #dens = np.array(dens)
-    #max_dist = np.repeat(np.sqrt(NN/np.pi/dens), NN)
-    #dd = np.repeat(dens,NN)    
-    #N = len(dens)
-    #print(N, np.shape(max_dist))
-    #offs = max_dist*np.random.rand(N*NN)**0.5
-    #print(np.shape(offs))
-    #return offs
-
-
-
-def gen_random_pos_offset(dens=1., nthN=3):
-    """
-    Parameters
-    -----------
-    dens : array of float
-        Density (arcsec-2) of stars
-
-    Returns
-    -------
-    dens_simu, offs
-    """
-    if type(dens) != float:
-        dens = np.array(dens)
-    N = len(dens)
-    NN = 20
-    max_dist = np.repeat(np.sqrt(NN/np.pi/dens), NN).reshape((N,NN))
-    #print(np.shape(max_dist), max_dist)
-    dd = np.repeat(dens,NN).reshape((N,NN))
-    gg = np.repeat(np.arange(len(dens)),NN).reshape((N,NN))
-    print(np.shape(gg), np.shape(dd))
-    #print(N, np.shape(max_dist), max(max_dist))
-    offs = max_dist*np.random.rand(N,NN)**0.5
-    plt.hist(offs.flatten(), range=(0, 2.3), bins=30)
-    #print(offs[0,:])
-    plt.show()
-    #print(np.shape(offs))
-    nth = np.argsort(offs, axis=1)
-    #offs = offs[nth]
-    offs = np.sort(offs, axis=1)
-    #nth = np.tile(np.arange(NN),N).flatten()[np.argsort(offs).flatten()]+1
-    #print(nth[0,:])
-    #print(offs[0,nth[0,:]-1])
-    #offs = offs.flatten()
-    #gi = np.where(nth.flatten() == 1)
-    #print(offs)
-    #print(nth)
-    #print(offs[nth])
-    #print(np.shape(offs))
-    return np.array([offs.flatten(), dd.flatten(), gg.flatten()])
-
-
-
-
-def gen_random_pos_offset2(dens=1., max_dist=70, sigma_in=None):
-    """
-    Parameters
-    -----------
-    dens : array of float
-        Density (arcsec-2) of stars
-
-    Returns
-    -------
-    dens_simu, offs
-    """
-    if type(dens) != float:
-        dens = np.array(dens)
-    NN = 3*len(dens)
-    N_simu = np.random.poisson(lam=NN)    
-    dens_simu = np.repeat(dens, N_simu)
-    sigma_simu = np.repeat(sigma_in, N_simu)
-    offs = max_dist*np.random.rand(np.sum(N_simu))**0.5
-    return sigma_simu, dens_simu, offs
-
-
-
-def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,  overwrite=False):
+def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
+    dens_scaling=1.06, overwrite=False):
 
     print("Using major file \'%s\' to simulate %i real sources (rnd_factor=%6.2f); ofn=\'%s\' (overwrite=%i)." % (mfn, N, rnd_factor, ofn, overwrite))
 
@@ -127,6 +34,7 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,  overwrite=Fal
         SIG = ffd["RADEC_ERR"][i]
     else:
         print("Cannot read positional error from \'%s\', aborting..." % mfn)
+    #SIG[SIG>11] = 11
     print("Mean, median \'sigma_r\': %6.3f, %6.3f [arcsec]" % (np.mean(SIG), np.median(SIG)))
 
     try:
@@ -154,10 +62,16 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,  overwrite=Fal
     ##sk = Nreal*[0.004]
 
     #rnd_offs = gen_random_pos_offset(dens=sk)
-    real_offs = gen_real_pos_offset(N, sig=SIG)
-    rand_offs = gen_random_pos_offset(Nrnd, dens=sk)
+    real_offs = gen_real_pos_offset(sigma=SIG*0.6)
+    rand_offs = gen_random_pos_offset(dens=np.repeat(sk/3600, rnd_factor)* dens_scaling)
+    print(np.shape(rand_offs))
+    for i in range(4):
+        print(i, len(rand_offs[i]))
     #sk_simu = np.repeat(sk,3)
-    #sig_simu = np.repeat(SIG,3)
+    idx = rand_offs[2].astype(int)
+    print(idx)
+    sig = np.repeat(SIG, rnd_factor)[idx]
+    sig_simu = np.concatenate((SIG,sig))
 
 
 
@@ -168,37 +82,43 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,  overwrite=Fal
 
     #pos_off = np.zeros((Nreal+Nrnd)
     #skdens = np.zeros((Nreal+Nrnd)*len(sk_array))
-    cls = np.zeros(N+Nrnd)
+    cls = np.zeros(len(sig_simu))
     cls[0:N] = 0
     cls[N::] = 1
 
     #tmp0 = gen_real_pos_offset(N, sig=SIG)
     #tmp1 = gen_random_pos_offset(Nrnd, dens=sk_simu)
-    pos_off = np.concatenate((real_offs, rand_offs))
-    skdens = np.concatenate((sk, sk_simu))
-    sigout = np.concatenate((SIG, sig_simu))   
-        
-    np.savetxt("offs.dat", np.transpose([sigout, pos_off, skdens*10000, cls]))
-    exit()
-    print(offs)
-    plt.hist(offs)
+    pos_off = np.concatenate((real_offs, rand_offs[0]))
+    skdens = np.concatenate((sk, rand_offs[1]*3600))
+    sigout = sig_simu
+    nth = np.ones(len(sigout))
+    nth[N:] = rand_offs[3]
+    
+    oo = np.transpose([sigout, pos_off, skdens, nth, cls])
+    print(oo[0].shape, oo[1].shape, oo[2].shape, oo[3].shape)
+    
+    np.savetxt("offs.dat", oo)
+    return
+    #exit()
+    #print(offs)
+    #plt.hist(offs)
 
-    dm = Dist_model()
+    #dm = Dist_model()
 
-    #"fraction","sig","dens","N", "err_scaling"]
+    ##"fraction","sig","dens","N", "err_scaling"]
 
 
-    dm["fraction"] = 1.0
-    dm["N"] = 1
-    dm["sig"] = SIG
-    dm["err_scaling"] = 1.
+    #dm["fraction"] = 1.0
+    #dm["N"] = 1
+    #dm["sig"] = SIG
+    #dm["err_scaling"] = 1.
 
-    x = np.linspace(0, 5*SIG, 1000)
-    y = dm.evaluate(x)
-    plt.plot(x,y*N/2.4)
-    plt.show()
-    #plt.plot(x,np.cumsum(y)/np.sum(y))
+    #x = np.linspace(0, 5*SIG, 1000)
+    #y = dm.evaluate(x)
+    #plt.plot(x,y*N/2.4)
     #plt.show()
+    ##plt.plot(x,np.cumsum(y)/np.sum(y))
+    ##plt.show()
 
 
 if __name__ == "__main__":
@@ -230,9 +150,9 @@ if __name__ == "__main__":
         for ll in unlogged:
             print(ll[0].upper(), ": ", ll[1])
        
-    mfn = config["Classification"]["major_filename"]
-    if os.path.isfile(mfn) is False:
-        print("Major file \'%s\' does not exist. Aborting..." % mfn)
-        exit()
-        
-    generate_simu_data(mfn, ofn=args.ofn, N=args.N, rnd_factor=args.rnd_factor, overwrite=args.overwrite)
+        mfn = config["Classification"]["major_filename"]
+        if os.path.isfile(mfn) is False:
+            print("Major file \'%s\' does not exist. Aborting..." % mfn)
+            exit()
+            
+        generate_simu_data(mfn, ofn=args.ofn, N=args.N, rnd_factor=args.rnd_factor, overwrite=args.overwrite)

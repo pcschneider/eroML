@@ -1,12 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from astropy.io import fits as pyfits
 
 def sp(x, y, gi):
         
     # definitions for the axes
     left, width = 0.1, 0.65
     bottom, height = 0.1, 0.65
-    spacing = 0.005
+    spacing = 0.008
 
 
     rect_scatter = [left, bottom, width, height]
@@ -45,31 +46,43 @@ def sp(x, y, gi):
 
     xbins = np.arange(xlim[0], xlim[1], xbinwidth)
     ybins = np.arange(ylim[0], ylim[1], ybinwidth)
-    ax_histx.hist(x, bins=xbins)
-    ax_histy.hist(y, bins=ybins, orientation='horizontal')
+    ax_histx.hist(x, bins=xbins, density=True, label="Simulated")
+    #ax_histy.hist(y, bins=ybins, orientation='horizontal')
 
-    ax_histx.hist(x[gi], bins=xbins)
-    ax_histy.hist(y[gi], bins=ybins, orientation='horizontal')
+    #ax_histx.hist(x[gi], bins=xbins, density=True, label="?")
+    ax_histx.hist(ffd["RADEC_ERR"], bins=xbins, density=True, label="Measured", alpha=0.4)
+    ybins=30
+    ax_histx.legend()
+    
+    gg = np.where(ffd["NN"] == 1)[0]
+    ax_histy.hist(ffd["match_dist"][gg], orientation='horizontal', density=True, range=(0,90), bins=ybins, label="Measured")
+
+    ax_histy.hist(y[gi], bins=ybins, orientation='horizontal', density=True, range=(0,90), alpha=0.4, label="Simulated")
     xx = np.linspace(0,20,100)
     #ax_histx.plot(xx,65*xx**2)
 
-
+    ax_histy.legend()
     ax_histx.set_xlim(ax_scatter.get_xlim())
     ax_histy.set_ylim(ax_scatter.get_ylim())
+    ax_histx.set_ylabel("Normalized Density")
+    ax_histy.set_xlabel("Normalized Density")
+    
     return ax_scatter
 
-
-dd = np.genfromtxt("offs.dat", unpack=True)
+##oo = np.transpose([sigout, pos_off, skdens*3600, cls])
+ff = pyfits.open("../../ero_data/merged_eFEDS.fits")
+ffd = ff[1].data
+dd = np.genfromtxt("../offs.dat", unpack=True)
 #sigout, pos_off, skdens*1000, cls
 
-gi = np.where(dd[3]==1)[0]
+gi = np.where((dd[3]>=0) & (dd[4] == 1))[0]
 ax = sp(dd[0], dd[1], gi)
 
 
-ax.set_xlabel("sigma")
-ax.set_ylabel("pos_off")
-ax.set_xlim(0,20)
-ax.set_ylim(0,100)
+ax.set_xlabel("RADEC_ERR (arcsec)")
+ax.set_ylabel("match dist (arcsec)")
+ax.set_xlim(0,19.5)
+ax.set_ylim(0,97)
 plt.show()
 
 ax = sp(dd[2], dd[1],gi)
