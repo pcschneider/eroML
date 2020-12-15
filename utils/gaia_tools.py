@@ -41,7 +41,6 @@ def download_Gaia_tiles(outdir=".", prefix="Gaia", idx=None, nside=None, overwri
     """
     Download all Gaia sources
     """
-    
     if type(overwrite)==str:
         overwrite=True if overwrite.lower()=="true" else False
         
@@ -189,7 +188,11 @@ def download_one_Gaia_polytile(ofn, hpix, nside, overwrite=False, verbose=1, edg
 
     tpl = (x[0], y[0], x[1], y[1], x[2], y[2], x[3], y[3], Glim)
 
+    # DR2
     query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.pmra, gaia_source.pmdec, gaia_source.ref_epoch, gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error,gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.radial_velocity,gaia_source.radial_velocity_error,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag,gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.phot_variable_flag,gaia_source.teff_val,gaia_source.a_g_val,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor  FROM gaiadr2.gaia_source WHERE CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec),POLYGON('ICRS', %f, %f, %f, %f, %f, %f, %f, %f))=1 AND gaiadr2.gaia_source.phot_g_mean_mag<%f;" % tpl) 
+       
+    # EDR3
+    query_str = str("SELECT gaia_source.source_id,gaia_source.ra,gaia_source.pmra, gaia_source.pmdec, gaia_source.ref_epoch, gaia_source.ra_error,gaia_source.dec,gaia_source.dec_error,gaia_source.parallax,gaia_source.parallax_error, gaia_source.phot_g_mean_mag,gaia_source.bp_rp,gaia_source.phot_bp_mean_mag,gaia_source.phot_rp_mean_mag, gaia_source.phot_g_mean_flux_over_error,gaia_source.phot_rp_mean_flux_over_error,gaia_source.phot_bp_mean_flux_over_error,gaia_source.visibility_periods_used,gaia_source.astrometric_chi2_al,gaia_source.astrometric_n_good_obs_al, gaia_source.astrometric_excess_noise,gaia_source.phot_bp_rp_excess_factor, gaia_source.ruwe  FROM gaiaedr3.gaia_source WHERE CONTAINS(POINT('ICRS',gaiaedr3.gaia_source.ra,gaiaedr3.gaia_source.dec),POLYGON('ICRS', %f, %f, %f, %f, %f, %f, %f, %f))=1 AND gaiaedr3.gaia_source.phot_g_mean_mag<%f;" % tpl)    
        
     logger.log(5, "query_str: "+query_str)
     #return    

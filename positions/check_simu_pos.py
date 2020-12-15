@@ -50,11 +50,15 @@ def sp(x, y, gi):
     #ax_histy.hist(y, bins=ybins, orientation='horizontal')
 
     #ax_histx.hist(x[gi], bins=xbins, density=True, label="?")
-    ax_histx.hist(ffd["RADEC_ERR"], bins=xbins, density=True, label="Measured", alpha=0.4)
+    #ax_histx.hist(ffd["RADEC_ERR"], bins=xbins, density=True, label="Measured", alpha=0.4)
+    
+    gg = np.where(ffd["NN"] == 1)[0]
+
+    
+    ax_histx.hist(ffd["eligible_sky_density"][gg], bins=xbins, density=True, label="Measured", alpha=0.4)
     ybins=30
     ax_histx.legend()
     
-    gg = np.where(ffd["NN"] == 1)[0]
     ax_histy.hist(ffd["match_dist"][gg], orientation='horizontal', density=True, range=(0,90), bins=ybins, label="Measured")
 
     ax_histy.hist(y[gi], bins=ybins, orientation='horizontal', density=True, range=(0,90), alpha=0.4, label="Simulated")
@@ -69,13 +73,13 @@ def sp(x, y, gi):
     
     return ax_scatter
 
-##oo = np.transpose([sigout, pos_off, skdens*3600, cls])
+#oo = np.transpose([sigout, pos_off, skdens, nth, cls])
+
 ff = pyfits.open("../../ero_data/merged_eFEDS.fits")
 ffd = ff[1].data
 dd = np.genfromtxt("../offs.dat", unpack=True)
-#sigout, pos_off, skdens*1000, cls
 
-gi = np.where((dd[3]>=0) & (dd[4] == 1))[0]
+gi = np.where((dd[3]==1) & (dd[4] > 0))[0]
 ax = sp(dd[0], dd[1], gi)
 
 
@@ -92,7 +96,7 @@ ax = sp(dd[2], dd[1],gi)
 
 ax.set_xlabel("sk_dens")
 ax.set_ylabel("pos_off")
-ax.set_xlim(0,11)
+ax.set_xlim(0.1,1.5)
 ax.set_ylim(0,100)
 plt.show()
 

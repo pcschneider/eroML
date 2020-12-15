@@ -38,9 +38,9 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     print("Mean, median \'sigma_r\': %6.3f, %6.3f [arcsec]" % (np.mean(SIG), np.median(SIG)))
 
     try:
-        sk = ffd["skd"][i] / 10 # Because skd is scaled by a factor of ten in "prepare.py"
+        sk = ffd["skd"] / 10 # Because skd is scaled by a factor of ten in "prepare.py"
     except:
-        sk = ffd["eligible_sky_density"][i]
+        sk = ffd["eligible_sky_density"]
     else:
         print("Cannot read sky density from \'%s\', aborting..." % mfn)        
     print("Mean, median \'skd\': %6.3f, %6.3f [eligible sources/arcmin^2]" % (np.mean(sk), np.median(sk)))
@@ -48,7 +48,7 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     md = ffd["match_dist"][i]
     print("Mean, median \'match_dist\': %6.3f, %6.3f [eligible sources/arcmin^2]" % (np.mean(md), np.median(md)))
     
-    Nrnd = np.sum((sk/3600)*np.pi*md**2)
+    Nrnd = np.sum((sk[i]/3600)*np.pi*md**2)
     print("Resulting in %i expected random sources (Nrandom/Nreal: %6.3f), simulating %i random sources." % (Nrnd, Nrnd/N, rnd_factor*Nrnd))
     Nrnd = round(N)
 
@@ -63,10 +63,17 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
 
     #rnd_offs = gen_random_pos_offset(dens=sk)
     real_offs = gen_real_pos_offset(sigma=SIG*0.6)
-    rand_offs = gen_random_pos_offset(dens=np.repeat(sk/3600, rnd_factor)* dens_scaling)
+    
+    Ndens = round(len(i) * rnd_factor)
+    #ggg = np.where()
+    ii = np.random.choice(len(sk), Ndens)
+    dens = sk[ii]/3600
+    print("len dens ", len(dens))
+    
+    rand_offs = gen_random_pos_offset(dens=dens* dens_scaling)
     print(np.shape(rand_offs))
-    for i in range(4):
-        print(i, len(rand_offs[i]))
+    for j in range(4):
+        print(j, len(rand_offs[j]))
     #sk_simu = np.repeat(sk,3)
     idx = rand_offs[2].astype(int)
     print(idx)
@@ -89,7 +96,7 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     #tmp0 = gen_real_pos_offset(N, sig=SIG)
     #tmp1 = gen_random_pos_offset(Nrnd, dens=sk_simu)
     pos_off = np.concatenate((real_offs, rand_offs[0]))
-    skdens = np.concatenate((sk, rand_offs[1]*3600))
+    skdens = np.concatenate((sk[i], rand_offs[1]*3600))
     sigout = sig_simu
     nth = np.ones(len(sigout))
     nth[N:] = rand_offs[3]
@@ -97,7 +104,7 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     oo = np.transpose([sigout, pos_off, skdens, nth, cls])
     print(oo[0].shape, oo[1].shape, oo[2].shape, oo[3].shape)
     
-    np.savetxt("offs.dat", oo)
+    np.savetxt(ofn, oo)
     return
     #exit()
     #print(offs)

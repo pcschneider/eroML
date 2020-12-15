@@ -1,5 +1,7 @@
 from astropy.io import fits as pyfits
 import numpy as np
+from eroML.positions import gen_random_pos_offset, gen_real_pos_offset
+
 try:
     import matplotlib.pyplot as plt
 except:
@@ -7,34 +9,6 @@ except:
 
 def generate():
     pass
-
-def gen_real_pos_offset(N, sigma=1.):
-    rnd = np.random.rand(N)
-    rndx = np.sqrt(2*sigma**2 * (-np.log(1-rnd)))
-    #rndx = 2*sigma**2 * (-np.log(1-rnd))
-
-    #rndx = np.sqrt(
-    return rndx
-
-def gen_random_pos_offset(dens=1., NN=3):
-    """
-    Parameters
-    -----------
-    dens : array of float
-        Density (arcsec-2) of stars
-
-    Returns
-    -------
-    dens_simu, offs
-    """
-    if type(dens) != float:
-        dens = np.array(dens)
-    max_dist = np.sqrt(NN/np.pi/dens)
-    N = len(dens)
-    offs = max_dist*np.random.rand(N)**0.5
-    return offs
-
-
 
 def repeat_fits(hdu, multi=10):
     """

@@ -68,13 +68,17 @@ def perform_Gaia_download(cconfig=None):
     
     idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     logger.debug("Downloading %i Gaia-tiles." % len(idx))
+    
+    check_alt = True if cconfig["Gaia_Download"]["check_alternate"].lower() == "true" else False
+
     download_Gaia_tiles(outdir=cconfig["Gaia_Download"]["directory"],\
                prefix=cconfig["Gaia_Download"]["prefix"], idx=idx,\
                nside=int(cconfig["Healpix"]["nside"]),\
                overwrite=cconfig["Gaia_Download"]["overwrite"],\
                edge=float(cconfig["Gaia_Download"]["edge"]),\
                verbose=int(cconfig["Gaia_Download"]["verbose"]),\
-               Glim=float(cconfig["Gaia_Download"]["Glim"]) )
+               Glim=float(cconfig["Gaia_Download"]["Glim"]),\
+               check_alternate=check_alt)
 
 
 def prepare_Gaia_data(cconfig=None):

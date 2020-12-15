@@ -9,8 +9,11 @@ from sklearn.decomposition import PCA
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 from eroML.classify import multidim_visualization
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import make_scorer 
+from scipy.stats import uniform
+from sklearn.pipeline import make_pipeline, Pipeline
+from sklearn.preprocessing import StandardScaler, FunctionTransformer
 
 def my_custom_loss_func(y_true, y_pred):
     random_as_star = np.where((y_true==1) & (y_pred==0))[0]
@@ -18,7 +21,7 @@ def my_custom_loss_func(y_true, y_pred):
     stars_predicted = len(y_pred) - np.sum(y_pred)
     stars_true = len(y_true) - np.sum(y_true)
     #print(stars_predicted - stars_true, "diff:", len(random_as_star) - len(star_as_random))
-    sc = (stars_predicted - stars_true)**2 * (100 + (len(random_as_star) - len(star_as_random)))**2
+    sc = (1+abs(stars_predicted - stars_true))**2 * (100 + (len(random_as_star) - len(star_as_random)))**2
     print(stars_predicted, stars_true,  "diff:", len(random_as_star) - len(star_as_random), " -- ",len(random_as_star), len(star_as_random), " -> ", sc)
     return sc
 
@@ -29,6 +32,12 @@ dd = np.genfromtxt("../offs.dat", unpack=True)
 #dd[1]*=3
 gi = np.where(dd[3] == 1)[0] # Only nearest neighbour
 X = np.transpose(dd[0:2,gi])
+gg = 1 / X.shape[1] / X.var()
+print("Var: ",X.var(), " gamma (for 'scale') = ", gg)
+
+# gamma = 1 / (n_features * X.var() if gamma = 'scale (default)'
+      
+      
 #for i in range(X.shape[1]):
     #std = np.std(X[::,i])
     #print(i, std)
@@ -46,6 +55,11 @@ print(np.shape(X))
 y = dd[4][gi]
 y[y>0] = 1
 
+gi = np.where(X[::,1] < 0.7*X[::,0])[0]
+sw_train = np.ones(len(y))
+print("#Weighted: ",len(gi))
+sw_train[gi] = 2.1
+
 print("#true stars: ",len(y) - np.sum(y))
 #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
 
@@ -53,41 +67,53 @@ print("#true stars: ",len(y) - np.sum(y))
 clf = svm.SVC(C=100, probability=True, kernel='poly', degree=2,class_weight={1: 10, 0:0.5}, gamma=50)
 #https://scikit-learn.org/stable/tutorial/statistical_inference/putting_together.html
 
-parameters = {'C':np.linspace(10,100,3), 'class_weight':[{1:2.5},{1:3}]}
 
+
+parameters = {'clf__C':np.linspace(30,80,10), 'clf__class_weight':[{1:x} for x in np.linspace(2,3,10)], 'clf__gamma':np.logspace(np.log10(gg)-1, np.log10(gg)+1,20)}
+#print("parameters: ",parameters)
 sv = svm.SVC(probability=True, kernel='poly', degree=2)
-grid = GridSearchCV(sv, parameters, scoring=scoring)
+#grid = GridSearchCV(sv, parameters, scoring=scoring)#, fit_params={'sample_weight': sw_train})
 
-grid = GridSearchCV(make_pipeline(StandardScaler(), sv), parameters, scoring=scoring)
+##distributions = dict(C=uniform(loc=10, scale=90), class_weight=[{1:x} for x in np.linspace(1,5,15)])#, gamma=np.logspace(-7,-5,20))
+##distributions = dict(C=uniform(loc=10, scale=90), class_weight={0:1, 1:uniform(loc=1, scale=3)})
+#print("distributions: ",distributions)
 
-grid.fit(X, y)
-print(grid.cv_results_.keys())
-for k in grid.cv_results_.keys():
-    print(k, grid.cv_results_[k])
-print()
-print(grid.best_params_)
-print()
-print(grid.best_index_)
-print("optimized")
+#grid = RandomizedSearchCV(sv, distributions, scoring=scoring)
 
-exit()
-clf = svm.SVC(C=25, probability=True, kernel='poly', degree=3, class_weight={1: 2.7}, gamma=2.77e-4)
+ppl = Pipeline(steps=[('scaler', FunctionTransformer()), ('clf', sv)])
+       
+grid = GridSearchCV(ppl, parameters, scoring=scoring)
+
+#grid.fit(X, y, clf__sample_weight= sw_train)
+#print(grid.cv_results_.keys())
+#for k in grid.cv_results_.keys():
+    #print(k, grid.cv_results_[k])
+#print()
+#print(grid.best_params_)
+#print()
+#print(grid.best_index_)
+#print("optimized")
+
+
+clf = svm.SVC(C=65, probability=True, kernel='poly', degree=2,class_weight={1: 2.3})#, gamma=50)
+
+#clf = svm.SVC(C=74, probability=True, kernel='poly', degree=2,class_weight={1: 2.33}, gamma=0.00016966468834545188)
+
+#exit()
+#clf = svm.SVC(C=25, probability=True, kernel='poly', degree=3, class_weight={1: 2.7}, gamma=2.77e-4)
 
 
 #clf = PCA(n_components=2)
 #clf = tree.DecisionTreeClassifier()
 #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
 #clf = SGDClassifier(loss='hinge')
-gi = np.where(X[::,1] < 0.7*X[::,0])[0]
-sw = np.ones(len(y))
-print("#Weighted: ",len(gi))
-sw[gi] = 2.5
+
 print(dir(clf))
 print("gamma:", clf.gamma, "coeff0: ",clf.coef0)
 print("class_weight",clf.class_weight, "degree", clf.degree)
 #clf.fit(X, y)
 
-clf.fit(X, y, sample_weight=sw)
+clf.fit(X, y, sample_weight=sw_train)
 b = clf.predict(X)
 pp = clf.predict_proba(X)
 #print(pp.shape)

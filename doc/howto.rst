@@ -60,3 +60,14 @@ generates random sources, and merges all into::
   merged_major_eFEDS.fits
   
 These must be adapted for SVM by running.
+
+A new training sample can be constructed by running::
+
+  p37 run_eroML.py eFEDS_tmp.ini  
+  cd classify
+  p37 clean_training.py 
+  p37 learn.py
+  p37 predict_n_check.py
+  
+  
+  

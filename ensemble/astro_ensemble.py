@@ -317,7 +317,7 @@ class Ensemble():
             i1 = N
             n0 = 0
             n1 = N
-        #print("N: ",N, " i0",i0," i1",i1, "n0",n0, "n1", n1)    
+        #print("dN: ",dN, "N: ",N, " i0",i0," i1",i1, "n0",n0, "n1", n1)    
         if i0==-1:
             n1-=1
             self.array[0:i1] = np.roll(self.array, dN)[n0:n1]        
@@ -349,6 +349,7 @@ class Ensemble():
         """
         Remove object from `Ensemble`
         """
+        #verbose=10
         if verbose>5: print("Ensemble::del_object - Removing ",obj_name)
         if obj_name in self.row_mapper:
             N = len(self)          
@@ -361,11 +362,15 @@ class Ensemble():
                 if verbose>3: print("Ensemble::del_object - ",obj_name," not in `mapper`")
                 uid = None
             n0 = self.row_mapper[obj_name]
+            
             if verbose>6:
                 print("Ensemble::del_object - Removing ",obj_name," which has row index: ",n0, " and uid: ",uid)
             del self.row_mapper[obj_name]    
             #print(len(self.row_mapper))
             self.shift_array(-1, n0=n0)
+            #for col in self.array.dtype.names:
+                
+                #self.array[col] = np.delete(self.array[col], n0)#    self.array[col].delete(n0)
             self.rebuild_row_mapper(-1, n0=n0)
             if verbose>6:
                 print("Ensemble::del_object - Now len(self)= ", len(self))
@@ -817,17 +822,25 @@ class Ensemble():
         
         # Resolve ID conflicts:
         shared_ids = np.intersect1d(srcIDs1, srcIDs2)
-        if verbose>5: print("Ensemble::append - shared_ids", shared_ids)
+        if verbose>5: print("Ensemble::append - shared_ids", shared_ids, len(shared_ids))
         if len(shared_ids)>0:
             if duplicates=="rename" and postfix is None:
                 raise ValueError("Ensemble::append - Name conflicts, but no `postfix` given.")
         
-        if duplicates == "rename":
+        if duplicates.lower() == "rename":
             for si in shared_ids:
                 other.rename(si, si+postfix)
+        elif duplicates.lower() == "ignore":
+            k = []
+            for i in other.srcIDs():
+                if i in shared_ids:
+                    continue
+                k.append(i)
+            other.keep(k)    
+            #for si in shared_ids:
+                #other.del_object(si)
         else:
-            for si in shared_ids:
-                other.del_object(si)
+            raise ValueError("I do not understand "+str(duplicates)+ " for keyword 'duplicates'")
                 
         # Construct new array
         N1 = len(other)
@@ -848,7 +861,7 @@ class Ensemble():
             self.row_mapper[nn] = i+N0
 
 
-def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", center=(0, 0), width=(1, 1), pm=False, randomIDs=False, ref_epoch=None, seed=None, random_cols=[], verbose=2):
+def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", N0=0, center=(0, 0), width=(1, 1), pm=False, randomIDs=False, ref_epoch=None, seed=None, random_cols=[], verbose=2):
     """
     Generate fake ensemble, either with random or uniform coordinates.
     
@@ -869,6 +882,10 @@ def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", center=(0, 0), width=
        Number of objects in Ensemble
     random_pos : boolean
        Use random coordinates within coordinate-box
+    ID_prefix : str
+        Prefix for source ids
+    N0 : int
+        Start number for source ids
     center : tuple (RA, Dec), float
        Coordinate center (in degree)
     ra_width, dec_width : float
@@ -895,7 +912,7 @@ def fake_ensemble(N=10, random_pos=True, ID_prefix="src_", center=(0, 0), width=
     if randomIDs:
         ids = [ID_prefix+str(i) for i in np.random.randint(1000000, size=N)]
     else:
-        ids = [ID_prefix+str(i) for i in np.arange(N)]
+        ids = [ID_prefix+str(i+N0) for i in np.arange(N)]
     
     if random_pos:
         dec = (np.random.rand(N)-0.5) * width[1] + center[1]
