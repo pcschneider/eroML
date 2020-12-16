@@ -19,10 +19,25 @@ Default values are provided in::
 Potentially useful entry points
 --------------------------------
 
-Once the Gaia data has been downloaded, one may
+There are a few steps, that one may want change after the first run. 
 
-  0) re-run the enriching of the catalogs
-  1) re-match the sources, i.e., produce new `master`, `training`, and `random`-sets
+Re-run the enriching of the catalogs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To apply new criteria for "eligible" source, create an ``ini`` file with the 
+following keywords changed wrt to the original file::
+
+  [Healpix]
+  calculate=False
+
+  [Gaia_Download]
+  perform=False
+  
+
+Re-match catalog
+~~~~~~~~~~~~~~~~
+To produce new `master`, `training`, and `random`-sets, run
+
+
 
 eFEDS example
 -------------------
