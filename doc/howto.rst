@@ -32,7 +32,18 @@ following keywords changed wrt to the original file::
   [Gaia_Download]
   perform=False
   
+Alternatively, one can perform only a single step, e.g.,::
 
+  p37 run_eroML.py eFEDS_EDR3.ini --steps Xdata_preparation/enrich
+  
+However, this still requires to run all subsequent steps, too! Something like::
+
+  p37 run_eroML.py eFEDS_EDR3.ini --steps Xdata_preparation/enrich Datasets/major Merging/shrink Merging/major
+  
+would create a new, merged major dataset for eFEDS, in this case::
+
+  ../ero_data/merged_eFEDS_EDR3.fits
+  
 Re-match catalog
 ~~~~~~~~~~~~~~~~
 To produce new `master`, `training`, and `random`-sets, run
