@@ -102,6 +102,8 @@ fig = plt.figure()
 ax0 = fig.add_subplot(N_plot, 1,1)
 fn = "../../ero_data/major_eFEDS.fits"   
 #fn = '../../ero_data/training_eFEDS.fits'
+fn = "../../ero_data/major_eFEDS_EDR3.fits"   
+#../../ero_data/major_eFEDS_EDR3.fits
 #fn = fn_r
 Nsig = 1000
 fkey="match_dist"

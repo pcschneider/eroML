@@ -10,7 +10,7 @@ from eroML.tile import merge_fits#, add_healpix_col, hpix2process, generate_heal
 #from eroML.utils import file_loop_1to1, shrink
 from eroML.utils import setup_logger
 from eroML.tools import calculate_healpix,prepare_Gaia_data, perform_Gaia_download,generate_ero_tiles, perform_ero_data_preparation
-from eroML.tools import generate_major_sets, generate_random_sets, generate_training_sets, shrinking
+from eroML.tools import generate_major_sets, generate_random_sets, generate_training_sets, shrinking, calculate_Gaia_sky_density
 import glob
 from classify import prepare_classify
 
@@ -72,6 +72,12 @@ if (config["Gaia_Download"]["perform"].lower()=="true" and args.steps==None) or 
 if (config["Enrich_Gaia"]["perform"].lower()=="true" and args.steps==None) or (args.steps and "Enrich_Gaia/perform" in args.steps[0]):
     logger.info("Enriching Gaia data")
     prepare_Gaia_data(cconfig=config)
+
+
+if (config["Enrich_Gaia"]["calculate_density"].lower()=="true" and args.steps==None) or (args.steps and "Enrich_Gaia/calculate_density" in args.steps[0]):
+    logger.info("Calculating sky density for (eligible) Gaia sources")
+    calculate_Gaia_sky_density(cconfig=config)
+
 
 if (config["Datasets"]["major"].lower()=="true" and args.steps==None) or (args.steps and "Datasets/major" in args.steps[0]):
     logger.debug("Generating major sets")

@@ -34,7 +34,7 @@ def file_loop_1to1(idx, prefix="", postfix="", ofn_prefix="", ofn_postfix="", me
     for j,i in enumerate(idx):
         fn = prefix+str(i)+postfix+".fits"
         ofn = ofn_prefix+str(i)+ofn_postfix+".fits"
-        logger.debug("Creating data set for fn=%s (ofn=%s; file# %i/%i)." % (fn, ofn, j+1, len(idx)))
+        logger.debug("Working on fn=%s (ofn=%s; file# %i/%i)." % (fn, ofn, j+1, len(idx)))
         method(fn, ofn, **kwargs)
 
 

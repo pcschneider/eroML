@@ -32,7 +32,7 @@ following keywords changed wrt to the original file::
   [Gaia_Download]
   perform=False
   
-Alternatively, one can perform only a single step, e.g.,::
+Alternatively, one can perform only a single processing step, e.g.,::
 
   p37 run_eroML.py eFEDS_EDR3.ini --steps Xdata_preparation/enrich
   

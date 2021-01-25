@@ -1,7 +1,7 @@
 from eroML.tile import loop, file4, merge_fits
 from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_files
 from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
-from eroML.utils import enrich_Gaia, X_tile_loop
+from eroML.utils import enrich_Gaia, X_tile_loop, sky_density
 from eroML.utils import major_set, random_set, training_set
 from eroML.utils import file_loop_2to1
 from eroML.utils import file_loop_1to1, shrink
@@ -97,6 +97,20 @@ def prepare_Gaia_data(cconfig=None):
     
     logger.info("Enriching Gaia data files (filt=%i)" % filt)
     Gaia_tile_loop(idx, prefix=prex, postfix=posx, filterNr=filt)
+    
+def calculate_Gaia_sky_density(cconfig=None):
+    cconfig = custom_config(cconfig)
+        
+    healpix_file = cconfig["Healpix"].get("pix_file", None)
+    index0 = cconfig["Healpix"].getint("index0", 0)
+    index1 = cconfig["Healpix"].getint("index1", None)
+
+    idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    logger.debug("Calculating sky density for %i Gaia-tiles." % len(idx))
+    prex = cconfig["Gaia_Download"]["directory"]+"/"+cconfig["Gaia_Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+    posx = ""
+    
+    file_loop_1to1(idx, prefix=prex, postfix=posx, ofn_prefix=prex, method=sky_density)    
     
 
 

@@ -49,7 +49,11 @@ def eligible_Gaia(e, out_col="eligible_Gaia", verbose=5):
 @fits_support
 def eligible_eROSITA(e, out_col="eligible_X"):
     det_likeli = e.to_array(colnames="DET_LIKE_0", array_type="array")
-    gi = np.where(det_likeli > 5)[0]
+    
+    ext_likeli = e.to_array(colnames="EXT_LIKE", array_type="array")
+    gi = np.where((det_likeli > 6) & (ext_likeli < 6))[0]
+    
+    
     el = np.zeros(len(e))
     el[gi] = 1
     logger.debug("Number of eligible sources: %i (%5.3f%%)" % (len(gi),len(gi)/len(e) * 100))
@@ -209,7 +213,7 @@ def calc_gaia_quality(e, colname="Gaia_quality", overwrite=False, verbose=10, fi
  
  
 @fits_support
-def enrich_Gaia(e, filterNr=3):
+def enrich_Gaia(e, filterNr=5, sky_density=True):
     """
     Add G-band flux, compatibility with an isochrone, the `eligible` column, and the sky density of eligible sources
     """
@@ -221,7 +225,8 @@ def enrich_Gaia(e, filterNr=3):
     add_iso_column(e)        
     eligible_Gaia(e)
     
-    sky_density(e, around=3, filter_prop="eligible_Gaia", filter_value=1, out_col="eligible_sky_density")
+    if sky_density:
+        sky_density(e, around=3, filter_prop="eligible_Gaia", filter_value=1, out_col="eligible_sky_density")
     #sky_density(e, around=3, filter_prop=None, out_col="sky_density")
     return e
 

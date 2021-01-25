@@ -304,7 +304,7 @@ def vo2fits(ifn, ofn, verbose=1, overwrite=False):
 
     
 
-def quality_filter(ff, filter_Nr=4):
+def quality_filter(ff, filter_Nr=4, ruwe_lim=1.4):
     """
     Determine Gaia-sources for which certain filter criteria are fullfilled
     
@@ -312,8 +312,10 @@ def quality_filter(ff, filter_Nr=4):
     ----------
     ff : pyfits.HDUList
     filter_Nr : int
-        There are three filters defined (0, 1, 2, 3, 4). Filter-Nr 0 corresponds to the tightest contrains and equals the criteria 
+        There are three filters defined (0, 1, 2, 3, 4, 5). Filter-Nr 0 corresponds to the tightest contrains and equals the criteria 
         defined in <> to obtain a well-defined HR diagram.
+    ruwe_lim : float
+        Maximum acceptable RUWE value (only relevant for filter=5)
     """
     #filter_Nr = 3
     print("using Filter: ",filter_Nr)
@@ -370,6 +372,12 @@ def quality_filter(ff, filter_Nr=4):
             (d["phot_bp_rp_excess_factor"] > 1.0+0.015*(d["phot_bp_mean_mag"]-d["phot_rp_mean_mag"])**2) &\
             (d["astrometric_chi2_al"]/(d["astrometric_n_good_obs_al"]-5)<1.44*tmp))[0]
 
+    elif filter_Nr==5:
+       gi = np.where((d["parallax"]/d["parallax_error"] > 3) & (d["phot_g_mean_flux_over_error"]>30) &\
+            (d["phot_rp_mean_flux_over_error"]>10) & (d["phot_bp_mean_flux_over_error"]>10) &\
+            (d["phot_bp_rp_excess_factor"] < 1.3+0.06 *(d["phot_bp_mean_mag"]-d["phot_rp_mean_mag"])**2) &\
+            (d["phot_bp_rp_excess_factor"] > 1.0+0.015*(d["phot_bp_mean_mag"]-d["phot_rp_mean_mag"])**2) &\
+            (d["ruwe"] < ruwe_lim))[0]
         
 
         
