@@ -11,6 +11,23 @@ from eroML.positions import gen_random_pos_offset, gen_real_pos_offset
 
 def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     dens_scaling=1.06, overwrite=False):
+    """
+    
+    Parameters
+    ----------
+    mfn : str
+        Filename for major-file
+    ofn : str
+        Filename for file with simulated offsets (will be generated)
+    N : int 
+        Number of real sources
+    rnd_factor : float
+        Scaling factor for the generation of random sources
+    dens_scaling : float
+        Scaling of the calculated sky density for simulating random sources
+    overwrite : bool
+        Overwrite `ofn` if it exists
+    """
 
     print("Using major file \'%s\' to simulate %i real sources (rnd_factor=%6.2f); ofn=\'%s\' (overwrite=%i)." % (mfn, N, rnd_factor, ofn, overwrite))
 
@@ -30,18 +47,19 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     i = np.random.choice(gi, size=N)
     try:
         SIG = ffd["sigma_r"][i]
+        print("XXX")
     except KeyError:
         SIG = ffd["RADEC_ERR"][i]
-    else:
+    except:
         print("Cannot read positional error from \'%s\', aborting..." % mfn)
     #SIG[SIG>11] = 11
     print("Mean, median \'sigma_r\': %6.3f, %6.3f [arcsec]" % (np.mean(SIG), np.median(SIG)))
 
     try:
         sk = ffd["skd"] / 10 # Because skd is scaled by a factor of ten in "prepare.py"
-    except:
+    except KeyError:
         sk = ffd["eligible_sky_density"]
-    else:
+    except:
         print("Cannot read sky density from \'%s\', aborting..." % mfn)        
     print("Mean, median \'skd\': %6.3f, %6.3f [eligible sources/arcmin^2]" % (np.mean(sk), np.median(sk)))
     
@@ -163,3 +181,5 @@ if __name__ == "__main__":
             exit()
             
         generate_simu_data(mfn, ofn=args.ofn, N=args.N, rnd_factor=args.rnd_factor, overwrite=args.overwrite)
+    else:
+        print("Nothing to do...")

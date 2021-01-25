@@ -136,4 +136,8 @@ In the folder::
   
 are scripts to perform a classification based on position only.
 
-Specifically, 
+Specifically, run::
+
+  p37 positions/simu4major.py 2060 --conf eFEDS_EDR3.ini
+  
+in the `eroML` directory to generate 2060 real and the corresponding number of random sources.  
