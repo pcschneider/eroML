@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits as pyfits
 
-def sp(x, y, gi):
+def sp(x, y, gi, mfn_xkey="RADEC_ERR", mfn_ykey="match_dist"):
         
     # definitions for the axes
     left, width = 0.1, 0.65
@@ -55,11 +55,11 @@ def sp(x, y, gi):
     gg = np.where(ffd["NN"] == 1)[0]
 
     
-    ax_histx.hist(ffd["eligible_sky_density"][gg], bins=xbins, density=True, label="Measured", alpha=0.4)
+    ax_histx.hist(ffd[mfn_xkey][gg], bins=xbins, density=True, label="Measured", alpha=0.4)
     ybins=30
     ax_histx.legend()
     
-    ax_histy.hist(ffd["match_dist"][gg], orientation='horizontal', density=True, range=(0,90), bins=ybins, label="Measured")
+    ax_histy.hist(ffd[mfn_ykey][gg], orientation='horizontal', density=True, range=(0,90), bins=ybins, label="Measured")
 
     ax_histy.hist(y[gi], bins=ybins, orientation='horizontal', density=True, range=(0,90), alpha=0.4, label="Simulated")
     xx = np.linspace(0,20,100)
@@ -75,11 +75,15 @@ def sp(x, y, gi):
 
 #oo = np.transpose([sigout, pos_off, skdens, nth, cls])
 
-ff = pyfits.open("../../ero_data/merged_eFEDS.fits")
-ffd = ff[1].data
-dd = np.genfromtxt("../offs.dat", unpack=True)
+mfn = "../../ero_data/merged_eFEDS.fits"
+sfn = "../offs2.dat"
+print("Reading sfn=",sfn," for comparison with mfn=",mfn)
 
-gi = np.where((dd[3]==1) & (dd[4] > 0))[0]
+ff = pyfits.open(mfn)
+ffd = ff[1].data
+dd = np.genfromtxt(sfn, unpack=True)
+
+gi = np.where((dd[3]==1) & (dd[4] >= 0))[0]
 ax = sp(dd[0], dd[1], gi)
 
 
@@ -89,7 +93,7 @@ ax.set_xlim(0,19.5)
 ax.set_ylim(0,97)
 plt.show()
 
-ax = sp(dd[2], dd[1],gi)
+ax = sp(dd[2], dd[1],gi, mfn_xkey="eligible_sky_density")
 #ax.scatter(dd[1][gi], dd[0][gi],s=1)
 
 

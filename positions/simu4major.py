@@ -1,4 +1,5 @@
 import numpy as np
+from math import floor, ceil
 from eroML.utils import Dist_model
 import matplotlib.pyplot as plt
 from scipy.stats import norm
@@ -10,7 +11,7 @@ from eroML.positions import gen_random_pos_offset, gen_real_pos_offset
 
 
 def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
-    dens_scaling=1.06, overwrite=False):
+    dens_scaling=1.03, overwrite=False):
     """
     
     Parameters
@@ -82,7 +83,7 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     #rnd_offs = gen_random_pos_offset(dens=sk)
     real_offs = gen_real_pos_offset(sigma=SIG*0.6)
     
-    Ndens = round(len(i) * rnd_factor)
+    Ndens = floor(len(i) * rnd_factor)
     #ggg = np.where()
     ii = np.random.choice(len(sk), Ndens)
     dens = sk[ii]/3600
@@ -90,12 +91,12 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     
     rand_offs = gen_random_pos_offset(dens=dens* dens_scaling)
     print(np.shape(rand_offs))
-    for j in range(4):
-        print(j, len(rand_offs[j]))
+    #for j in range(4):
+        #print(j, len(rand_offs[j]))
     #sk_simu = np.repeat(sk,3)
     idx = rand_offs[2].astype(int)
     print(idx)
-    sig = np.repeat(SIG, rnd_factor)[idx]
+    sig = np.repeat(SIG, ceil(rnd_factor))[idx]
     sig_simu = np.concatenate((SIG,sig))
 
 

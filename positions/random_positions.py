@@ -16,7 +16,7 @@ def gen_real_pos_offset(N=None, sigma=1.):
     Returns
     -------
     offs : array
-        The simulated positional offset
+        The simulated positional offset (shape: (N))
     """
     
     if N is None:

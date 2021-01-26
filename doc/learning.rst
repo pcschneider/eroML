@@ -132,12 +132,18 @@ Implementation
 
 In the folder::
 
-  ...eroML/position_only/
+  ...eroML/positions/
   
 are scripts to perform a classification based on position only.
 
 Specifically, run::
 
-  p37 positions/simu4major.py 2060 --conf eFEDS_EDR3.ini
+  p37 positions/simu4major.py 2060 --conf eFEDS_EDR3.ini --ofn offs2.dat -o --rnd_factor=14.6
   
-in the `eroML` directory to generate 2060 real and the corresponding number of random sources.  
+in the `eroML` directory to generate 2060 real and the number of random sources corresponding to
+the eFEDS stellar fraction (and write data to ``offs2.dat``).  
+
+The result of the simulation can be seen by invoking (in ``...eroML/positions/``)::
+
+  p37 check_simu_pos.py
+  
