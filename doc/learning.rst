@@ -143,7 +143,26 @@ Specifically, run::
 in the `eroML` directory to generate 2060 real and the number of random sources corresponding to
 the eFEDS stellar fraction (and write data to ``offs2.dat``).  
 
+A simulation assuming uniform distributions in RADEC_ERR (sigma) and sky density can be created by
+running the script::
+
+  simu_uniform.py
+  
+  
+
 The result of the simulation can be seen by invoking (in ``...eroML/positions/``)::
 
-  p37 check_simu_pos.py
+  p37 check_one_simu.py
+  
+.. image:: simu_pos.png
+   :width: 70%
+   :alt: Simulated and measured positions
+   :align: center
+  
+The ratio between real and random sources is shown by (in ``...eroML/positions/``)::
+
+  p37 density_ratio.py
+
+    
+
   

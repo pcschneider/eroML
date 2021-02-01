@@ -11,7 +11,7 @@ from eroML.positions import gen_random_pos_offset, gen_real_pos_offset
 
 
 def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
-    dens_scaling=1.03, overwrite=False):
+    dens_scaling=1.03, overwrite=False, key=1):
     """
     
     Parameters
@@ -28,6 +28,8 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
         Scaling of the calculated sky density for simulating random sources
     overwrite : bool
         Overwrite `ofn` if it exists
+    key : int or float
+        Appended to the data file to identify this particular simulation
     """
 
     print("Using major file \'%s\' to simulate %i real sources (rnd_factor=%6.2f); ofn=\'%s\' (overwrite=%i)." % (mfn, N, rnd_factor, ofn, overwrite))
@@ -119,8 +121,9 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     sigout = sig_simu
     nth = np.ones(len(sigout))
     nth[N:] = rand_offs[3]
+    k = np.repeat([key], len(nth))
     
-    oo = np.transpose([sigout, pos_off, skdens, nth, cls])
+    oo = np.transpose([sigout, pos_off, skdens, nth, cls, k])
     print(oo[0].shape, oo[1].shape, oo[2].shape, oo[3].shape)
     
     np.savetxt(ofn, oo)
