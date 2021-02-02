@@ -28,7 +28,7 @@ def my_custom_loss_func(y_true, y_pred):
 scoring = make_scorer(my_custom_loss_func, greater_is_better=False)
 
 #oo = np.transpose([sigout, pos_off, skdens*3600, nth, cls])
-dd = np.genfromtxt("../offs.dat", unpack=True)
+dd = np.genfromtxt("../offs2.dat", unpack=True)
 #dd[1]*=3
 gi = np.where(dd[3] == 1)[0] # Only nearest neighbour
 X = np.transpose(dd[0:2,gi])
@@ -58,7 +58,7 @@ y[y>0] = 1
 gi = np.where(X[::,1] < 0.7*X[::,0])[0]
 sw_train = np.ones(len(y))
 print("#Weighted: ",len(gi))
-sw_train[gi] = 2.1
+#sw_train[gi] = 2.1
 
 print("#true stars: ",len(y) - np.sum(y))
 #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
@@ -97,7 +97,7 @@ grid = GridSearchCV(ppl, parameters, scoring=scoring)
 
 clf = svm.SVC(C=65, probability=True, kernel='poly', degree=2,class_weight={1: 2.3})#, gamma=50)
 
-#clf = svm.SVC(C=74, probability=True, kernel='poly', degree=2,class_weight={1: 2.33}, gamma=0.00016966468834545188)
+clf = svm.SVC(C=65, probability=True, kernel='poly', degree=3,class_weight={1: 3.7}, gamma=0.0008*25)
 
 #exit()
 #clf = svm.SVC(C=25, probability=True, kernel='poly', degree=3, class_weight={1: 2.7}, gamma=2.77e-4)

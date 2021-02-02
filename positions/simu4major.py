@@ -1,4 +1,5 @@
 import numpy as np
+from math import floor, ceil
 from eroML.utils import Dist_model
 import matplotlib.pyplot as plt
 from scipy.stats import norm
@@ -10,7 +11,26 @@ from eroML.positions import gen_random_pos_offset, gen_real_pos_offset
 
 
 def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
-    dens_scaling=1.06, overwrite=False):
+    dens_scaling=1.03, overwrite=False, key=1):
+    """
+    
+    Parameters
+    ----------
+    mfn : str
+        Filename for major-file
+    ofn : str
+        Filename for file with simulated offsets (will be generated)
+    N : int 
+        Number of real sources
+    rnd_factor : float
+        Scaling factor for the generation of random sources
+    dens_scaling : float
+        Scaling of the calculated sky density for simulating random sources
+    overwrite : bool
+        Overwrite `ofn` if it exists
+    key : int or float
+        Appended to the data file to identify this particular simulation
+    """
 
     print("Using major file \'%s\' to simulate %i real sources (rnd_factor=%6.2f); ofn=\'%s\' (overwrite=%i)." % (mfn, N, rnd_factor, ofn, overwrite))
 
@@ -30,18 +50,19 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     i = np.random.choice(gi, size=N)
     try:
         SIG = ffd["sigma_r"][i]
+        print("XXX")
     except KeyError:
         SIG = ffd["RADEC_ERR"][i]
-    else:
+    except:
         print("Cannot read positional error from \'%s\', aborting..." % mfn)
     #SIG[SIG>11] = 11
     print("Mean, median \'sigma_r\': %6.3f, %6.3f [arcsec]" % (np.mean(SIG), np.median(SIG)))
 
     try:
         sk = ffd["skd"] / 10 # Because skd is scaled by a factor of ten in "prepare.py"
-    except:
+    except KeyError:
         sk = ffd["eligible_sky_density"]
-    else:
+    except:
         print("Cannot read sky density from \'%s\', aborting..." % mfn)        
     print("Mean, median \'skd\': %6.3f, %6.3f [eligible sources/arcmin^2]" % (np.mean(sk), np.median(sk)))
     
@@ -64,7 +85,7 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     #rnd_offs = gen_random_pos_offset(dens=sk)
     real_offs = gen_real_pos_offset(sigma=SIG*0.6)
     
-    Ndens = round(len(i) * rnd_factor)
+    Ndens = floor(len(i) * rnd_factor)
     #ggg = np.where()
     ii = np.random.choice(len(sk), Ndens)
     dens = sk[ii]/3600
@@ -72,12 +93,12 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     
     rand_offs = gen_random_pos_offset(dens=dens* dens_scaling)
     print(np.shape(rand_offs))
-    for j in range(4):
-        print(j, len(rand_offs[j]))
+    #for j in range(4):
+        #print(j, len(rand_offs[j]))
     #sk_simu = np.repeat(sk,3)
     idx = rand_offs[2].astype(int)
     print(idx)
-    sig = np.repeat(SIG, rnd_factor)[idx]
+    sig = np.repeat(SIG, ceil(rnd_factor))[idx]
     sig_simu = np.concatenate((SIG,sig))
 
 
@@ -100,8 +121,9 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     sigout = sig_simu
     nth = np.ones(len(sigout))
     nth[N:] = rand_offs[3]
+    k = np.repeat([key], len(nth))
     
-    oo = np.transpose([sigout, pos_off, skdens, nth, cls])
+    oo = np.transpose([sigout, pos_off, skdens, nth, cls, k])
     print(oo[0].shape, oo[1].shape, oo[2].shape, oo[3].shape)
     
     np.savetxt(ofn, oo)
@@ -163,3 +185,5 @@ if __name__ == "__main__":
             exit()
             
         generate_simu_data(mfn, ofn=args.ofn, N=args.N, rnd_factor=args.rnd_factor, overwrite=args.overwrite)
+    else:
+        print("Nothing to do...")
