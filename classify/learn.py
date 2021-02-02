@@ -62,8 +62,26 @@ if __name__ == "__main__":
     #clf = MLPClassifier(solver='adam', alpha=1e-1, hidden_layer_sizes=(6, 4), random_state=1, max_iter=10000)
     
     
+<<<<<<< HEAD
+=======
+    i2 = len(np.where(np.logical_and(y>0, b==0))[0])
+    print("Others as stars recovered: ",i2)
+
+
+if __name__ == "__main__":
+
+    #props = ["bp_rp", "log_FxFg", "offset_sig", "log_distance"]
+    #props = ["log_FG", "log_FX", "bp_rp", "offset_sig", "log_distance"]
+    #X, y = get_props("../merged_training.fits", prop_cols=props)
+
+    props = ["logFx","logFg","pos","log_plx","bp_rp"]
+    props = ["pos", "logFxFg","bp_rp","log_plx"]
+    
+    #props = ["bp_rp", "logFg","logFx", "pos","log_plx"]
+>>>>>>> pcs
     
     #clf = svm.SVC(class_weight={1: 3}, probability=True)
+<<<<<<< HEAD
     #clf = svm.SVC(C=30, kernel='rbf', probability=True, degree=3,class_weight={0: 0.24})
     #clf = svm.SVC(C=45, kernel='rbf', probability=True, degree=3,class_weight={0: 0.15})
     clf = svm.SVC(C=10, kernel='rbf', probability=True, degree=3,class_weight={0: 0.2})
@@ -72,6 +90,9 @@ if __name__ == "__main__":
     # Greater C: less missclassification
     # Smaller C: More missclassification         
     #
+=======
+    clf = svm.SVC(C=5, kernel='poly', probability=True, degree=1,class_weight={0: 2})
+>>>>>>> pcs
     #clf = PCA(n_components=2)
     #clf = tree.DecisionTreeClassifier()
     #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})

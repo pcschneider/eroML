@@ -69,6 +69,7 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
     cols.append(col)
     
     dst = ff[extension].data["match_dist"]
+    dst = ff[extension].data["fake_match_dist"]
     err = ff[extension].data["RADEC_ERR"]
     
     
