@@ -51,6 +51,9 @@ Count lines::
 python
 ------
 
+The pathes etc are set by running::
+
+  . add_path.sh
 
 Run the stuff::
 

@@ -2,6 +2,41 @@ import numpy as np
 from scipy.special import factorial
 
 
+def analytic_probability(match_dist=None, sigma=None, sky_density=None, ps=0.1, N0=1):
+    """
+    Calculate the analytic probability for a correct identification based
+    on match distance, positional uncertainty (sigma), and local 
+    sky density.
+    
+    Parameters
+    ----------
+    match_dist : float (or array of float)
+        Distance between catalog entries in arcsec
+    sigma : float (or array of float)
+        Estimated positional uncertainty
+    sky_density : float (or array of float)
+        Density of sources in #objects/arcmin^2
+    ps : float
+        Stellar fraction (Bayes factor)
+    N0 : int
+        Number of sources in match catalog
+        
+    Returns
+    -------
+    probabilities : float (or array of float)
+    """
+    
+    
+    s = sigma / (3600 * 180/np.pi)
+    md = match_dist / (3600 * 180/np.pi)
+
+    tmp1 = 2/s**2*np.exp(-md**2 / (2* s**2))                     
+    tmp2 = ps/(1-ps) * 1/N0 * tmp1            
+
+    p_stellar = tmp2 / (1+tmp2)
+        
+    return p_stellar
+
 def gen_real_pos_offset(N=None, sigma=1.):
     """
     Generate random match distances based on the positional uncertainty

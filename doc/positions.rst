@@ -1,5 +1,5 @@
 Positions
 =========
 
-.. automodule:: eroML.positions.random_positions
+.. automodule:: eroML.positions.position_math
     :members:
