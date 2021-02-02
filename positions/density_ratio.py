@@ -59,8 +59,9 @@ def one_ratio(x0, y0, x1, y1, ax=None, scaling='number'):
     mm = plt.imshow(z_ratio.T, extent=(min(xx), max(xx), min(yy), max(yy)), origin="lower", aspect='auto', vmin=-3, vmax=5)
     con = plt.contour(XX, YY, z_ratio, colors='r', levels=[2, 3,4,5], alpha=1.0,
                     linestyles=['-.', '-', '--',':'])
-
+    plt.gca().clabel(con, inline=1, fontsize=10, fmt='%1.1f')
     Ncon = len(con.collections)
+    f=open('con.dat','w')
     for i in range(Ncon):
         #print(dir(con.collections[i]))
         Nislands = len(con.collections[i].get_paths())
@@ -69,10 +70,15 @@ def one_ratio(x0, y0, x1, y1, ax=None, scaling='number'):
             p = con.collections[i].get_paths()[j]
             #print(i, j, p)
             v = np.transpose(p.vertices)
+            if np.isclose(con.levels[i], 4.0):
+                if min(v[0]) > 12: continue
+                np.savetxt(f, np.transpose(v))
+                f.write("\n")
+                
             plt.plot(v[0], v[1], alpha=0.3, lw=4, color='k')
             #print(v, np.shape(np.transpose(v)))
         print()
-        
+    f.close()    
     cb = plt.colorbar(mm)
     cb.set_label("Log Density Ratio")
 

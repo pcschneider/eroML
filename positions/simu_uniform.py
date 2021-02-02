@@ -9,7 +9,7 @@ NN=3
 key=10
 
 N1, sig0, sig1 = 3000, 1, 10    # Real matches
-N2, dens0, dens1 = 28000, 1e-3, 1e-2 # Random matches
+N2, dens0, dens1 = 28000, 0.2, 1.5 # Random matches
 
 #-------------------------------------------------------------
 
@@ -18,7 +18,7 @@ sigs = uniform.rvs(size=N1)*(sig1-sig0)+sig0
 offs1 = gen_real_pos_offset(N=N1, sigma=sigs)
 
 dens = uniform.rvs(size=N2+N1) * (dens1-dens0) + dens0
-offs2, dens2, group, nth  = gen_random_pos_offset(N=N2, dens=dens[N1:])
+offs2, dens2, group, nth  = gen_random_pos_offset(N=N2, dens=dens[N1:]/3600)
 
 plt.hist(offs1, label="real", alpha=0.5, density=True, range=(0, 30))
 
@@ -29,7 +29,7 @@ sigs2 = uniform.rvs(size=N2)*(sig1-sig0)+sig0
 
 s = np.concatenate((sigs, np.repeat(sigs2,NN))).flatten()
 o = np.concatenate((offs1, offs2)).flatten()
-d = np.concatenate((dens[0:N1], dens2)).flatten()
+d = np.concatenate((dens[0:N1], dens2*3600)).flatten()
 n = np.concatenate((np.ones(N1), nth)).flatten()
 c = np.concatenate((np.zeros(N1), np.repeat(np.ones(N2),NN)) ).flatten()
 k = np.repeat([key], len(c))
