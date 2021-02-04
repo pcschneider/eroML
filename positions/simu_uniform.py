@@ -8,8 +8,8 @@ ofn = "simu.dat"
 NN=3
 key=10
 
-N1, sig0, sig1 = 3000, 1, 10    # Real matches
-N2, dens0, dens1 = 28000, 0.2, 1.5 # Random matches
+N1, sig0, sig1 = 6000, 1, 15    # Real matches
+N2, dens0, dens1 = 56000, 0.2, 2 # Random matches
 
 #-------------------------------------------------------------
 

@@ -34,7 +34,11 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
             pass
         Z = clf.predict(xy).reshape(XX.shape)
         #Z0 = clf.decision_function(xy).reshape(XX.shape)
-        Z1 = clf.predict_proba(xy)[::,1].reshape(XX.shape)
+        try:
+            Z1 = clf.predict_proba(xy)[::,1].reshape(XX.shape)
+        except:
+            Z1 = Z
+            
         ## plot decision boundary and margins
         global con
         #con = ax.contour(XX, YY, Z0, colors='k', levels=[-0.5, 0, .5], alpha=0.5,

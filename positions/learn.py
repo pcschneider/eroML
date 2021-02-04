@@ -14,6 +14,8 @@ from sklearn.metrics import make_scorer
 from scipy.stats import uniform
 from sklearn.pipeline import make_pipeline, Pipeline
 from sklearn.preprocessing import StandardScaler, FunctionTransformer
+from sklearn.model_selection import KFold
+from sklearn.kernel_approximation import PolynomialCountSketch
 
 def my_custom_loss_func(y_true, y_pred):
     random_as_star = np.where((y_true==1) & (y_pred==0))[0]
@@ -29,6 +31,8 @@ scoring = make_scorer(my_custom_loss_func, greater_is_better=False)
 
 #oo = np.transpose([sigout, pos_off, skdens*3600, nth, cls])
 dd = np.genfromtxt("../offs2.dat", unpack=True)
+dd = np.genfromtxt("simu.dat", unpack=True)
+
 #dd[1]*=3
 gi = np.where(dd[3] == 1)[0] # Only nearest neighbour
 X = np.transpose(dd[0:2,gi])
@@ -64,7 +68,9 @@ print("#true stars: ",len(y) - np.sum(y))
 #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
 
 #clf = svm.SVC(class_weight={1: 3}, probability=True)
-clf = svm.SVC(C=100, probability=True, kernel='poly', degree=2,class_weight={1: 10, 0:0.5}, gamma=50)
+#clf = svm.SVC(C=100, probability=True, kernel='poly', degree=2,class_weight={1: 10, 0:0.5}, gamma=50)
+clf = SGDClassifier(loss="hinge", alpha=0.01, max_iter=200)
+
 #https://scikit-learn.org/stable/tutorial/statistical_inference/putting_together.html
 
 
@@ -97,31 +103,42 @@ grid = GridSearchCV(ppl, parameters, scoring=scoring)
 
 clf = svm.SVC(C=65, probability=True, kernel='poly', degree=2,class_weight={1: 2.3})#, gamma=50)
 
-clf = svm.SVC(C=65, probability=True, kernel='poly', degree=3,class_weight={1: 3.7}, gamma=0.0008*25)
+#clf = svm.SVC(C=65, probability=True, kernel='poly', degree=3,class_weight={1: 3.7}, gamma=0.0008*25)
 
 #exit()
 #clf = svm.SVC(C=25, probability=True, kernel='poly', degree=3, class_weight={1: 2.7}, gamma=2.77e-4)
+#clf = SGDClassifier(loss="hinge", alpha=0.01, max_iter=200)
 
 
 #clf = PCA(n_components=2)
 #clf = tree.DecisionTreeClassifier()
-#clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
-#clf = SGDClassifier(loss='hinge')
+clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
+clf = SGDClassifier(loss='hinge')
 
 print(dir(clf))
-print("gamma:", clf.gamma, "coeff0: ",clf.coef0)
-print("class_weight",clf.class_weight, "degree", clf.degree)
+#print("gamma:", clf.gamma, "coeff0: ",clf.coef0)
+#print("class_weight",clf.class_weight, "degree", clf.degree)
 #clf.fit(X, y)
 
-clf.fit(X, y, sample_weight=sw_train)
+
+ps = PolynomialCountSketch(degree=3, random_state=1)
+X_features = ps.fit_transform(X)
+print("shape:",np.shape(X_features))
+X_old = X
+X = X_features
+N = len(X)
+train_index = np.random.choice(np.arange(N), N)
+print(len(train_index))
+clf.fit(X[train_index], y[train_index], sample_weight=sw_train[train_index])
+print("xxx")    
 b = clf.predict(X)
-pp = clf.predict_proba(X)
+#pp = clf.predict_proba(X)
 #print(pp.shape)
 #plt.scatter(pp[::,0], b, color='r')
 #plt.scatter(pp[::,1], b, color='b')
 #plt.show()
 #recovery(y, b)
-print()
+print("yyy")
 #kernel = 1.0 * RBF(1.0)
 #gpc = GaussianProcessClassifier(kernel=kernel, random_state=0)
 #gpc.fit(X, y)

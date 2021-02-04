@@ -113,5 +113,6 @@ plt.show()
 
 
 dd1 = np.genfromtxt("simu.dat", unpack=True)
-ax = one_ratio(dd[0][gi0], dd[1][gi0], dd1[0], dd1[1], scaling='density')
+gi0 = np.where(dd1[4]==0)[0]
+ax = one_ratio(dd1[0][gi0], dd1[1][gi0], dd1[0], dd1[1], scaling='density')
 plt.show()

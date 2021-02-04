@@ -89,7 +89,7 @@ def gen_random_pos_offset(N=None, dens=1., NN=3):
         dens = np.array(dens)
 
     M = NN
-    NN*=5
+    NN*=7
     max_dist = np.repeat(np.sqrt(NN/np.pi/dens), NN*2).reshape((N,NN*2))
     #print(np.shape(max_dist), max_dist)
     dd = np.repeat(dens,NN*2).reshape((N,NN*2))
