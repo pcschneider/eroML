@@ -100,7 +100,7 @@ def one_ratio(x0, y0, x1, y1, ax=None, scaling='number'):
     #plt.show()
 
 sfn = "../offs.dat"
-#sfn = "simu.dat"
+sfn = "simu.dat"
 print("Reading sfn=",sfn)
 dd = np.genfromtxt(sfn, unpack=True)
 #dd[1]*=100

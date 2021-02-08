@@ -10,12 +10,14 @@ from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 from eroML.classify import multidim_visualization
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import make_scorer 
 from scipy.stats import uniform
 from sklearn.pipeline import make_pipeline, Pipeline
-from sklearn.preprocessing import StandardScaler, FunctionTransformer
+from sklearn.preprocessing import StandardScaler, FunctionTransformer, PolynomialFeatures
 from sklearn.model_selection import KFold
 from sklearn.kernel_approximation import PolynomialCountSketch
+import time
 
 def my_custom_loss_func(y_true, y_pred):
     random_as_star = np.where((y_true==1) & (y_pred==0))[0]
@@ -30,12 +32,12 @@ def my_custom_loss_func(y_true, y_pred):
 scoring = make_scorer(my_custom_loss_func, greater_is_better=False)
 
 #oo = np.transpose([sigout, pos_off, skdens*3600, nth, cls])
-dd = np.genfromtxt("../offs2.dat", unpack=True)
+dd = np.genfromtxt("../offs.dat", unpack=True)
 dd = np.genfromtxt("simu.dat", unpack=True)
 
 #dd[1]*=3
 gi = np.where(dd[3] == 1)[0] # Only nearest neighbour
-X = np.transpose(dd[0:2,gi])
+X = np.transpose(dd[0:3,gi])
 gg = 1 / X.shape[1] / X.var()
 print("Var: ",X.var(), " gamma (for 'scale') = ", gg)
 
@@ -84,11 +86,8 @@ sv = svm.SVC(probability=True, kernel='poly', degree=2)
 ##distributions = dict(C=uniform(loc=10, scale=90), class_weight={0:1, 1:uniform(loc=1, scale=3)})
 #print("distributions: ",distributions)
 
-#grid = RandomizedSearchCV(sv, distributions, scoring=scoring)
-
-ppl = Pipeline(steps=[('scaler', FunctionTransformer()), ('clf', sv)])
-       
-grid = GridSearchCV(ppl, parameters, scoring=scoring)
+#grid = RandomizedSearchC
+#grid = GridSearchCV(ppl, parameters, scoring=scoring)
 
 #grid.fit(X, y, clf__sample_weight= sw_train)
 #print(grid.cv_results_.keys())
@@ -113,7 +112,6 @@ clf = svm.SVC(C=65, probability=True, kernel='poly', degree=2,class_weight={1: 2
 #clf = PCA(n_components=2)
 #clf = tree.DecisionTreeClassifier()
 clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
-clf = SGDClassifier(loss='hinge')
 
 print(dir(clf))
 #print("gamma:", clf.gamma, "coeff0: ",clf.coef0)
@@ -121,16 +119,55 @@ print(dir(clf))
 #clf.fit(X, y)
 
 
-ps = PolynomialCountSketch(degree=3, random_state=1)
-X_features = ps.fit_transform(X)
-print("shape:",np.shape(X_features))
-X_old = X
-X = X_features
+#ps = PolynomialCountSketch(degree=3, random_state=1)
+
+
+#X_features = poly.fit_transform(X)
+#print("shape:",np.shape(X_features))
+#X_old = X
+#X = X_features
 N = len(X)
 train_index = np.random.choice(np.arange(N), N)
 print(len(train_index))
-clf.fit(X[train_index], y[train_index], sample_weight=sw_train[train_index])
-print("xxx")    
+
+
+sgd = SGDClassifier(loss='hinge')
+
+
+print("start")       
+t0 = time.perf_counter()
+
+#svc = svm.SVC(C=65, probability=False, kernel='poly', degree=3,class_weight={1: 2.3})
+#svc.fit(X[train_index], y[train_index], sample_weight=sw_train[train_index])
+#print("x - x", time.perf_counter()-t0)
+
+poly = PolynomialFeatures(3)
+X_features = poly.fit_transform(X)
+print("featured", np.shape(X_features[train_index]))
+clf = Pipeline(steps=[('poly', poly), ('clf', svm.LinearSVC(C=65,class_weight={0: 2}, max_iter=10000, dual=False))])
+
+parameters = {'clf__C':np.linspace(1,80,10), 'clf__class_weight':[{0:x} for x in np.linspace(0.2,5,20)]}
+grid = GridSearchCV(clf, parameters, scoring=scoring, cv=3, n_jobs=-1)
+grid.fit(X[train_index], y[train_index], clf__sample_weight=sw_train[train_index])
+
+#print(grid.clf_results_.keys())
+#for k in grid.cv_results_.keys():
+    #print(k, grid.cv_results_[k])
+#print()
+print(grid.best_params_)
+print()
+print(grid.best_index_)
+print("optimized")
+
+#clf = svm.LinearSVC(C=65,class_weight={1: 2.3})
+
+#clf = MLPClassifier(hidden_layer_sizes=(30,10))
+
+
+clf = grid.best_estimator_
+
+#clf.fit(X[train_index], y[train_index], clf__sample_weight=sw_train[train_index])
+print("xxx", time.perf_counter()-t0)    
 b = clf.predict(X)
 #pp = clf.predict_proba(X)
 #print(pp.shape)
@@ -138,7 +175,7 @@ b = clf.predict(X)
 #plt.scatter(pp[::,1], b, color='b')
 #plt.show()
 #recovery(y, b)
-print("yyy")
+print("yyy steps:", clf["clf"].n_iter_)
 #kernel = 1.0 * RBF(1.0)
 #gpc = GaussianProcessClassifier(kernel=kernel, random_state=0)
 #gpc.fit(X, y)
@@ -163,5 +200,6 @@ gi = np.where(b==0)[0]
 print("Objects as star classified: ",len(gi))
 #exit()
 multidim_visualization(clf, X, y, names={1:"offset", 2:"sky_dens", 0:"sig"})
+#multidim_visualization(clf, X_features, y, names={i:"param"+str(i) for i in range(np.shape(X_features)[1])})
 #multidim_visualization(clf, X, y, names={1:"offset", 0:"sig"})
 #exit()    
