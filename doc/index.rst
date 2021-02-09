@@ -15,8 +15,8 @@ Welcome to eroML's documentation!
    learning.rst
    cheat_sheet.rst
    submodules.rst
+   etc.rst
       
-
               
       
 Todo

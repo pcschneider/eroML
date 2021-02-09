@@ -1,5 +1,47 @@
 import numpy as np
 from scipy.special import factorial
+from scipy.stats import uniform
+
+def generate_random_densities(N0, N1, dens0=0.1, dens1=1, dens_scaling='uniform'):
+    """
+    Generate random densities
+    
+    Parameters
+    ----------
+    N0, N1 : int
+        Number of real and random sources
+    dens0, dens1 : float
+        Min and max sky densities (in units of TBD)
+    dens_scaling : str
+        Must be within ['uniform', 'proportional', 'uni_prop']
+        
+    Returns
+    -------
+    dens_real : array 
+             Densities for real sources
+    dens_rand : array 
+             Densities for random sources        
+    """
+    
+    print("Simulating ",N0+3*N1, " sources, with a real fraction of ",N0/N1)
+
+
+    lc = (dens0/dens1)**2
+
+    if dens_scaling == 'uniform':
+        dens = uniform.rvs(size=N0+N1, loc=dens0, scale=(dens1-dens0)) # Uniform scaling in density
+        dens_real = dens[0:N0]
+        dens_rand = dens[N0::]
+    elif dens_scaling == 'proportional':
+        dens = uniform.rvs(size=N0+N1, loc=lc, scale=1-lc)**0.5 * dens1 # Scaling proportional to density    
+        dens_real = dens[0:N0]
+        dens_rand = dens[N0::]
+    elif dens_scaling == 'uni_prop':
+        dens_real = uniform.rvs(size=N0, loc=dens0, scale=(dens1-dens0))
+        dens_rand = uniform.rvs(size=N1, loc=lc, scale=1-lc)**0.5 * dens1        
+        
+    return dens_real, dens_rand
+        
 
 
 def analytic_probability(match_dist=None, sigma=None, sky_density=None, ps=0.1, N0=1):

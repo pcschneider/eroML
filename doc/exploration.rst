@@ -176,6 +176,10 @@ Loop through Tiles
 
 Sky Density
 ------------
+
+Global Sky Density
+~~~~~~~~~~~~~~~~~~
+
 The sky density can be displayed by running::
   
   p37 tools/sky_density.py
@@ -201,3 +205,19 @@ depressions in the density of the eligible sources.
    :align: center
 
    Mean density of eligible sources per healpix (:math:`\text{arcmin}^{-2}`)
+
+eFEDS Sky Density
+~~~~~~~~~~~~~~~~~
+
+The calculated sky density in the eFEDS field is
+  
+.. figure:: eFEDS_sky_density.png
+   :width: 70%
+   :alt: Sky density distribution in eFEDS field
+   :align: center
+   
+.. figure:: eFEDS_values.png
+   :width: 70%
+   :alt: Properties of the eFEDS sources
+   :align: center   
+   

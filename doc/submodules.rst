@@ -1,10 +1,11 @@
-Description of submodules
+Description of the code
 ====================================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    ensemble.rst
    utils.rst
    tile.rst
    positions.rst
+   
