@@ -1,3 +1,4 @@
+from joblib import dump, load
 import matplotlib.pyplot as plt
 from sklearn import svm, tree
 import numpy as np
@@ -18,16 +19,7 @@ from sklearn.preprocessing import StandardScaler, FunctionTransformer, Polynomia
 from sklearn.model_selection import KFold
 from sklearn.kernel_approximation import PolynomialCountSketch
 import time
-
-def my_custom_loss_func(y_true, y_pred):
-    random_as_star = np.where((y_true==1) & (y_pred==0))[0]
-    star_as_random = np.where((y_true==0) & (y_pred==1))[0]
-    stars_predicted = len(y_pred) - np.sum(y_pred)
-    stars_true = len(y_true) - np.sum(y_true)
-    #print(stars_predicted - stars_true, "diff:", len(random_as_star) - len(star_as_random))
-    sc = (1+abs(stars_predicted - stars_true))**2 * (100 + (len(random_as_star) - len(star_as_random)))**2
-    print(stars_predicted, stars_true,  "diff:", len(random_as_star) - len(star_as_random), " -- ",len(random_as_star), len(star_as_random), " -> ", sc)
-    return sc
+from eroML.classify import my_custom_loss_func
 
 scoring = make_scorer(my_custom_loss_func, greater_is_better=False)
 
@@ -146,13 +138,13 @@ X_features = poly.fit_transform(X)
 print("featured", np.shape(X_features[train_index]))
 clf = Pipeline(steps=[('poly', poly), ('clf', svm.LinearSVC(C=65,class_weight={0: 2}, max_iter=10000, dual=False))])
 
-parameters = {'clf__C':np.linspace(1,80,10), 'clf__class_weight':[{0:x} for x in np.linspace(0.2,5,20)]}
+parameters = {'clf__C':np.linspace(5,50,4), 'clf__class_weight':[{0:x} for x in np.linspace(0.2,5,3)]}
 grid = GridSearchCV(clf, parameters, scoring=scoring, cv=3, n_jobs=-1)
 grid.fit(X[train_index], y[train_index], clf__sample_weight=sw_train[train_index])
 
 #print(grid.clf_results_.keys())
-#for k in grid.cv_results_.keys():
-    #print(k, grid.cv_results_[k])
+for k in grid.cv_results_.keys():
+    print(k, grid.cv_results_[k])
 #print()
 print(grid.best_params_)
 print()
@@ -165,6 +157,11 @@ print("optimized")
 
 
 clf = grid.best_estimator_
+
+grid.X_ = X
+grid.y_ = y
+
+dump(grid, 'grid.joblib') 
 
 #clf.fit(X[train_index], y[train_index], clf__sample_weight=sw_train[train_index])
 print("xxx", time.perf_counter()-t0)    
