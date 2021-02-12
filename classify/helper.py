@@ -4,6 +4,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import norm
 
+def my_custom_loss_func(y_true, y_pred):
+    random_as_star = np.where((y_true==1) & (y_pred==0))[0]
+    star_as_random = np.where((y_true==0) & (y_pred==1))[0]
+    stars_predicted = len(y_pred) - np.sum(y_pred)
+    stars_true = len(y_true) - np.sum(y_true)
+    #print(stars_predicted - stars_true, "diff:", len(random_as_star) - len(star_as_random))
+    sc = (1+abs(stars_predicted - stars_true))**2 * (100 + (len(random_as_star) - len(star_as_random)))**2
+    print(stars_predicted, stars_true,  "diff:", len(random_as_star) - len(star_as_random), " -- ",len(random_as_star), len(star_as_random), " -> ", sc)
+    return sc
+
 
 def rescale(X):
     X["offset_sig"] = np.log10(1.-norm.cdf(X["offset_sig"]))

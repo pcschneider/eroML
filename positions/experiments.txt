@@ -4,7 +4,6 @@ gi = np.where(y==0)[0]
 sw = np.ones(len(y))
 sw[gi] = 1.3
 
-
 Correct:  29155  of  30000
 star as star:  1577  of  2000
 random as random:  27578  of  28000
@@ -28,3 +27,48 @@ random as random:  27576  of  28000
 random as star:  424  of  30000
 star as random:  426  of  30000
 Objects as star classified:  1998
+
+===================================================
+
+{'clf__C': 9.777777777777779, 'clf__class_weight': {0: 2.473684210526316}}
+
+29
+optimized
+xxx 178.81570174200033
+yyy steps: 35
+Correct:  55947  of  62000
+star as star:  2885  of  6000
+random as random:  53062  of  56000
+random as star:  2938  of  62000
+star as random:  3115  of  62000
+Objects as star classified:  5823
+
+{'clf__C': 27.333333333333336, 'clf__class_weight': {0: 2.2210526315789476}}
+
+68
+optimized
+xxx 290.28254595399994
+yyy steps: 50
+Correct:  56077  of  62000
+star as star:  2799  of  6000
+random as random:  53278  of  56000
+random as star:  2722  of  62000
+star as random:  3201  of  62000
+Objects as star classified:  5521
+
+
+
+rank_test_score [4 1 8 4 3 9 4 2 7]
+{'clf__C': 5.0, 'clf__class_weight': {0: 2.6}}
+
+1
+optimized
+xxx 13.238544287999503
+yyy steps: 45
+Correct:  55487  of  62000
+star as star:  3532  of  6000
+random as random:  51955  of  56000
+random as star:  4045  of  62000
+star as random:  2468  of  62000
+Objects as star classified:  7577
+
