@@ -1,3 +1,32 @@
+
+
+
+C= 0.5623413251903491 weight for class=0:  79.43282347242814
+Stars in training set:  2060
+Others in training set:  3443
+Random in training set:  0
+Stars predicted:  2066
+Others predicted:  3437
+Stars as stellar recovered:  1636
+Others as others recovered:  3013
+Stars as others recovered:  424
+Others as stars recovered:  430
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 dd[1]*=3
 clf = svm.SVC(C=38, probability=True, kernel='poly', degree=2,class_weight={1: 3.1}, gamma=3e-4)
 gi = np.where(y==0)[0]

@@ -3,8 +3,11 @@ import numpy as np
 from matplotlib.widgets import Slider, Button, RadioButtons
 from matplotlib.text import Text
 import pandas as pd
+from eroML.classify import scaler
 
 def multidim_visualization(clf, X, y, names=None, dims=[0,1]):    
+    """
+    """
     def draw_contours():
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
@@ -41,27 +44,8 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
             
         ## plot decision boundary and margins
         global con
-        #con = ax.contour(XX, YY, Z0, colors='k', levels=[-0.5, 0, .5], alpha=0.5,
-                #linestyles=['--', '-', '--', ':'])
-        
-        
-        #gg0 = np.where(Z==0)
-        #llim0 = min(Z1[gg0])
-        #gg1 = np.where(Z==1)
-        #llim1 = min(Z1[gg1])
-        #print("lim:",llim0, llim1)
-        #print(np.shape(Z1))
-        #print(xy)
-        
-        #print()
-        #print(Z)
-        #plt.show()
-        #plt.imshow(Z.T, origin='lower')
-        #plt.show()
+    
         ax.imshow(Z.T, origin='lower', extent=(min(xx), max(xx), min(yy), max(yy)), aspect='auto')
-        #plt.show()
-        #plt.scatter(Z1.flatten(), Z.flatten())
-        #plt.show()
         
         con = ax.contour(XX, YY, Z1, colors='r', levels=[0.3, 0.5, 0.7], alpha=0.5,
                 linestyles=['-.', '-', '--',':'])
@@ -161,9 +145,11 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
         #sca.set_offsets(np.array([X[::,dims[0]], X[::,dims[1]]]).T)
         fig.canvas.draw_idle()
 
-    
-    N_props = len(names)
     N_data = np.shape(X)
+    if names is None:
+        names = {i:"param"+str(i) for i in range(N_data[1])}
+    N_props = len(names)
+    
     if N_data[1] < N_props: N_props = N_data[1]
     if names is None:
         names = {i:"dim"+str(i) for i in range(N_props)}
