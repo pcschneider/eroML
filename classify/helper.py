@@ -15,6 +15,16 @@ def my_custom_loss_func(y_true, y_pred):
     return sc
 
 
+
+def scaler(X, factor=1., axis=None):
+    if axis is None:
+        print("XXX", factor)
+        return X*factor
+    else:
+        X[::,axis]*=factor
+    #print("XXX1", factor, np.shape(X))
+    return X
+
 def rescale(X):
     X["offset_sig"] = np.log10(1.-norm.cdf(X["offset_sig"]))
     gi = np.where(-2*np.isfinite(X["offset_sig"])==False)[0]

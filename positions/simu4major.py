@@ -7,11 +7,11 @@ from eroML.config import *
 import argparse
 import os
 from astropy.io import fits as pyfits
-from eroML.positions import gen_random_pos_offset, gen_real_pos_offset
+from eroML.positions import gen_random_pos_offset, gen_real_pos_offset, random4dens, Nexp4dens
 
 
 def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
-    dens_scaling=1.03, overwrite=False, key=1):
+    dens_scaling=1.03, overwrite=False, key=1, max_dist=60):
     """
     
     Parameters
@@ -26,6 +26,8 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
         Scaling factor for the generation of random sources
     dens_scaling : float
         Scaling of the calculated sky density for simulating random sources
+    max_dist : float
+        Return sources expected within ``max_dist'' (unit arcsec)
     overwrite : bool
         Overwrite `ofn` if it exists
     key : int or float
@@ -73,39 +75,38 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     print("Resulting in %i expected random sources (Nrandom/Nreal: %6.3f), simulating %i random sources." % (Nrnd, Nrnd/N, rnd_factor*Nrnd))
     Nrnd = round(N)
 
-    ##sk_array = [0.0003, 0.0001, 0.001, 0.003, 0.01, 0.03, 0.1]
-    #Nreal=N
-    #Nrnd = 5000
-    #SIG = 4
-    #SIG = np.random.rand(Nreal)*20+1
-    ##sk = np.random.rand(Nreal)**2*0.001+0.0001 # (mean eFEDS: 0.00014)
-    #sk = np.random.rand(Nreal)*0.001+0.0001 # (mean eFEDS: 0.00014)
-    ##sk = Nreal*[0.004]
 
     #rnd_offs = gen_random_pos_offset(dens=sk)
     real_offs = gen_real_pos_offset(sigma=SIG*0.6)
     
-    Ndens = floor(len(i) * rnd_factor)
+    dens = sk[i]
+    Nexp = Nexp4dens(dens*dens_scaling, max_dist=max_dist)
+   
+    Ndens = floor(Nexp * rnd_factor)
     #ggg = np.where()
     ii = np.random.choice(len(sk), Ndens)
-    dens = sk[ii]/3600
+    dens = sk[ii]
     print("len dens ", len(dens))
     
-    rand_offs = gen_random_pos_offset(dens=dens* dens_scaling)
+    rand_offs = random4dens(dens=dens* dens_scaling)
+    
+    
     print(np.shape(rand_offs))
     #for j in range(4):
         #print(j, len(rand_offs[j]))
     #sk_simu = np.repeat(sk,3)
     idx = rand_offs[2].astype(int)
     print(idx)
-    sig = np.repeat(SIG, ceil(rnd_factor))[idx]
+    sigi = np.random.choice(ffN, len(rand_offs[0]))
+    #sig = ffd[
+    #i = np.random.choice(gi, size=N)
+    try:
+        sig = ffd["sigma_r"][sigi]
+        print("XXX")
+    except KeyError:
+        sig = ffd["RADEC_ERR"][sigi]
+        
     sig_simu = np.concatenate((SIG,sig))
-
-
-
-    #Nrnd = len(rand_offs)
-    #print("Simulating %i and %i real and random sources, respectively." % (Nreal, Nrnd))
-    #print(len(sk_simu))
 
 
     #pos_off = np.zeros((Nreal+Nrnd)
@@ -117,7 +118,7 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     #tmp0 = gen_real_pos_offset(N, sig=SIG)
     #tmp1 = gen_random_pos_offset(Nrnd, dens=sk_simu)
     pos_off = np.concatenate((real_offs, rand_offs[0]))
-    skdens = np.concatenate((sk[i], rand_offs[1]*3600))
+    skdens = np.concatenate((sk[i], rand_offs[1]))
     sigout = sig_simu
     nth = np.ones(len(sigout))
     nth[N:] = rand_offs[3]
@@ -128,27 +129,7 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     
     np.savetxt(ofn, oo)
     return
-    #exit()
-    #print(offs)
-    #plt.hist(offs)
-
-    #dm = Dist_model()
-
-    ##"fraction","sig","dens","N", "err_scaling"]
-
-
-    #dm["fraction"] = 1.0
-    #dm["N"] = 1
-    #dm["sig"] = SIG
-    #dm["err_scaling"] = 1.
-
-    #x = np.linspace(0, 5*SIG, 1000)
-    #y = dm.evaluate(x)
-    #plt.plot(x,y*N/2.4)
-    #plt.show()
-    ##plt.plot(x,np.cumsum(y)/np.sum(y))
-    ##plt.show()
-
+  
 
 if __name__ == "__main__":
     unlogged = []

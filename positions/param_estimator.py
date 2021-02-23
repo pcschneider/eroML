@@ -49,8 +49,8 @@ def recovery(y, b):
 
 
 if __name__ == "__main__":
-    dd = np.genfromtxt("../offs.dat", unpack=True)
-    dd = np.genfromtxt("simu.dat", unpack=True)
+    dd = np.genfromtxt("../offs3.dat", unpack=True)
+    #dd = np.genfromtxt("simu.dat", unpack=True)
 
     #dd[1]*=3
     gi = np.where(dd[3] == 1)[0] # Only nearest neighbour
@@ -86,21 +86,29 @@ if __name__ == "__main__":
     
     oo = open("params2.txt","w")
     oo.write("# C w i0 i1 i2 i3 Nstars Ntotal\n")
-    oo.write("# i0: Stars as stellar recovered\n")
-    oo.write("# i1: Others as others recovered\n")
-    oo.write("# i2: Stars as others recovered\n")
-    oo.write("# i3: Others as stars recovered\n")
-    oo.write("# Nstars: Stars in sample\n")
-    oo.write("# Ntotal: Sample size\n")
-    
+    oo.write("#  0 - C\n")
+    oo.write("#  1 - class weight for class 0 \n")
+    oo.write("#  2 - i0: Stars as stellar recovered\n")
+    oo.write("#  3 - i1: Others as others recovered\n")
+    oo.write("#  4 - i2: Stars as others recovered\n")
+    oo.write("#  5 - i3: Others as stars recovered\n")
+    oo.write("#  6 - Nstars: Stars in sample\n")
+    oo.write("#  7 - Ntotal: Sample size\n")
+  
     
     print("start")       
     t0 = time.perf_counter()
 
-    for c in [20,35]:#np.logspace(-1,1,10):
-        for w in [2,20]:#np.logspace(-1,1,10):
+    for c in np.logspace(-2,2,15):
+    #for c in np.linspace(0.01,0.12,3):
+        for w in np.linspace(0.2,2.5,50):
             print("C=",c, "weight for class=0: ",w)
-            clf = Pipeline(steps=[('poly', poly), ('clf', svm.LinearSVC(C=c,class_weight={0: w}, max_iter=10000, dual=False))])
+            #clf = Pipeline(steps=[('poly', poly), ('clf', svm.LinearSVC(C=c,class_weight={0: w}, max_iter=10000, dual=False))])
+            clf = svm.SVC(C=c, kernel='linear', probability=True, degree=3,class_weight={0: w})
+            clf = Pipeline(steps=[('poly', PolynomialFeatures(3)), ('clf', svm.LinearSVC(C=c,class_weight={0: w}, max_iter=10000, dual=False))])             
+            #clf = svm.NuSVC(nu=c, kernel='linear', probability=True, degree=3,class_weight={0: w})
+
+            #clf = Pipeline(steps=[('poly', poly), ('clf', svm.LinearSVC(C=c,class_weight={0: w}, max_iter=10000, dual=False))])
             #clf = svm.SVC(C=c, kernel='rbf', probability=True, degree=3,class_weight={0: w})
             clf.fit(X,  y)
             b = clf.predict(X)

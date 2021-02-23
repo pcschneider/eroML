@@ -1,5 +1,50 @@
 import numpy as np
 from scipy.special import factorial
+from scipy.stats import uniform
+from math import ceil
+from scipy.stats import poisson
+
+
+def generate_random_densities(N0, N1, dens0=0.1, dens1=1, dens_scaling='uniform'):
+    """
+    Generate random densities
+    
+    Parameters
+    ----------
+    N0, N1 : int
+        Number of real and random sources
+    dens0, dens1 : float
+        Min and max sky densities (in units of TBD)
+    dens_scaling : str
+        Must be within ['uniform', 'proportional', 'uni_prop']
+        
+    Returns
+    -------
+    dens_real : array 
+             Densities for real sources
+    dens_rand : array 
+             Densities for random sources        
+    """
+    
+    print("Simulating ",N0+3*N1, " sources, with a real fraction of ",N0/N1)
+
+
+    lc = (dens0/dens1)**2
+
+    if dens_scaling == 'uniform':
+        dens = uniform.rvs(size=N0+N1, loc=dens0, scale=(dens1-dens0)) # Uniform scaling in density
+        dens_real = dens[0:N0]
+        dens_rand = dens[N0::]
+    elif dens_scaling == 'proportional':
+        dens = uniform.rvs(size=N0+N1, loc=lc, scale=1-lc)**0.5 * dens1 # Scaling proportional to density    
+        dens_real = dens[0:N0]
+        dens_rand = dens[N0::]
+    elif dens_scaling == 'uni_prop':
+        dens_real = uniform.rvs(size=N0, loc=dens0, scale=(dens1-dens0))
+        dens_rand = uniform.rvs(size=N1, loc=lc, scale=1-lc)**0.5 * dens1        
+        
+    return dens_real, dens_rand
+        
 
 
 def analytic_probability(match_dist=None, sigma=None, sky_density=None, ps=0.1, N0=1):
@@ -64,6 +109,78 @@ def gen_real_pos_offset(N=None, sigma=1.):
     rndx = np.sqrt(2*sigma**2 * (-np.log(1-rnd)))
     return rndx
 
+def Nexp4dens(dens, max_dist=60):
+    """
+    Calculate number of expected sources up to ``max_dist``.
+    
+    Parameters
+    ----------
+    dens : array 
+          Unit:  #source/arcmin^2
+    max_dist : float
+          Maximum distances (in arcsec)
+    
+    Returns
+    -------
+    N : float
+        Number of expected random sources
+    """
+    Ni = dens/3600*max_dist**2*np.pi
+    return np.sum(Ni)
+
+def random4dens(dens, max_dist=60):
+    """
+    Generate random sources for the provided sky densities.
+    
+    The number of random sources will be proportional to the individual sky 
+    densities, the expectation value being 
+    
+    .. math::
+    
+        N_i^{exp} = \pi*dens_i*max\_dist^2\,.
+        
+    Parameters
+    ----------
+    dens : array 
+          Unit:  #source/arcmin^2
+    max_dist : float
+          Maximum distances (in arcsec)
+    
+    Returns
+    -------
+    simulated data : tuple of arrays
+        offs, dens, group, nth
+
+    """
+        
+    N = len(dens)    
+    N_exp_max = ceil(max(dens)/3600*max_dist**2*np.pi)
+    print("Maximum number of sources in match radius: %6.2f." % N_exp_max)
+    #offs = max_dist*np.random.rand(N,NN*2)**0.5
+    offs = max_dist*np.random.rand(N*2*N_exp_max)**0.5
+
+    Nexp = dens/3600*max_dist**2*np.pi # /3600 to convert from arcmin^-2 to arcsec^-2 
+    Nmeaus = poisson.rvs(Nexp, size=N)
+    grp = np.arange(N)
+
+    skdens = np.repeat(dens, Nmeaus)
+    offs_idx = np.repeat(grp, Nmeaus)
+    pos_off = offs[0:len(offs_idx)]
+    sigout = [np.nan]*len(offs_idx)
+    nth = np.zeros(len(offs_idx))
+    j = 0
+    print("calculating 'nth'")
+    for i, g in enumerate(grp):
+        gi = np.where(offs_idx == g)[0]
+        n = np.argsort(np.argsort(pos_off[gi]))+1
+        nth[j:j+len(gi)] = n
+        #print(g, len(gi), Nmeaus[i], pos_off[gi], n)
+        j+=len(gi)
+    print("                done.")    
+    print("Returning ",len(pos_off), " random sources.")    
+    return pos_off, skdens, offs_idx, nth    
+
+
 def gen_random_pos_offset(N=None, dens=1., NN=3):
     """
     Generate random match distances for up to the NN-th neighbour
@@ -110,22 +227,7 @@ def gen_random_pos_offset(N=None, dens=1., NN=3):
         j = M+i
         
         offs[j::step] = np.nan
-        
-    #plt.hist(offs, range=(0, 2.3), bins=30)
-    ##print(offs[0,:])
-    #plt.show()
-    #print(np.shape(offs))
-    #nth = np.argsort(offs, axis=1)
-    #offs = offs[nth]
-    #nth = np.tile(np.arange(NN),N).flatten()[np.argsort(offs).flatten()]+1
-    #print(nth[0,:])
-    #print(offs[0,nth[0,:]-1])
-    #offs = offs.flatten()
-    #gi = np.where(nth.flatten() == 1)
-    #print(offs)
-    #print(nth)
-    #print(offs[nth])
-    #print(np.shape(offs))
+
     oo = offs.flatten()
     gi = np.where(np.isfinite(oo))[0]
     #print(len(gi), len(dens)*NN)

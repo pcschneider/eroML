@@ -99,8 +99,8 @@ def one_ratio(x0, y0, x1, y1, ax=None, scaling='number'):
     return ax
     #plt.show()
 
-sfn = "../offs.dat"
-sfn = "simu.dat"
+sfn = "../offs2.dat"
+#sfn = "simu.dat"
 print("Reading sfn=",sfn)
 dd = np.genfromtxt(sfn, unpack=True)
 #dd[1]*=100
@@ -109,10 +109,12 @@ dd = np.genfromtxt(sfn, unpack=True)
 gi0 = np.where(dd[4]==0)[0]
 gi1 = np.where(dd[4]>0)[0]
 ax = one_ratio(dd[0][gi0], dd[1][gi0], dd[0][gi1], dd[1][gi1], scaling='number')
-plt.show()
-
-
-dd1 = np.genfromtxt("simu.dat", unpack=True)
+plt.title(sfn)
+#plt.show()
+plt.figure()
+sfn = "simu.dat"
+dd1 = np.genfromtxt(sfn, unpack=True)
 gi0 = np.where(dd1[4]==0)[0]
 ax = one_ratio(dd1[0][gi0], dd1[1][gi0], dd1[0], dd1[1], scaling='density')
+plt.title(sfn)
 plt.show()
