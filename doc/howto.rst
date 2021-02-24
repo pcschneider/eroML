@@ -86,7 +86,8 @@ following keywords changed wrt to the original file::
 Alternatively, one can perform only a single processing step, e.g.,::
 
   p37 run_eroML.py eFEDS_EDR3.ini --steps Xdata_preparation/enrich
-  
+  p37 run_eroML.py eFEDS_EDR3.ini --steps Enrich_Gaia/perform
+
 However, this still requires to run all subsequent steps, too! Something like::
 
   p37 run_eroML.py eFEDS_EDR3.ini --steps Xdata_preparation/enrich Datasets/major Merging/shrink Merging/major
