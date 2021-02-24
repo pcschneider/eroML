@@ -49,9 +49,10 @@ def eligible_Gaia(e, out_col="eligible_Gaia", verbose=5):
 @fits_support
 def eligible_eROSITA(e, out_col="eligible_X"):
     det_likeli = e.to_array(colnames="DET_LIKE_0", array_type="array")
-    
     ext_likeli = e.to_array(colnames="EXT_LIKE", array_type="array")
-    gi = np.where((det_likeli > 6) & (ext_likeli < 6))[0]
+    RADEC_ERR = e.to_array(colnames="RADEC_ERR", array_type="array")
+    
+    gi = np.where((det_likeli >= 6) & (ext_likeli <= 6) & (RADEC_ERR>0) )[0]
     
     
     el = np.zeros(len(e))
@@ -193,6 +194,11 @@ def enrich_eROSITA(e):
     e.set_col("RADEC_ERR", err)
 
     Fx = e.to_array(colnames="ML_FLUX_0", array_type="array")
+    
+    R1 = e.to_array(colnames="ML_RATE_1", array_type="array")
+    R2 = e.to_array(colnames="ML_RATE_2", array_type="array")
+    Fx = 0.95e-12 * (R1+R2)
+    
     if "Fx" in e.known_cols:
         e.set_col("Fx", Fx)
     else:
