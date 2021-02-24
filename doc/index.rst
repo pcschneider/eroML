@@ -7,7 +7,7 @@ Welcome to eroML's documentation!
 =================================
   
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
    
    howto.rst
@@ -18,13 +18,6 @@ Welcome to eroML's documentation!
       
 
               
-      
-Todo
-----
-
-- Add quality criterium for NN_estimate
-- Pixelize and merge
-
 
 Testing
 -------
