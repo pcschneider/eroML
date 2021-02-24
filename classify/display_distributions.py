@@ -12,10 +12,15 @@ print("Which contains ",fd.columns)
 
 props = ["match_dist", "parallax", "Fg", "Fx", "bp_rp"]
 for p in props:
-    q0, q1 = np.nanquantile(fd[p], 0.1), np.nanquantile(fd[p], 0.9)
+    
+    #fig = plt.figure()
+    #ax0, ax
+    fig, (ax0, ax1) = plt.subplots(2)
+    q0, q1 = np.nanquantile(fd[p], 0.02), np.nanquantile(fd[p], 0.95)
     print(p, q0, q1)
-    plt.hist(fd[p],range=(0.8*q0, 1.2*q1), bins=20)
-    plt.title(p)
+    ax0.hist(fd[p],range=(0.5*q0, 5*q1), bins=20, log=True)
+    ax1.hist(np.log10(fd[p]),range=(np.log10(0.5*q0), np.log10(5*q1)), bins=20, log=True)
+    ax0.set_title(p)
 
     plt.show()
 

@@ -22,7 +22,6 @@ def repeat_fits(hdu, multi=10):
     cc = pyfits.ColDefs(cols)    
     xx = pyfits.BinTableHDU.from_columns(cc)
     xx.header = hdu.header
-    #print("repeat: ",NN0, len(xx.data["srcID"]))
     return xx
     
 

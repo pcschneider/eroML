@@ -11,7 +11,37 @@ The following three classes exist
   1) Others
   2) Random matches
 
+Catalog Screening/Filtering
+---------------------------
 
+Query to obtain Gaia sources::
+
+  SELECT * FROM gaiaedr3.gaia_source
+  WHERE parallax_over_error >  3
+  AND phot_g_mean_flux_over_error>10
+  AND phot_rp_mean_flux_over_error>10
+  AND phot_bp_mean_flux_over_error>10
+
+ 
+eROSITA criteria::
+
+  RADEC_ERR > 0 (NICHT RADEC_ERR_CORR)
+  EXT_LIKE < 6
+
+ 
+The eFEDS positional error is::
+
+ sqrt((RADEC_ERR**2 + 0.7**2)/2)
+
+Fluxes are:: 
+
+  F_X = ML_RATE*10**(-12) erg/cm**2/s
+  F_G = 10**(-0.4*Gmag)*4052.97*2.5e-910**(-12) erg/cm**2/s                   
+  
+See also (http://svo2.cab.inta-csic.es/theory/fps/index.php?mode=browse&gname=GAIA&gname2=GAIA3&asttype=)
+
+Lastly, sources with X-ray luminosities above 2e31 erg/s are discarded from the training set.
+  
 The different data sets
 ------------------------
 
