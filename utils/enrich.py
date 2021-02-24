@@ -209,7 +209,7 @@ def enrich_eROSITA(e):
     
     e.add_col("pm_RA", np.zeros(len(err)))
     e.add_col("pm_Dec",np.zeros(len(err)))
-    e.add_col("ref_epoch", np.ones(len(err))*2020.25)
+    e.add_col("ref_epoch", np.ones(len(err))*2019.85) # eFEDS: 2019.85
     
     eligible_eROSITA(e)    
     return e
