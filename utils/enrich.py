@@ -163,7 +163,7 @@ def enrich_Gaia(e, filterNr=5, sky_density=True):
     Add G-band flux, compatibility with an isochrone, the `eligible` column, and the sky density of eligible sources
     """
     arr = e.to_array(colnames=["phot_g_mean_mag"])
-    FG = 10**(-0.4* arr["phot_g_mean_mag"])*3.660e-08*720
+    FG = 10**(-0.4* arr["phot_g_mean_mag"])*1.01324e-5
     e.add_col("Fg", FG, force=True)
     
     add_quality_column(e, filter_Nr=filterNr)    

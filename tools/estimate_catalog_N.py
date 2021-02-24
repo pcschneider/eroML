@@ -159,7 +159,7 @@ print("model N: ",np.trapz(mm, x=x[:,0]))
 print("data N: ",np.sum(bny))
 print("N stars: ",frac*np.trapz(mm, x=x[:,0]))
 #ax0.plot(x[:,0],mm, ls ='--', color='r', lw=2, label="Model")
-ax0.plot(x[:,0], np.mean(y, axis=1)*len(gi), color='y', label="Random (all)")
+#ax0.plot(x[:,0], np.mean(y, axis=1)*len(gi), color='y', label="Random (all)")
 
 mdl = Dist_model()
 mdl.N = len(gi)
@@ -185,6 +185,8 @@ ax0.plot(xs, (1-tmp)*mdl.evaluate(xs), ls='--', color='r', lw=1, label="Random")
 
 mdl["fraction"] = 6.76*1e-2
 ax0.plot(xs, mdl.evaluate(xs), ls=':', color='r', lw=1, label="Bayes Map")
+#mdl["fraction"] = 7.14*1e-2
+#ax0.plot(xs, mdl.evaluate(xs), ls=':', color='r', lw=1, label="Juergen")
 mdl["fraction"] = tmp
 
 print("N star from model: ",len(gi)*mdl["fraction"])
