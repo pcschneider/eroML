@@ -183,7 +183,9 @@ ax0.plot(xs, mdl.evaluate(xs), ls='-', color='r', lw=2, label="model")
 mdl["fraction"] = 0
 ax0.plot(xs, (1-tmp)*mdl.evaluate(xs), ls='--', color='r', lw=1, label="Random")
 
-mdl["fraction"] = 7.14*1e-2
+mdl["fraction"] = 6.76*1e-2
+ax0.plot(xs, mdl.evaluate(xs), ls=':', color='r', lw=1, label="Bayes Map")
+#mdl["fraction"] = 7.14*1e-2
 #ax0.plot(xs, mdl.evaluate(xs), ls=':', color='r', lw=1, label="Juergen")
 mdl["fraction"] = tmp
 

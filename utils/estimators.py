@@ -92,7 +92,8 @@ def sky_dens4coordinates(coord, around=4,auto_adjust=True,  verbose=1):
         print("sky_dens:: Using ",around," arcmin search radius:", np.nanmean(ret))
         print("sky_dens::        median number of stars in search radius: ",np.median(cnt-1).astype(int))
         print("sky_dens::        mean number of stars in search radius: ",np.mean(cnt-1).astype(int))
-    
+        print("sky_dens::        number of unique densities: ",len(np.unique(ret)))
+        
     #print(ret)
     print("sky_dens:: nanmean: ",np.nanmean(ret))
     return ret
@@ -290,3 +291,4 @@ if __name__ == "__main__":
     doctest.testmod()
     
   
+

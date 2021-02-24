@@ -110,13 +110,13 @@ def sky_density(e, around=5, filter_prop="eligible_Gaia", filter_value=1, out_co
     
     coord = e.skyCoords()[gi]
 
-    dens[gi] = sky_dens4coordinates(coord)
+    dens[gi] = sky_dens4coordinates(coord, around=around)
     
     if out_col not in e.known_cols: e.add_col(out_col, dens)
     else: e.set_col(out_col, dens)
     print("sky_dens::  outcol: ",out_col," nanmean: ",np.nanmean(dens))
     return e
-
+    
 
 
 @fits_support
@@ -159,11 +159,10 @@ def calc_gaia_quality(e, colname="Gaia_quality", overwrite=False, verbose=10, fi
  
  
 @fits_support
-def enrich_Gaia(e, filterNr=5, sky_density=True):
+def enrich_Gaia(e, filterNr=5, calc_sky_density=True):
     """
     Add G-band flux, compatibility with an isochrone, the `eligible` column, and the sky density of eligible sources
     """
-    print("using Gaia filter ",filterNr)
     arr = e.to_array(colnames=["phot_g_mean_mag"])
     FG = 10**(-0.4* arr["phot_g_mean_mag"])*1.01324e-5
     e.add_col("Fg", FG, force=True)
@@ -172,7 +171,7 @@ def enrich_Gaia(e, filterNr=5, sky_density=True):
     add_iso_column(e)        
     eligible_Gaia(e)
     
-    if sky_density:
+    if calc_sky_density:
         sky_density(e, around=3, filter_prop="eligible_Gaia", filter_value=1, out_col="eligible_sky_density")
     #sky_density(e, around=3, filter_prop=None, out_col="sky_density")
     return e

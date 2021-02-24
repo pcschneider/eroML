@@ -1,9 +1,9 @@
-Description of Tile module
+Tile
 ===========================
 
 .. autosummary::  eroML.tile
 
-Tile
+Tile class
 ------------------------------------
 .. automodule:: eroML.tile.main
     :members:

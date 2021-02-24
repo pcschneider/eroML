@@ -146,7 +146,7 @@ if (config["Classification"]["prepare"].lower() == "true" and args.steps==None) 
     prepare_classify(ifn, ofn=ofn, overwrite=ovwr)
     
  
-if config["Data preparation"]["fake_positions"].lower() == "true":
+if (config["Data preparation"]["fake_positions"].lower() == "true" and args.steps==None) or (args.steps and "Data_preparation/fake_positions" in args.steps[0]):
     fake_positions(cconfig=config)
 
 

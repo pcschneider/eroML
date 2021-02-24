@@ -9,6 +9,7 @@ from astropy.io import fits as pyfits
 
 
 conf_fn = "eRASS1_datasets_only.ini"
+conf_fn = "eFEDS_EDR3.ini"
 #tmp = read_config(conf_fn)
 
 #print(config)

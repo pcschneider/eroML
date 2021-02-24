@@ -149,7 +149,9 @@ running the script::
 
   simu_uniform.py
   
-  
+For the simulation, it is important to decide whether real and random sources
+have the same scaling with sky density, i.e., it is conceivable that the random
+sources scale with sky density while the real sources are uniformly distributed.
 
 The result of the simulation can be seen by invoking (in ``...eroML/positions/``)::
 
@@ -163,6 +165,8 @@ The result of the simulation can be seen by invoking (in ``...eroML/positions/``
 The ratio between real and random sources is shown by (in ``...eroML/positions/``)::
 
   p37 density_ratio.py
+  
+  
 
     
 

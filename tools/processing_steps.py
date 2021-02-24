@@ -4,9 +4,6 @@ from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
 from eroML.utils import enrich_Gaia, X_tile_loop, sky_density
 from eroML.utils import major_set, random_set, training_set
 from eroML.utils import file_loop_2to1
-from eroML.utils import Gaia_tile_loop
-from eroML.utils import enrich_Gaia
-#from eroML.utils import major_loop, random_loop, training_loop
 from eroML.utils import file_loop_1to1, shrink
 from eroML.utils import setup_logger
 import logging
@@ -196,6 +193,7 @@ def generate_training_sets(cconfig=None):
     file_loop_2to1(idx, prefix1=m_prex, postfix1=m_posx, prefix2=r_prex, postfix2=r_posx, ofn_prefix=t_prex, ofn_postfix=t_posx, abs_dist=ad, rel_dist=rd, method=training_set)
    
 
+
 def create_major_sets(cconfig=None):
     cconfig = custom_config(cconfig)
     
@@ -242,7 +240,6 @@ def create_random_sets(cconfig=None):
 def create_training_sets(cconfig=None):
     cconfig=custom_config(cconfig)
     
-
     idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     
     r_prex = cconfig["Datasets"]["directory"]+"/"+cconfig["Datasets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
@@ -265,6 +262,10 @@ def create_training_sets(cconfig=None):
         posx = ""
         file_loop_1to1(idx, prefix=prex, postfix=posx, method=shrink, ofn_prefix=prex, ofn_postfix=posx+sh,cols=cols)
     
+   
+    
+    
+    
     ad = float(cconfig["Data sets"]["training_abs_dist"])
     rd = float(cconfig["Data sets"]["training_rel_dist"])
     
@@ -281,6 +282,7 @@ def fake_positions(cconfig=None):
 
     random_pos(fn)
     
+#if config["Data sets"]["major"].lower()=="true":
     
     #healpix_file = config["Healpix"].get("pix_file", None)
     #index0 = config["Healpix"].getint("index0", 0)
