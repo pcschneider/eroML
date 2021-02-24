@@ -73,6 +73,7 @@ Reds = plt.get_cmap('Reds')
 
 
 dd = np.genfromtxt("params_scale.txt", unpack=False)
+dd = np.genfromtxt("params2.txt", unpack=False)
     #oo.write("#  0 - C\n")
     #oo.write("#  1 - class weight for class 0 \n")
     #oo.write("#  2 - i0: Stars as stellar recovered\n")

@@ -22,7 +22,6 @@ def repeat_fits(hdu, multi=10):
     cc = pyfits.ColDefs(cols)    
     xx = pyfits.BinTableHDU.from_columns(cc)
     xx.header = hdu.header
-    #print("repeat: ",NN0, len(xx.data["srcID"]))
     return xx
     
 
@@ -236,15 +235,7 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
     print("NN",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
     col = pyfits.Column(name="NN", array=arr, format=columns["NN"])    
     cols.append(col)        
-        
-
-  
-    
-    #arr = ff[extension].data["NN"]
-    #print("NN",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    #col = pyfits.Column(name="NN", array=arr, format=columns["NN"])    
-    #cols.append(col)        
-        
+                
     if "category" in ff[extension].data.columns.names:
         arr = ff[extension].data["category"]
         print("category",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
