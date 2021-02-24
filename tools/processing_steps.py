@@ -1,15 +1,9 @@
 from eroML.tile import loop, file4, merge_fits
 from eroML.tile import merger, add_healpix_col, hpix2process, generate_healpix_files
-<<<<<<< HEAD
 from eroML.utils import download_Gaia_tiles, Gaia_tile_loop
 from eroML.utils import enrich_Gaia, X_tile_loop, sky_density
 from eroML.utils import major_set, random_set, training_set
 from eroML.utils import file_loop_2to1
-=======
-from eroML.utils import Gaia_tile_loop
-from eroML.utils import enrich_Gaia, ero_tile_loop
-from eroML.utils import major_loop, random_loop, training_loop
->>>>>>> pcs
 from eroML.utils import file_loop_1to1, shrink
 from eroML.utils import setup_logger
 import logging
@@ -199,11 +193,7 @@ def generate_training_sets(cconfig=None):
     file_loop_2to1(idx, prefix1=m_prex, postfix1=m_posx, prefix2=r_prex, postfix2=r_posx, ofn_prefix=t_prex, ofn_postfix=t_posx, abs_dist=ad, rel_dist=rd, method=training_set)
    
 
-<<<<<<< HEAD
-def shrinking(cconfig=None):
-    cconfig = custom_config(cconfig)
 
-=======
 def create_major_sets(cconfig=None):
     cconfig = custom_config(cconfig)
     
@@ -250,12 +240,6 @@ def create_random_sets(cconfig=None):
 def create_training_sets(cconfig=None):
     cconfig=custom_config(cconfig)
     
->>>>>>> pcs
-    healpix_file = cconfig["Healpix"].get("pix_file", None)
-    index0 = cconfig["Healpix"].getint("index0", 0)
-    index1 = cconfig["Healpix"].getint("index1", None)
-
-<<<<<<< HEAD
     idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     
     r_prex = cconfig["Datasets"]["directory"]+"/"+cconfig["Datasets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
@@ -279,21 +263,7 @@ def create_training_sets(cconfig=None):
         file_loop_1to1(idx, prefix=prex, postfix=posx, method=shrink, ofn_prefix=prex, ofn_postfix=posx+sh,cols=cols)
     
    
-#if config["Datasets"]["major"].lower()=="true":
-=======
-    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     
-    # random
-    r_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    r_posx = ""
-    
-    #major
-    m_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["major_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    m_posx = ""
-    
-    #training
-    t_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["training_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    t_posx = ""
     
     
     ad = float(cconfig["Data sets"]["training_abs_dist"])
@@ -313,7 +283,6 @@ def fake_positions(cconfig=None):
     random_pos(fn)
     
 #if config["Data sets"]["major"].lower()=="true":
->>>>>>> pcs
     
     #healpix_file = config["Healpix"].get("pix_file", None)
     #index0 = config["Healpix"].getint("index0", 0)

@@ -158,7 +158,7 @@ def calc_gaia_quality(e, colname="Gaia_quality", overwrite=False, verbose=10, fi
  
  
 @fits_support
-def enrich_Gaia(e, filterNr=5, sky_density=True):
+def enrich_Gaia(e, filterNr=5, calc_sky_density=True):
     """
     Add G-band flux, compatibility with an isochrone, the `eligible` column, and the sky density of eligible sources
     """
@@ -170,7 +170,7 @@ def enrich_Gaia(e, filterNr=5, sky_density=True):
     add_iso_column(e)        
     eligible_Gaia(e)
     
-    if sky_density:
+    if calc_sky_density:
         sky_density(e, around=3, filter_prop="eligible_Gaia", filter_value=1, out_col="eligible_sky_density")
     #sky_density(e, around=3, filter_prop=None, out_col="sky_density")
     return e
