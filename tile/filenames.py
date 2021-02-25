@@ -44,9 +44,18 @@ def file4(which, cconfig=None):# which=""):
       - major 
       - training
       - random
-      
+    
+    Example::
+    
+        from eroML.tile import file4
+        fn = file4("major", cconfig="eFEDS_EDR3.ini")
+        print(fn)
+    
     Parameters
     ----------
+    which : str (see above)
+    cconfig : str
+        Filename for config file
     
     Returns  
     -------

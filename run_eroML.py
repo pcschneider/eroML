@@ -12,7 +12,7 @@ from eroML.utils import setup_logger
 from eroML.tools import calculate_healpix,prepare_Gaia_data, perform_Gaia_download
 from eroML.tools import generate_ero_tiles, perform_ero_data_preparation
 from eroML.tools import create_major_sets, create_random_sets, create_training_sets
-from eroML.tools import fake_positions
+from eroML.tools import fake_positions, generate_major_sets, shrinking
 import glob
 from classify import prepare_classify
 
@@ -88,10 +88,10 @@ if (config["Datasets"]["random"].lower()=="true" and args.steps==None) or (args.
     logger.debug("Generating random sets")
     generate_random_sets(cconfig=config)
 
-
 if (config["Datasets"]["training"].lower()=="true" and args.steps==None) or (args.steps and "Datasets/training" in args.steps[0]):
     logger.debug("Generating training sets.")
     generate_training_sets(cconfig=config)
+
     
 if (config["Merging"]["shrink"].lower()=="true" and args.steps==None) or (args.steps and "Merging/shrink" in args.steps[0]):
     logger.debug("Shrinking files.")    
