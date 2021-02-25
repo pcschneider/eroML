@@ -25,7 +25,7 @@ def X_tile_loop(idx, prefix=None, postfix=None):
             logger.debug("Trying eROSITA source file...")
             e = from_fits(fn, mapper={"DETUID":"srcID", "RA_CORR":"RA", "DEC_CORR":"Dec"})
             e.instrument = "eROSITA"
-            logger.debug("Successfully read regular eROSITA file: \'%s'\." % fn)
+            logger.debug("Successfully read regular eROSITA file: \'%s\'." % fn)
         except Exception as ee:
             print("Except: ",ee)
             logger.debug("Not an original eROSITA source file (%s)" % fn)

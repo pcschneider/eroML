@@ -9,7 +9,7 @@ from eroML.tile import merge_fits#, add_healpix_col, hpix2process, generate_heal
 #from eroML.utils import major_loop, random_loop, training_loop
 #from eroML.utils import file_loop_1to1, shrink
 from eroML.utils import setup_logger
-from eroML.tools import calculate_healpix,prepare_Gaia_data, perform_Gaia_download
+from eroML.tools import calculate_healpix,prepare_Gaia_data, perform_Gaia_download,calculate_Gaia_sky_density
 from eroML.tools import generate_ero_tiles, perform_ero_data_preparation
 from eroML.tools import create_major_sets, create_random_sets, create_training_sets
 from eroML.tools import fake_positions, generate_major_sets, shrinking

@@ -103,12 +103,12 @@ def file4(which, cconfig=None):# which=""):
         return ff4idx(prex, posx)
              
     elif which=="major_tiles":
-        prex = config["Datasets"]["directory"]+"/"+config["Data sets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = ""
         return ff4idx(prex, posx)
     
     elif which=="random_tiles":
-        prex = config["Data sets"]["directory"]+"/"+config["Datasets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+        prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
         posx = ""
         return ff4idx(prex, posx)
     

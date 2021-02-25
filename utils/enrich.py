@@ -190,9 +190,7 @@ def enrich_eROSITA(e):
       - ref_epoch
     """
     err = e.to_array(colnames="RADEC_ERR", array_type="array")
-    err[err<1.] = 1.
-    e.set_col("RADEC_ERR", err)
-
+    
     Fx = e.to_array(colnames="ML_FLUX_0", array_type="array")
     
     R1 = e.to_array(colnames="ML_RATE_1", array_type="array")
@@ -212,6 +210,10 @@ def enrich_eROSITA(e):
     e.add_col("ref_epoch", np.ones(len(err))*2019.85) # eFEDS: 2019.85
     
     eligible_eROSITA(e)    
+    
+    err[err<1.] = 1.
+    e.set_col("RADEC_ERR", err)
+
     return e
 
 
