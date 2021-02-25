@@ -15,7 +15,7 @@ def X_tile_loop(idx, prefix=None, postfix=None):
     for j, i in enumerate(idx):
         print()
         fn = prefix+str(i)+postfix+'.fits'
-        logger.info("Enriching X-ray tile: %s (file %i/%i." % (fn, j+1, len(idx))) 
+        logger.info("Enriching X-ray tile: %s (file %i/%i)." % (fn, j+1, len(idx))) 
         
         
         
