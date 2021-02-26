@@ -12,7 +12,7 @@ from eroML.utils import setup_logger
 from eroML.tools import calculate_healpix,prepare_Gaia_data, perform_Gaia_download,calculate_Gaia_sky_density
 from eroML.tools import generate_ero_tiles, perform_ero_data_preparation
 from eroML.tools import create_major_sets, create_random_sets, create_training_sets
-from eroML.tools import fake_positions, generate_major_sets, shrinking
+from eroML.tools import fake_positions, generate_major_sets, shrinking, generate_random_sets, generate_training_sets
 import glob
 from classify import prepare_classify
 

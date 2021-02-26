@@ -104,17 +104,28 @@ as ``colname``.
              This step is required to work on the full data 
          
 2. Generate data sets        
-    a. *[Data sets][major]*: :func:`~eroML.utils.datasets.major_set`
+    a. *[Datasets][major]*: :func:`~eroML.utils.datasets.major_set`
         Perform the positional matching up the 3. nearest neighbour.
         
         Extra columns: ``offset_sig``, ``match_dist``
         
         Plus the columns from the eROSITA and Gaia files. 
     
-    b. Random set
-    c. Training set
+    b. *[Datasets][random]*: :func:`~eroML.utils.datasets.random_set`
+        Shift each eROSITA source by a random distance and direction.
+        The offset is controlled by [Datasets][(min/max)_random_offset] and the 
+        number of shifts (replications) for each source are controlled by [Datasets][random_multi]
+        
+        Columns are the same as before, but sources get a modified``srcID`` by appending *_rnd[1...random_multi]*.
+        
+    c. *[Dataset][training]*: :func:`~eroML.utils.datasets.training_set`
+        Select counterparts within certain criteria to construct a training set.
 
-
+        Extra column: ``category`` (see `Object Classes`_.)
+        "training_abs_dist"])
+    rd = float(cconfig["Datasets"]["training_rel_dist"])
+        
+        
 3. (Position) Matching
     a. True eROSITA sources
     b. Random sources (N times)

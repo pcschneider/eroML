@@ -144,7 +144,9 @@ def major_set(ero, gaia, eligible_ero="eligible_X", eligible_gaia="eligible_Gaia
 
 @multi_fits_support(3)
 def training_set(major0, random0, abs_dist=3, rel_dist=2):
-    
+    """
+    Construct a training set 
+    """
     major = copy.deepcopy(major0)
     random = copy.deepcopy(random0)
     
