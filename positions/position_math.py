@@ -47,30 +47,30 @@ def generate_random_densities(N0, N1, dens0=0.1, dens1=1, dens_scaling='uniform'
         
 
 
-def analytic_probability(match_dist=None, sigma=None, sky_density=None, ps=0.1, N0=1):
+def analytic_probability(match_dist=None, sigma=None, sky_density=None, ps=0.1):
     """
     Calculate the analytic probability for a correct identification based
     on match distance, positional uncertainty (sigma), and local 
-    sky density.
+    sky density. Considers only nearest neighbour.
     
     Parameters
     ----------
     match_dist : float (or array of float)
         Distance between catalog entries in arcsec
     sigma : float (or array of float)
-        Estimated positional uncertainty
+        Estimated positional uncertainty (in arcsec)
     sky_density : float (or array of float)
         Density of sources in #objects/arcmin^2
     ps : float
         Stellar fraction (Bayes factor)
-    N0 : int
-        Number of sources in match catalog
         
     Returns
     -------
     probabilities : float (or array of float)
-    """
     
+    """
+    N0 = 41253 * 3600 * sky_density
+    # sky area: 41,253 deg^2
     
     s = sigma / (3600 * 180/np.pi)
     md = match_dist / (3600 * 180/np.pi)

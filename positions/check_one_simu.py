@@ -91,7 +91,7 @@ def sp(x, y, gi, xl="sigma", yl="match_dist"):
 
 fn0 = "simu.dat"
 fn0 = "../offs2.dat"
-fn0 = "../offs3.dat"
+fn0 = "../offs4.dat"
 
 #------------------------------
 #sigout, pos_off, skdens, nth, cls
@@ -99,9 +99,11 @@ fn0 = "../offs3.dat"
 dd0 = np.genfromtxt(fn0, unpack=True)
 
 giNN = np.where(dd0[3]==1)[0]
-gi0 = np.where((dd0[3]==1) & (dd0[4] ==0 ))[0] # dd[3] = NN, dd[4] = class (0=real)
+gi0 = np.where(dd0[4][giNN] ==0 )[0] # dd[3] = NN, dd[4] = class (0=real)
+#gi0 = np.where(dd0[3]==1)[0]
 
-sp(dd0[2][giNN], dd0[1][giNN], gi0, xl="Sky Density")
+#sp(dd0[2][giNN], dd0[1][giNN], gi0, xl="Sky Density")
+sp(dd0[0][giNN], dd0[1][giNN], gi0, xl="sigma")
 
 plt.legend()
 #plt.xlabel("Match Distance (arcsec)")

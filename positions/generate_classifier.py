@@ -29,6 +29,8 @@ scoring = make_scorer(my_custom_loss_func, greater_is_better=False)
 fn = "../offs3.dat"
 #fn = "../offs2.dat"
 #fn = "simu.dat"
+print("Reading property data ",fn)
+
 
 #mfn = 'svc_linear.joblib'
 mfn = 'svc.joblib'
@@ -61,7 +63,8 @@ train_index = np.random.choice(np.arange(N), N, replace=False)
 ##clf = svm.SVC(C=65, kernel='linear', probability=True, degree=2, class_weight={0: 0.33}, cache_size=2000)
 #clf = svm.SVC(C=65, probability=False, kernel='poly', degree=3 ,class_weight={0: 1.0}, gamma=3e-4)
 #clf = svm.SVC(C=50, kernel='poly', degree=3)
-clf = Pipeline(steps=[('scale',  FunctionTransformer(func=scaler, kw_args={"factor":1, "axis":1})), ('clf', svm.SVC(C=0.5, class_weight={0: 1.15}, cache_size=2000))])
+clf = Pipeline(steps=[('scale',  FunctionTransformer(func=scaler, kw_args={"factor":1, "axis":1})), ('clf', svm.SVC(C=0.5, class_weight={0: 0.36}, cache_size=2000))])
+#weight: 1.15
 
 #clf = Pipeline(steps=[('poly', PolynomialFeatures(4)), ('clf', svm.LinearSVC(C=1,class_weight={0: 3.2}, max_iter=10000, dual=False))])
 #clf = LogisticRegression(C=1, penalty='l2', solver='saga', multi_class='multinomial', max_iter=10000,class_weight={0: 1.5})

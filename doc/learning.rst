@@ -127,7 +127,37 @@ for random matches. Therefore, the peak is at
           \end{array}
           \right.
     
+The geomteric Bayes Factor    
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The geometric Bayes factor is
+
+.. math::
+
+    \begin{eqnarray}
+        tmp & = & \frac{ps}{1-ps} \frac{1}{N_0}\frac{2}{\sigma^2} e^{-\frac{r^2 }{2* \sigma^2}}\\
+        p_{stellar} & = & \frac{tmp}{1+tmp} \\
+        & = & \frac{\frac{ps}{1-ps} \frac{1}{N_0}\frac{2}{\sigma^2} e^{-\frac{r^2 }{2* \sigma^2}}}{1+ \frac{ps}{1-ps} \frac{1}{N_0}\frac{2}{\sigma^2} e^{-\frac{r^2 }{2* \sigma^2}}}\\
+        & = &\left( \frac{ \frac{p_s}{N_0}\frac{2}{\sigma^2} e^{-\frac{r^2 }{2* \sigma^2}}}{\frac{p_s}{N_0}\frac{2}{\sigma^2} e^{-\frac{r^2 }{2* \sigma^2}} + (1-ps)} \right) \\
+    \end{eqnarray}
+  
+where :math:`ps` is the stellar fraction (catalog fraction), :math:`N_0` the number of entries in the 
+match catalog, :math:`\sigma` the positional uncertainty, and :math:`r` is the match distance.
+Within this context :math:`N_0` can be expressed as :math:`N_0 = \eta A` with the sky density :math:`\eta` and area :math:`A`.
+The general Bayes factor is then:
+
+.. math::
+
+    \begin{eqnarray}
+      P(H_{lj} \vert D_l) & = & \frac{P(D_l \vert H_{lj}) P(H_{lj})}{\sum_{i=0}^{N_0} P(D_l\vert H_{li}) P(H_{li})} \\
+                          & =  & \frac{P(D_l \vert H_{lj}) P(H_{lj})}{\sum_{i=1}^{N_0} P(D_l\vert H_{li}) P(H_{li}) +   \left( 1 - p_s  p_r \right)}\\
+                          & = & \frac{\frac{2 }{\sigma_l^2 }  e^{- \frac{r_{lj}^2 }{2* \sigma_l^2}}  \left(\frac{p_s p_r}{\eta A}\right)}{\sum_{i=0}^{N_0} \frac{2 }{\sigma_l^2 } e^{-\frac{r_{lj}^2 }{2* \sigma_l^2}}  \left(\frac{p_s p_r}{\eta A} \right)+ \left( 1 - p_s  p_r \right)} \\
+                          & = & \frac{\frac{2 }{\sigma_l^2 }  e^{- \frac{r_{lj}^2 }{2* \sigma_l^2}}  \left(\frac{1}{\eta A}\right)}{\sum_{i=0}^{N_0} \frac{2 }{\sigma_l^2 } e^{-\frac{r_{lj}^2 }{2* \sigma_l^2}}  \left(\frac{1}{\eta A} \right)+ \left(\frac{ 1 - p_s  p_r}{p_s p_r} \right)}
+    \end{eqnarray}
+
+where :math:`p_r` is the probability that the X-ray source is real (and not a random background fluctuation).
     
+
 Implementation
 ~~~~~~~~~~~~~~
 

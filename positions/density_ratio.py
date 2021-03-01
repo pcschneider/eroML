@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KernelDensity
 from sklearn import mixture
+from eroML.positions import analytic_probability
+
 
 def one_ratio(x0, y0, x1, y1, ax=None, scaling='number'):
     if ax is None: ax=plt.gca()
@@ -99,7 +101,7 @@ def one_ratio(x0, y0, x1, y1, ax=None, scaling='number'):
     return ax
     #plt.show()
 
-sfn = "../offs2.dat"
+sfn = "../offs3.dat"
 #sfn = "simu.dat"
 print("Reading sfn=",sfn)
 dd = np.genfromtxt(sfn, unpack=True)
@@ -109,8 +111,17 @@ dd = np.genfromtxt(sfn, unpack=True)
 gi0 = np.where(dd[4]==0)[0]
 gi1 = np.where(dd[4]>0)[0]
 ax = one_ratio(dd[0][gi0], dd[1][gi0], dd[0][gi1], dd[1][gi1], scaling='number')
+#print(ax.vmin)
+#1:"offset", 2:"sky_dens", 0:"sig"
+
+
+cs = plt.gca().contour(xv, yv, pp)
+
 plt.title(sfn)
 #plt.show()
+#plt.figure()
+#plt.hist(np.log(pp))
+
 plt.figure()
 sfn = "simu.dat"
 dd1 = np.genfromtxt(sfn, unpack=True)
