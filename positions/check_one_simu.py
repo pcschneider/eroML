@@ -99,6 +99,7 @@ fn0 = "../offs4.dat"
 dd0 = np.genfromtxt(fn0, unpack=True)
 
 giNN = np.where(dd0[3]==1)[0]
+print("Number of nearest neighbours: ",len(giNN))
 gi0 = np.where(dd0[4][giNN] ==0 )[0] # dd[3] = NN, dd[4] = class (0=real)
 #gi0 = np.where(dd0[3]==1)[0]
 

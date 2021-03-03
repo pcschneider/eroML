@@ -194,168 +194,83 @@ def generate_training_sets(cconfig=None):
    
 
 
-def create_major_sets(cconfig=None):
-    cconfig = custom_config(cconfig)
+#def preprocess_major_sets(cconfig=None):
+    #cconfig = custom_config(cconfig)
     
-    healpix_file = cconfig["Healpix"].get("pix_file", None)
-    index0 = cconfig["Healpix"].getint("index0", 0)
-    index1 = cconfig["Healpix"].getint("index1", None)
+    #healpix_file = cconfig["Healpix"].get("pix_file", None)
+    #index0 = cconfig["Healpix"].getint("index0", 0)
+    #index1 = cconfig["Healpix"].getint("index1", None)
 
-    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
-    g_prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    g_posx = ""
-    
-    e_prex = cconfig["eROSITA preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    e_posx = ""
-    
-    m_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["major_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    m_posx = ""
-    
-    major_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, major_prefix=m_prex, major_postfix=m_posx)
-    
-
-def create_random_sets(cconfig=None):
-    cconfig = custom_config(cconfig)
-    
-    healpix_file = cconfig["Healpix"].get("pix_file", None)
-    index0 = cconfig["Healpix"].getint("index0", 0)
-    index1 = cconfig["Healpix"].getint("index1", None)
-
-    idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
-    g_prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    g_posx = ""
-    
-    e_prex = cconfig["eROSITA preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    e_posx = ""
-    
-    r_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    r_posx = ""
-    
-    mino = float(cconfig["Data sets"]["min_random_offset"])
-    maxo = float(cconfig["Data sets"]["max_random_offset"])
-    multi= int(cconfig["Data sets"]["random_multi"])
-    logger.debug("Random data sets for %i tiles." % len(idx))
-    random_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, random_prefix=r_prex, random_postfix=r_posx, min_offset=mino, max_offset=maxo, multi=multi)
-    
-def create_training_sets(cconfig=None):
-    cconfig=custom_config(cconfig)
-    
-    idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
-    
-    r_prex = cconfig["Datasets"]["directory"]+"/"+cconfig["Datasets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    r_posx = ""
-    
-    #major
-    m_prex = cconfig["Datasets"]["directory"]+"/"+cconfig["Datasets"]["major_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    m_posx = ""
-    
-    #training
-    t_prex = cconfig["Datasets"]["directory"]+"/"+cconfig["Datasets"]["training_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-    t_posx = ""
- 
-    sh = cconfig["Merging"]["shrink_postfix"]
-    cols = cconfig["Columns"]["keep"].split(",")
-    #print("cols: ",cols)
-    
-    for tt in ["training","major","random"]:
-        prex = cconfig["Datasets"]["directory"]+"/"+cconfig["Datasets"][tt+"_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
-        posx = ""
-        file_loop_1to1(idx, prefix=prex, postfix=posx, method=shrink, ofn_prefix=prex, ofn_postfix=posx+sh,cols=cols)
-    
-   
-    
-    
-    
-    ad = float(cconfig["Data sets"]["training_abs_dist"])
-    rd = float(cconfig["Data sets"]["training_rel_dist"])
-    
-    logger.debug("Random data sets for %i tiles." % len(idx))
-    training_loop(idx, major_prefix=m_prex, major_postfix=m_posx, random_prefix=r_prex, random_postfix=r_posx, training_prefix=t_prex, training_postfix=t_posx, abs_dist=ad, rel_dist=rd)
-
-def fake_positions(cconfig=None):
-    cconfig=custom_config(cconfig)
-    
-    
-    fn = file4("training", cconfig=cconfig)  
-    logger.debug("Generating random positions for training set ('%s')." % fn)
-    from eroML.tools import random_pos
-
-    random_pos(fn)
-    
-#if config["Data sets"]["major"].lower()=="true":
-    
-    #healpix_file = config["Healpix"].get("pix_file", None)
-    #index0 = config["Healpix"].getint("index0", 0)
-    #index1 = config["Healpix"].getint("index1", None)
-
-    #idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
-    #g_prex = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    #idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    #g_prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     #g_posx = ""
     
-    #e_prex = config["eROSITA preparation"]["directory"]+"/"+config["eROSITA preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    #e_prex = cconfig["eROSITA preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     #e_posx = ""
     
-    #m_prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    #m_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["major_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     #m_posx = ""
     
-    #logger.debug("Major sets for %i tiles." % len(idx))
     #major_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, major_prefix=m_prex, major_postfix=m_posx)
     
-        
 
-
-#if config["Datasets"]["random"].lower()=="true":
+#def preprocess_random_sets(cconfig=None):
+    #cconfig = custom_config(cconfig)
     
-    #healpix_file = config["Healpix"].get("pix_file", None)
-    #index0 = config["Healpix"].getint("index0", 0)
-    #index1 = config["Healpix"].getint("index1", None)
+    #healpix_file = cconfig["Healpix"].get("pix_file", None)
+    #index0 = cconfig["Healpix"].getint("index0", 0)
+    #index1 = cconfig["Healpix"].getint("index1", None)
 
-    #idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
-    #g_prex = config["Gaia Download"]["directory"]+"/"+config["Gaia Download"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    #idx = hpix2process(cconfig["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    #g_prex = cconfig["Gaia Download"]["directory"]+"/"+cconfig["Gaia Download"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     #g_posx = ""
     
-    #e_prex = config["eROSITA preparation"]["directory"]+"/"+config["eROSITA preparation"]["prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    #e_prex = cconfig["eROSITA preparation"]["directory"]+"/"+cconfig["eROSITA preparation"]["prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     #e_posx = ""
     
-    #r_prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    #r_prex = cconfig["Data sets"]["directory"]+"/"+cconfig["Data sets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     #r_posx = ""
     
-    #mino = float(config["Datasets"]["min_random_offset"])
-    #maxo = float(config["Datasets"]["max_random_offset"])
-    #multi= int(config["Datasets"]["random_multi"])
+    #mino = float(cconfig["Data sets"]["min_random_offset"])
+    #maxo = float(cconfig["Data sets"]["max_random_offset"])
+    #multi= int(cconfig["Data sets"]["random_multi"])
     #logger.debug("Random data sets for %i tiles." % len(idx))
     #random_loop(idx, ero_prefix=e_prex, ero_postfix=e_posx, gaia_prefix=g_prex, gaia_postfix=g_posx, random_prefix=r_prex, random_postfix=r_posx, min_offset=mino, max_offset=maxo, multi=multi)
     
-
-
-
-
-#if config["Datasets"]["training"].lower()=="true":
+#def preprocess_training_sets(cconfig=None):
+    #cconfig=custom_config(cconfig)
     
-    #healpix_file = config["Healpix"].get("pix_file", None)
-    #index0 = config["Healpix"].getint("index0", 0)
-    #index1 = config["Healpix"].getint("index1", None)
-
-    #idx = hpix2process(config["Sources"]["ero_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
+    #idx = hpix2process(cconfig["Sources"]["X_filename_hp"], index0=index0, index1=index1, pix_file=healpix_file)
     
-    ## random
-    #r_prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["random_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    #r_prex = cconfig["Datasets"]["directory"]+"/"+cconfig["Datasets"]["random_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     #r_posx = ""
     
     ##major
-    #m_prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["major_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    #m_prex = cconfig["Datasets"]["directory"]+"/"+cconfig["Datasets"]["major_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     #m_posx = ""
     
     ##training
-    #t_prex = config["Datasets"]["directory"]+"/"+config["Datasets"]["training_prefix"]+"_nside"+config["Healpix"]["nside"]+"_"
+    #t_prex = cconfig["Datasets"]["directory"]+"/"+cconfig["Datasets"]["training_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
     #t_posx = ""
+ 
+    #sh = cconfig["Merging"]["shrink_postfix"]
+    #cols = cconfig["Columns"]["keep"].split(",")
+    ##print("cols: ",cols)
     
+    #for tt in ["training","major","random"]:
+        #prex = cconfig["Datasets"]["directory"]+"/"+cconfig["Datasets"][tt+"_prefix"]+"_nside"+cconfig["Healpix"]["nside"]+"_"
+        #posx = ""
+        #file_loop_1to1(idx, prefix=prex, postfix=posx, method=shrink, ofn_prefix=prex, ofn_postfix=posx+sh,cols=cols)
     
-    #ad = float(config["Datasets"]["training_abs_dist"])
-    #rd = float(config["Datasets"]["training_rel_dist"])
+    #ad = float(cconfig["Data sets"]["training_abs_dist"])
+    #rd = float(cconfig["Data sets"]["training_rel_dist"])
     
     #logger.debug("Random data sets for %i tiles." % len(idx))
     #training_loop(idx, major_prefix=m_prex, major_postfix=m_posx, random_prefix=r_prex, random_postfix=r_posx, training_prefix=t_prex, training_postfix=t_posx, abs_dist=ad, rel_dist=rd)
+
+
+    
+
 
 def shrinking(cconfig=None):
     cconfig = custom_config(cconfig)
@@ -377,32 +292,4 @@ def shrinking(cconfig=None):
         posx = ""
         file_loop_1to1(idx, prefix=prex, postfix=posx, method=shrink, ofn_prefix=prex, ofn_postfix=posx+sh,cols=cols)
     
-    
-#if config["Merging"]["major"].lower() == "true":
-    #if config["Merging"]["shrink"].lower()=="true":
-        #which = "major_tiles_small"
-    #else:
-        #which = "major_tiles"
-    #ofn = file4("major")    
-    #fnames = file4(which)
-    #merge_fits(fnames, ofn=ofn)
-
-#if config["Merging"]["random"].lower() == "true":
-    #if config["Merging"]["shrink"].lower()=="true":
-        #which = "random_tiles_small"
-    #else:
-        #which = "random_tiles"
-    #ofn = file4("random")    
-    #fnames = file4(which)
-    #merge_fits(fnames, ofn=ofn)
-    
-#if config["Merging"]["training"].lower() == "true":
-    #if config["Merging"]["shrink"].lower()=="true":
-        #which = "training_tiles_small"
-    #else:
-        #which = "training_tiles"
-    #ofn = file4("training")    
-    #fnames = file4(which)
-    #merge_fits(fnames, ofn=ofn)    
-
     

@@ -107,7 +107,70 @@ def gen_real_pos_offset(N=None, sigma=1.):
     
     rnd = np.random.rand(N)
     rndx = np.sqrt(2*sigma**2 * (-np.log(1-rnd)))
+    
+    
     return rndx
+
+
+def add_random2real(real=None, skd=1, max_dist=60, verbose=1):
+    """
+    Create a tuple with real and random sources. Most importantly, calculate
+    nearest neighbour (NN).
+    
+    Parameters
+    ----------
+    real : array of float 
+        Offsets for presumably real sources
+    skd : array of float (same length as 'real')
+        Sky density (in units of stars/arcmin^2)
+    max_dist : float
+        Maximum match distance (in arcsec)
+        
+    Returns
+    -------
+    simulated data : tuple of arrays
+        offs, dens, group, nth, class
+    """
+    N = len(real)
+    print("Generating random sources for %i real sources." % N)
+    offs, dens, group, nth = random4dens(skd, max_dist=max_dist) 
+    Nrnd = len(offs)
+    
+    out_offs = np.zeros(N+Nrnd)
+    out_dens = np.zeros(N+Nrnd)
+    out_group = np.zeros(N+Nrnd)
+    out_nth = np.zeros(N+Nrnd)
+    out_cls = np.ones(N+Nrnd)
+    
+    i0, i1 = 0, None
+    for i in range(N):
+        left = np.searchsorted(group, i)
+        right = np.searchsorted(group, i, side='right')
+        Ngrp = right-left
+        i1 = i0+Ngrp+1
+        all_dists = np.concatenate(([real[i]], offs[left:right]))
+        
+        
+        out_offs[i0:i1] = all_dists
+        out_dens[i0:i1] = skd[i]
+        out_group[i0:i1] = i
+        out_nth[i0:i1] = np.argsort(np.argsort(all_dists))+1
+        out_cls[i0] = 0
+        out_cls[(i0+1):i1] = 2
+        
+        if verbose>1:
+            print(left, right, "i",i, "NN max: ",Ngrp, "(i0, i1: ",i0,i1,')')
+            if Ngrp>0:
+                print(" grp: ",group[left], group[right-1], " - ", group[left:right], nth[left:right])
+                print("   offs: ",offs[left:right], "real: ",real[i])
+            print(out_offs[i0:i1], out_dens[i0:i1], out_group[i0:i1], out_nth[i0:i1], out_cls[i0:i1])
+            print()
+            
+        
+        i0 = i1
+                   
+    print("nth: ",out_nth)
+    return out_offs, out_dens, out_group, out_nth, out_cls
 
 def Nexp4dens(dens, max_dist=60):
     """
@@ -127,6 +190,15 @@ def Nexp4dens(dens, max_dist=60):
     """
     Ni = dens/3600*max_dist**2*np.pi
     return np.sum(Ni)
+
+def calc_sigma_from_RADEC_ERR(RADEC_ERR):
+    """
+    Calculate the sigma for the Rayleigh distribution
+    """
+    tmp = np.sqrt((RADEC_ERR**2 + 0.7**2)/2)
+    return tmp
+
+    
 
 def random4dens(dens, max_dist=60):
     """

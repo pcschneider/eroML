@@ -7,7 +7,7 @@ from eroML.config import *
 import argparse
 import os
 from astropy.io import fits as pyfits
-from eroML.positions import gen_random_pos_offset, gen_real_pos_offset, random4dens, Nexp4dens
+from eroML.positions import gen_random_pos_offset, gen_real_pos_offset, random4dens, Nexp4dens, calc_sigma_from_RADEC_ERR,add_random2real
 
 
 def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
@@ -52,9 +52,10 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     i = np.random.choice(gi, size=N)
     try:
         SIG = ffd["sigma_r"][i]
-        print("XXX")
+        print("Using 'sigma_r' as sigma.")
     except KeyError:
-        SIG = ffd["RADEC_ERR"][i]
+        SIG = calc_sigma_from_RADEC_ERR(ffd["RADEC_ERR"][i])
+        print("Converting 'RADEC_ERR' to our sigma.")
     except:
         print("Cannot read positional error from \'%s\', aborting..." % mfn)
     #SIG[SIG>11] = 11
@@ -69,20 +70,29 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     print("Mean, median \'skd\': %6.3f, %6.3f [eligible sources/arcmin^2]" % (np.mean(sk), np.median(sk)))
     
     md = ffd["match_dist"][i]
-    print("Mean, median \'match_dist\': %6.3f, %6.3f [eligible sources/arcmin^2]" % (np.mean(md), np.median(md)))
+    print("Mean, median \'match_dist\': %6.3f, %6.3f [arcsec]" % (np.mean(md), np.median(md)))
     
     Nrnd = np.sum((sk[i]/3600)*np.pi*md**2)
-    print("Resulting in %i expected random sources (Nrandom/Nreal: %6.3f), simulating %i random sources." % (Nrnd, Nrnd/N, rnd_factor*Nrnd))
+    print("Resulting in %i expected random sources (Nrandom/Nreal: %6.3f within match_dist), simulating %i random sources for 'rnf_factor'=%6.3f." % (Nrnd, Nrnd/N, rnd_factor*Nrnd, rnd_factor))
     Nrnd = round(N)
 
 
     #rnd_offs = gen_random_pos_offset(dens=sk)
-    real_offs = gen_real_pos_offset(sigma=SIG*0.6)
+    real_offs = gen_real_pos_offset(sigma=SIG)
+    print("Number of real sources: ",len(real_offs))
+    real_n_rand = add_random2real(real=real_offs, skd=sk[i]* dens_scaling, max_dist=max_dist)
+    real_n_rand_sig = SIG[real_n_rand[2].astype(int)]
+    iii = np.where(real_n_rand[3] == 1)[0]
+    print("Number of unique real sources: ",len(iii), " number of simulated entries within max_dist=",max_dist," arcsec: ",len(real_n_rand[3]))
+    
+    iii = np.where((real_n_rand[3] == 1) & (real_n_rand[4]==0))[0]
+    print("number of real sources being nearest neighbour", len(iii))
     
     dens = sk[i]
     Nexp = Nexp4dens(dens*dens_scaling, max_dist=max_dist)
    
     Ndens = floor(Nexp * rnd_factor)
+    Ndens = floor(N * rnd_factor)
     #ggg = np.where()
     ii = np.random.choice(len(sk), Ndens)
     dens = sk[ii]
@@ -91,7 +101,7 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     rand_offs = random4dens(dens=dens* dens_scaling)
     
     
-    print(np.shape(rand_offs))
+    #print(np.shape(rand_offs))
     #for j in range(4):
         #print(j, len(rand_offs[j]))
     #sk_simu = np.repeat(sk,3)
@@ -101,32 +111,38 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     #sig = ffd[
     #i = np.random.choice(gi, size=N)
     try:
-        sig = ffd["sigma_r"][sigi]
-        print("XXX")
+        rand_sig = ffd["sigma_r"][sigi]
     except KeyError:
-        sig = ffd["RADEC_ERR"][sigi]
-        
-    sig_simu = np.concatenate((SIG,sig))
+        rand_sig = calc_sigma_from_RADEC_ERR(ffd["RADEC_ERR"][sigi])
+        print("Converting 'RADEC_ERR' to our sigma.")
+
+    
+    iii = np.where(rand_offs[3] == 1)[0]
+    print("Number of unique random sources: ",len(iii))
+    
+    #sig_simu = np.concatenate((SIG,sig))
 
 
-    #pos_off = np.zeros((Nreal+Nrnd)
-    #skdens = np.zeros((Nreal+Nrnd)*len(sk_array))
-    cls = np.zeros(len(sig_simu))
-    cls[0:N] = 0
-    cls[N::] = 1
+    ##pos_off = np.zeros((Nreal+Nrnd)
+    ##skdens = np.zeros((Nreal+Nrnd)*len(sk_array))
+    #cls = np.zeros(len(sig_simu))
+    #cls[0:N] = 0
+    #cls[N::] = 2
 
     #tmp0 = gen_real_pos_offset(N, sig=SIG)
     #tmp1 = gen_random_pos_offset(Nrnd, dens=sk_simu)
-    pos_off = np.concatenate((real_offs, rand_offs[0]))
-    skdens = np.concatenate((sk[i], rand_offs[1]))
-    sigout = sig_simu
-    nth = np.ones(len(sigout))
-    nth[N:] = rand_offs[3]
-    k = np.repeat([key], len(nth))
+    pos_off = np.concatenate((real_n_rand[0], rand_offs[0]))
+    skdens = np.concatenate((real_n_rand[1], rand_offs[1]))
+    sigout = np.concatenate((real_n_rand_sig, rand_sig))
+    nth = np.concatenate((real_n_rand[3], rand_offs[3]))
+    cls = np.concatenate((real_n_rand[4], len(rand_sig)*[2]))
+    
+    k = np.repeat([key], len(pos_off))
     
     oo = np.transpose([sigout, pos_off, skdens, nth, cls, k])
     print(oo[0].shape, oo[1].shape, oo[2].shape, oo[3].shape)
-    
+    iii = np.where(oo[::,3] == 1)[0]
+    print("Number of unique sources: ",len(iii), oo[::,3])
     np.savetxt(ofn, oo)
     return
   
@@ -160,7 +176,7 @@ if __name__ == "__main__":
         for ll in unlogged:
             print(ll[0].upper(), ": ", ll[1])
        
-        mfn = config["Classification"]["major_filename"]
+        mfn = config["Sources"]["major_filename"]
         if os.path.isfile(mfn) is False:
             print("Major file \'%s\' does not exist. Aborting..." % mfn)
             exit()

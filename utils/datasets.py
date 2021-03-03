@@ -114,13 +114,12 @@ def major_set(ero, gaia, eligible_ero="eligible_X", eligible_gaia="eligible_Gaia
     for i in range(NN):
         if verbose>1: print("datasets::major_set - Merging NN=",i+1)
         ero1 = copy.deepcopy(ero0)
-        
         ero1.merge_add(gaia0, NN=i+1, epoch=2019.85)
         ero1.add_col("NN", np.array(len(ero1)*[i+1]))
         ero1.add_col("original_srcID", np.array(ero1.srcIDs()))
         eros.append(ero1)
+        
     ero1 = eros[0]
-    
     for i, e in enumerate(eros[1::]):
         ero1.append(e, postfix="_NN"+str(i+2))
     enrich_merged(ero1)    
