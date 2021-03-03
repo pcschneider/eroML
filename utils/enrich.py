@@ -1,4 +1,5 @@
 from eroML.ensemble import Ensemble, from_fits,to_fits, fits_support
+from eroML.positions import calc_sigma_from_RADEC_ERR
 import numpy as np
 import astropy.units as u
 from .iso_tools import add_iso_column
@@ -294,9 +295,17 @@ def enrich_ROSAT(e):
 
 @fits_support
 def enrich_merged(e):
-    offset_sig = e.to_array(colnames="RADEC_ERR", array_type="array")
+    """
+    Calculate properties that depend on the match:
+    
+      1. ``offset_sig`` - The match distance divided by the sigma (not RADEC_ERR) of the X-ray source
+      2. ``FxFg`` - The flux ratio
+      3. ``too_active`` - Flag indicating that the source is above an empirical line in the BP-RP / FxFg plane
+    """
+    RADEC_ERR = e.to_array(colnames="RADEC_ERR", array_type="array")
+    sigma = calc_sigma_from_RADEC_ERR(RADEC_ERR)
     d2d = e.to_array(colnames="match_dist", array_type="array")
-    e.add_col("offset_sig", d2d/offset_sig)
+    e.add_col("offset_sig", d2d/sigma)
     
     Fx = e.to_array(colnames="Fx", array_type="array")
     Fg = e.to_array(colnames="Fg", array_type="array")

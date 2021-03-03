@@ -10,7 +10,7 @@ fd = ff[1].data
 gi = np.where(fd["NN"] == 1)[0]
 print("Found nearest neighbour to ",len(gi))
 mm = np.unique(fd["original_srcID"])
-mi = np.array([str("ML%05i" % int(x[2:])) for x in mm])
+mi = np.array([str("%i" % int(x[2:])) for x in mm])
 print("   ",len(mm))
 print(mi)
 print()
@@ -20,18 +20,10 @@ fn = "../ero_data/efeds_c001_V3_main_HamStar_internal.fits"
 
 ff = pyfits.open(fn)
 fd = ff[1].data
-li = np.array([str("ML%05i" % int(x)) for x in fd["ero_ID"]])
 try:
     ll = np.unique(fd["ero_NAME"])
     print("unique ero_name: ",len(ll))
-    print(type(mi), type(ll))
-    a = mi.astype("<U7")
-    b = li
-    print(a.dtype, b.dtype)
-    dd = np.setdiff1d(a, b)
-    #for j in b:
-        #if j not in a: print("not in b: ",j, len(j), "<",j,">") 
-    print(dd, len(dd))
+    print(np.setdiff1d(mm,ll))
 except:
     pass
 

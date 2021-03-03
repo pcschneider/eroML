@@ -25,7 +25,7 @@ def repeat_fits(hdu, multi=10):
     return xx
     
 
-def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, display=False):
+def preprocess(ifn, extension=1, ofn=None, overwrite=False, verbose=1, display=False):
     """
     Keep only relevant columns
     
@@ -68,7 +68,7 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
     cols.append(col)
     
     dst = ff[extension].data["match_dist"]
-    dst = ff[extension].data["fake_match_dist"]
+    #dst = ff[extension].data["fake_match_dist"]
     err = ff[extension].data["RADEC_ERR"]
     
     
@@ -151,7 +151,7 @@ def prepare_classify(ifn, extension=1, ofn=None, overwrite=False, verbose=1, dis
         print("No category column.")
         col = pyfits.Column(name="match_dist", array=ff[extension].data["match_dist"], format=columns["match_dist"])    
         cols.append(col)
-        col = pyfits.Column(name="sigma_r", array=ff[extension].data["RADEC_ERR"], format=columns["RADEC_ERR"])    
+        col = pyfits.Column(name="sigma_r", array=0.61*ff[extension].data["RADEC_ERR"], format=columns["RADEC_ERR"])    
         cols.append(col)
         arr = ff[extension].data["offset_sig"]
         print("offset_sig",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))

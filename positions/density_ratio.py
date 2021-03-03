@@ -101,7 +101,7 @@ def one_ratio(x0, y0, x1, y1, ax=None, scaling='number'):
     return ax
     #plt.show()
 
-sfn = "../offs3.dat"
+sfn = "../offs4.dat"
 #sfn = "simu.dat"
 print("Reading sfn=",sfn)
 dd = np.genfromtxt(sfn, unpack=True)
@@ -115,7 +115,7 @@ ax = one_ratio(dd[0][gi0], dd[1][gi0], dd[0][gi1], dd[1][gi1], scaling='number')
 #1:"offset", 2:"sky_dens", 0:"sig"
 
 
-cs = plt.gca().contour(xv, yv, pp)
+#cs = plt.gca().contour(xv, yv, pp)
 
 plt.title(sfn)
 #plt.show()

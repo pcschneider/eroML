@@ -107,7 +107,10 @@ as ``colname``.
     a. *[Datasets][major]*: :func:`~eroML.utils.datasets.major_set`
         Perform the positional matching up the 3. nearest neighbour.
         
-        Extra columns: ``offset_sig``, ``match_dist``
+        Also calculates a number of new quantities, namely 
+        the extra columns: ``match_dist``, ``offset_sig``, ``FxFg``, ``too_active``
+        The latter three are calculated by :func:`~eroML.utils.enrich.enrich_merged`
+                
         
         Plus the columns from the eROSITA and Gaia files. 
     
@@ -126,18 +129,14 @@ as ``colname``.
     rd = float(cconfig["Datasets"]["training_rel_dist"])
         
         
-3. (Position) Matching
+3. Prepare Data for Training
     a. True eROSITA sources
     b. Random sources (N times)
     c. Enrich merged dataset(s)
     
-4. Generate datasets
-    a. Training
-    b. Validation
-    
-5. Learn 
+4. Learn 
 
-6. Match
+5. Match
 
 
 
