@@ -6,3 +6,4 @@ from .processing_steps import shrinking, calculate_Gaia_sky_density
 #from .processing_steps import create_major_sets, create_random_sets, create_training_sets
 #from .processing_steps import fake_positions
 from .positions import random_pos
+from .props4asso import props2asso

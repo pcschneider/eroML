@@ -26,7 +26,7 @@ from eroML.classify import recovery
 scoring = make_scorer(my_custom_loss_func, greater_is_better=False)
 
 #oo = np.transpose([sigout, pos_off, skdens*3600, nth, cls])
-fn = "../offs3.dat"
+fn = "../offs4.dat"
 #fn = "../offs2.dat"
 #fn = "simu.dat"
 print("Reading property data ",fn)
@@ -41,6 +41,7 @@ dd = np.genfromtxt(fn, unpack=True)
 
 #dd[1]*=3
 gi = np.where(dd[3] == 1)[0] # Only nearest neighbour
+#gi = np.where((dd[3] == 1) & (dd[1] < 3*dd[0]))[0] # Only nearest neighbour
 gi = np.where((dd[3] == 1) & (dd[1] < 3*dd[0]))[0] # Only nearest neighbour
 X = np.transpose(dd[0:3,gi])
 y = dd[4][gi]
@@ -63,7 +64,7 @@ train_index = np.random.choice(np.arange(N), N, replace=False)
 ##clf = svm.SVC(C=65, kernel='linear', probability=True, degree=2, class_weight={0: 0.33}, cache_size=2000)
 #clf = svm.SVC(C=65, probability=False, kernel='poly', degree=3 ,class_weight={0: 1.0}, gamma=3e-4)
 #clf = svm.SVC(C=50, kernel='poly', degree=3)
-clf = Pipeline(steps=[('scale',  FunctionTransformer(func=scaler, kw_args={"factor":1, "axis":1})), ('clf', svm.SVC(C=0.5, class_weight={0: 0.36}, cache_size=2000))])
+clf = Pipeline(steps=[('scale',  FunctionTransformer(func=scaler, kw_args={"factor":1, "axis":1})), ('clf', svm.SVC(C=0.5, class_weight={0: 0.17}, cache_size=2000))])
 #weight: 1.15
 
 #clf = Pipeline(steps=[('poly', PolynomialFeatures(4)), ('clf', svm.LinearSVC(C=1,class_weight={0: 3.2}, max_iter=10000, dual=False))])

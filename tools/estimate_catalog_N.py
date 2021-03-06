@@ -165,7 +165,7 @@ mdl = Dist_model()
 mdl.N = len(gi)
 mdl.sigs = ffd["sigma_r"][gi]
 mdl.dens = ffd["skd"][gi] / 3600 / 10 
-mdl["sig_scale"] = 0.6
+mdl["sig_scale"] = 0.615
 mdl["dens_scale"] = 1.5
 xs = x[:,0]
 mdl.thaw(["fraction"])
@@ -179,12 +179,16 @@ print("N star from model: ",len(gi)*mdl["fraction"])
 mdl.fit(bnx, bny, yerr=1+np.sqrt(bny+0.75))
 mdl.parameterSummary()
 tmp = mdl["fraction"]
-ax0.plot(xs, mdl.evaluate(xs), ls='-', color='r', lw=2, label="model")
+ax0.plot(xs, mdl.evaluate(xs), ls='-', color='r', lw=2, label="RADEC_ERR_CORR/sqrt(2)/1.15")
 mdl["fraction"] = 0
-ax0.plot(xs, (1-tmp)*mdl.evaluate(xs), ls='--', color='r', lw=1, label="Random")
+ax0.plot(xs, (1-tmp)*mdl.evaluate(xs), ls=':', color='r', lw=1, label="Random")
 
-mdl["fraction"] = 6.76*1e-2
-ax0.plot(xs, mdl.evaluate(xs), ls=':', color='r', lw=1, label="Bayes Map")
+
+mdl["sig_scale"] = 1.0
+mdl.freeze("sig_scale")
+mdl.fit(bnx, bny, yerr=1+np.sqrt(bny+0.75))
+#mdl["fraction"] = 6.76*1e-2
+ax0.plot(xs, mdl.evaluate(xs), ls='--', color='r', lw=2, label="RADEC_ERR_CORR")
 #mdl["fraction"] = 7.14*1e-2
 #ax0.plot(xs, mdl.evaluate(xs), ls=':', color='r', lw=1, label="Juergen")
 mdl["fraction"] = tmp

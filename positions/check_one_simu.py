@@ -115,7 +115,7 @@ def sp(x, y, gi, xl="sigma", yl="match_dist"):
     yi = (h[2][1::] + h[2][0:-1])/2
     zi = h[0]
     #ax_scatter.imshow(np.transpose(zi))
-    ax_scatter.contour(xi, yi, np.transpose(zi), colors='r')
+    ax_scatter.contour(xi, yi, np.transpose(zi), colors='r', linestyles=':')
     
     ax_histy.hist(y, bins=ybins, density=True, zorder=0, range=(0,90), orientation='horizontal', label="Measured")
     ax_histy.legend(loc='upper left')
@@ -124,7 +124,7 @@ def sp(x, y, gi, xl="sigma", yl="match_dist"):
 
 fn0 = "simu.dat"
 fn0 = "../offs2.dat"
-fn0 = "../offs4.dat"
+fn0 = "../offs5.dat"
 
 #------------------------------
 #sigout, pos_off, skdens, nth, cls

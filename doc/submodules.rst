@@ -8,4 +8,5 @@ Description of the code
    utils.rst
    tile.rst
    positions.rst
+   tools.rst
    

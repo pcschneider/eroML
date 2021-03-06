@@ -196,6 +196,7 @@ def calc_sigma_from_RADEC_ERR(RADEC_ERR):
     Calculate the sigma for the Rayleigh distribution
     """
     tmp = np.sqrt(((RADEC_ERR/1.15)**2 + 0.7**2)/2)
+    tmp = RADEC_ERR
     #tmp = RADEC_ERR * 0.615 # = /sqrt(2)/1.15
     return tmp
 
