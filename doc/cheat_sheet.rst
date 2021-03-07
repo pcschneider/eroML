@@ -28,6 +28,13 @@ Now, one can add the following::
 to the config (`.ini`) and only those pixels will be used.
 
 
+Generate sql-db from fits
+---------------------------
+In ``hdd/tools/fits2sqlite`` run::
+
+
+  p37 fits2sqlite.py ../../Xdata/ero/eroML/x.fits ../../Xdata/ero/eroML/x.sql
+
 
    
 git

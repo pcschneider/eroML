@@ -89,7 +89,7 @@ class Ensemble():
         array, restricted to srcIDs
         """
         idx = list([self.row_mapper[s] for s in srcIDs])
-        return array[idx]
+        return array[::,idx]
 
 
     def split(self, N, verbose=1):

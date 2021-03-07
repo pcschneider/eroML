@@ -6,6 +6,7 @@ from eroML.utils.iso_tools import *
 from eroML.utils.ero_tools import X_tile_loop
 from .gaia_tools import vo2fits
 from .ero_logger import setup_logger
+from eroML.utils.datasets import activity_filter
 
 def test():
     import doctest

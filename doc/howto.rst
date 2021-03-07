@@ -148,4 +148,3 @@ A new training sample can be constructed by running::
   p37 predict_n_check.py
   
   
-  
