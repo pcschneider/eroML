@@ -139,6 +139,34 @@ generates random sources, and merges all into::
   
 These must be adapted for SVM by running.
 
+The Training sample
+~~~~~~~~~~~~~~~~~~~
+
+Construction of the training sample is a multi-step process. 
+
+1) Estimate catalog fraction. This is done by running::
+    
+    p37 tools/estimate_catalog_N.py
+  
+2) Generate a training sample for the geometric classifier via::
+
+    p37 positions/simu4major.py 2060 --conf eFEDS_EDR3.ini --ofn offs2.dat -o --rnd_factor=12.6
+
+3) Train the SVM classifier based on the generated positions::
+
+    p37 positions/generate_classifier.py 
+
+4) Classify real associations::
+
+    p37 positions/select_geometric_training_objects.py
+
+5) Astrophysical screening (empirical Lx/Lbol screening, absolute Lx screening)::
+
+    p37 classify/select_training_objects.py
+    
+6) Astrophysical training sample
+
+
 A new training sample can be constructed by running::
 
   p37 run_eroML.py eFEDS_tmp.ini  

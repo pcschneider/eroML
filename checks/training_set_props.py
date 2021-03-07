@@ -5,6 +5,8 @@ from eroML.ensemble import from_fits, to_fits
 from eroML.positions import analytic_probability, calc_sigma_from_RADEC_ERR
 from eroML.utils import activity_filter
 from eroML.positions import analytic_probability, calc_sigma_from_RADEC_ERR
+plt.rcParams.update({'font.size': 16})
+plt.subplots_adjust(left=0.15, bottom=0.15, right=0.96, top=0.96, wspace=0, hspace=0)
 
 activity_poly = [-3.22, 3.6/5.5]
 
@@ -94,10 +96,13 @@ to_fits(major,"x.fits", overwrite=True)
 plt.scatter(color, FxFg, label="All", c=ap, vmin=0.6, vmax=1.)
 plt.scatter(color0[si], FxFg0[si], label="SVM", fc="None", ec="k", s=22)
 plt.scatter(color1, FxFg1, label="Bayesian", fc="None", ec="r", s=24)
-plt.colorbar()
+cb = plt.colorbar()
+cb.set_label("Analytic probability")
 plt.yscale("log")
-plt.ylim(2e-7, 1)
+plt.ylim(2e-7, 1e-1)
 plt.legend()
+plt.xlabel("BP-RP (mag)")
+plt.ylabel("Fx/Fbol")
 plt.show()
 exit()
 

@@ -3,12 +3,16 @@ import numpy as np
 from eroML.tile import file4
 from eroML.ensemble import from_fits
 from eroML.positions import analytic_probability, calc_sigma_from_RADEC_ERR
+#import matplotlib 
+plt.rcParams.update({'font.size': 16})
+plt.subplots_adjust(left=0.15, bottom=0.15, right=0.96, top=0.96, wspace=0, hspace=0)
 
 mfn = file4("major", cconfig="eFEDS_EDR3.ini")
 e = from_fits(mfn)
 print("Using merged file ",mfn," with ",len(e), " entries")
 tfn0 = "svm_training_IDs.txt"
 tfn1 = "eFEDS_final_training_set.txt"
+tfn1 = "eFEDS_good_pos.txt"
 
 t0 = np.genfromtxt(tfn0, dtype=str)
 t1tmp = np.genfromtxt(tfn1)
@@ -37,11 +41,21 @@ plt.ylim(0, 230)
 plt.xlabel("Geometric match probability")
 plt.ylabel("N")
 plt.show()
-
+plt.subplots_adjust(left=0.15, bottom=0.15, right=0.98, top=0.96, wspace=0, hspace=0)
 
 plt.hist(pp0["match_dist"]/calc_sigma_from_RADEC_ERR(pp0["RADEC_ERR"]), label="md0", range=(0,2), bins=30, density=True, alpha=0.5)
 plt.hist(pp1["match_dist"]/calc_sigma_from_RADEC_ERR(pp1["RADEC_ERR"]), label="md1", range=(0,2), bins=30, density=True, alpha=0.5)
 plt.xlabel(r"r($\sigma$)")
 plt.ylabel("N")
 plt.legend()
+plt.show()
+plt.subplots_adjust(left=0.15, bottom=0.15, right=0.98, top=0.96, wspace=0, hspace=0)
+
+plt.scatter(calc_sigma_from_RADEC_ERR(pp0["RADEC_ERR"]), pp0["match_dist"], label="SVM", alpha=0.5)
+plt.scatter(calc_sigma_from_RADEC_ERR(pp1["RADEC_ERR"]), pp1["match_dist"], label="Bayes", alpha=0.5)
+plt.legend()
+plt.xlabel("$\sigma$ (arcsec)")
+plt.ylabel("Match distance (arcsec)")
+plt.ylim(0,3.5)
+plt.xlim(0.9,6.2)
 plt.show()
