@@ -11,6 +11,7 @@ mfn = file4("major", cconfig="eFEDS_EDR3.ini")
 e = from_fits(mfn)
 print("Using merged file ",mfn," with ",len(e), " entries")
 tfn0 = "svm_training_IDs.txt"
+tfn0 = "positions/training_IDs2.txt"
 tfn1 = "eFEDS_final_training_set.txt"
 tfn1 = "eFEDS_good_pos.txt"
 

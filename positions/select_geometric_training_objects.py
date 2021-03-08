@@ -25,17 +25,23 @@ props = ["match_dist","RADEC_ERR","eligible_sky_density"]
 
 
 fn = "../../ero_data/merged_major_eFEDS_EDR3.fits"
+#fn = "../../ero_data/merged_random_eFEDS_EDR3.fits"
 ff = pyfits.open(fn)
 fd = ff[1].data
 X = np.transpose([calc_sigma_from_RADEC_ERR(fd["RADEC_ERR"]), fd["match_dist"], fd["eligible_sky_density"]])
 print(np.shape(X))
 
 y = clf.predict(X)
+
+gi = np.where((X[::,0] > 7) | (X[::,1] > 10))[0] # Only nearest neighbour
+print("Filter: ",len(gi))
+y[gi] = 1
+#p = clf.predict_proba(X)
 gi = np.where(y==0)[0]
 #print(fd["srcID"][gi])
 print("SVM: ",len(gi))
 
-np.savetxt("training_IDs.txt", fd["srcID"][gi], fmt="%s")
+np.savetxt("training_IDs2.txt", fd["srcID"][gi], fmt="%s")
 
 dd = np.genfromtxt("../eFEDS_good_pos.txt")
 dd = np.genfromtxt("../eFEDS_final_training_set.txt")

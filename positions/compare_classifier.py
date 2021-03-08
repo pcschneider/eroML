@@ -29,7 +29,7 @@ recovery(y, b)
 print()
 
 
-fn = "simu.dat"
+fn = "../offs4.dat"
 print("Evaluating: ",fn)
 dd = np.genfromtxt(fn, unpack=True)
 gi = np.where(dd[3] == 1)[0] # Only nearest neighbour
