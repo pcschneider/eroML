@@ -125,6 +125,7 @@ def sp(x, y, gi, xl="sigma", yl="match_dist"):
 fn0 = "simu.dat"
 fn0 = "../offs2.dat"
 fn0 = "../offs5.dat"
+fn0 = "../offs_test.dat"
 
 #------------------------------
 #sigout, pos_off, skdens, nth, cls

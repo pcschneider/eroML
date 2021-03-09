@@ -42,7 +42,10 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     ff = pyfits.open(mfn)
     ffd = ff[1].data
     ffN = len(ffd["srcID"])
-    gi = np.where(ffd["NN"]==1)[0]
+    #gi = np.where(ffd["NN"]==1)[0]
+    gi = np.where((ffd["NN"]==1) & (ffd["match_dist"]<max_dist))[0]
+    Nm = len(gi)
+    
     
     ffNu = len(gi)
     print("Number of sources in \'%s\': %i (NN=1: %i)" % (mfn, ffN, ffNu))
@@ -118,7 +121,6 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
 
     
     iii = np.where(rand_offs[3] == 1)[0]
-    print("Number of unique random sources: ",len(iii))
     
     #sig_simu = np.concatenate((SIG,sig))
 
@@ -136,7 +138,10 @@ def generate_simu_data(mfn, ofn="test.dat", N=1000, rnd_factor=1,\
     sigout = np.concatenate((real_n_rand_sig, rand_sig))
     nth = np.concatenate((real_n_rand[3], rand_offs[3]))
     cls = np.concatenate((real_n_rand[4], len(rand_sig)*[2]))
-    
+    xi = np.where(nth == 1)[0]
+    ri = np.where(cls == 0)[0]
+    print("Real sources: %i, random sources: %i, X-ray sources: %i (major file: %i)." % (len(ri), len(iii), len(xi), Nm))
+
     k = np.repeat([key], len(pos_off))
     
     oo = np.transpose([sigout, pos_off, skdens, nth, cls, k])
