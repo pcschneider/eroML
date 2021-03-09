@@ -6,7 +6,7 @@ from eroML.utils import activity_filter
 from eroML.positions import random4dens, gen_real_pos_offset, add_random2real, calc_sigma_from_RADEC_ERR
 import matplotlib.pyplot as plt
 
-def randomize_match_distances(ensemble, category_col="category", sigma=None, max_dist=60):
+def random_match_distances(ensemble, category_col="category", sigma=None, max_dist=60):
     """
     Parameters
     ----------
@@ -74,15 +74,90 @@ def randomize_match_distances(ensemble, category_col="category", sigma=None, max
     rand.from_array(arr, clean=True)
     rand.set_col("NN", rand_offs[3])
     rand.set_col("match_dist", rand_offs[0])
-    rand.set_col("category", np.ones(len(n_srcID)).astype(int)*2)
-    
-    
-    
-    
+    rand.set_col("category", np.ones(len(n_srcID)).astype(int)*2)    
     rand.append(real)
     
     return rand
         
+        
+def random_props(train, random, category_col="category", keepNN1=True):
+    """
+    Parameters
+    ----------
+    train, random : Ensemble instances
+    category_col : str
+        Name of category column
+    keepNN1 : boolean
+        Keep properties of nearest neighbour association; otherwise randomize all associations
+    """
+    cat = train.to_array(category_col, array_type="array")
+    NN = train.to_array("NN", array_type="array")
+    srcIDs = np.array(train.srcIDs())
+    realIDs = srcIDs[np.where(cat == 0)[0]]
+    print("Real sources: ",len(realIDs))
+    if keepNN1:
+        gi = np.where((cat == 2) & (NN==1))[0]
+        NN1_srcIDs = srcIDs[gi]
+        gi = np.where((cat == 2) & (NN>1))[0]
+    else:
+        gi = np.where(cat == 2)[0]
+        NN1_srcIDs = []
+
+    # Identify associations to be randomized
+    #    1) Occupied srcIDs (= real associations and (maybe) NN=1 sources)
+    occupied_srcIDs = np.concatenate((realIDs, NN1_srcIDs))
+    #    2) Select srcIDs 
+    ii = np.in1d(srcIDs, occupied_srcIDs)
+    srcIDs2rnd0 = srcIDs[~ii]
+    indices2random = np.arange(len(srcIDs))[~ii]
+    si = np.argsort(srcIDs[indices2random])
+    indices2random = indices2random[si]
+    
+    #print("indices: ",indices2random, len(indices2random))
+    #print("a",len(srcIDs2rnd0))
+    #srcIDs2rnd1 = np.setdiff1d(srcIDs, occupied_srcIDs)
+    #print("b",len(srcIDs2rnd1))
+    #print("in", np.sum(np.in1d(srcIDs2rnd0, srcIDs2rnd1)))
+    #print(" - ",np.sort(srcIDs2rnd0)[0:4], np.sort(srcIDs2rnd1)[0:4], np.sort(srcIDs[indices2random])[:4])
+    #ii = np.in1d(srcIDs, occupied_srcIDs).nonzero()
+    #print("ii", ii)
+    #return
+    #print(srcIDs[ii[0]], )
+    osrcIDs2rnd = np.array([si[0:7] for si in srcIDs[indices2random]])
+    print(osrcIDs2rnd[0:10])
+    Nrnd = len(indices2random)
+    print("Keeping properties for %i associations"  % len(occupied_srcIDs))
+    print("Randomizing properties for %i associations. " % len(indices2random))
+    
+    mapper = np.zeros(len(indices2random)).astype(int)
+    
+    original_srcID = np.array([si[0:7] for si in random.to_array("original_srcID", array_type="array")])
+    
+    uoIDs, ioIDs, coIDs = np.unique(osrcIDs2rnd, return_inverse=True, return_counts=True)
+    print("ioIDs: ",len(ioIDs))
+    print(ioIDs)
+    i0, i1 = 0, coIDs[0]
+    for srnd, n in zip(uoIDs, coIDs):
+        i1 = i0+n
+        gi = np.where(srnd == original_srcID)[0]
+        si = np.random.choice(gi, n, replace=False)
+        mapper[i0:i1] = si
+        
+        #print(i0, i1, uoIDs[ioIDs[i0:i1]])
+        #print("yyy",srcIDs[indices2random[i0:i1]], original_srcID[si])
+        #print(srnd, n, original_srcID[gi])
+        #print(si,"\n")
+        i0+=n
+    
+    arr = train.to_array(train.known_cols)
+    rarr= random.to_array(random.known_cols)
+    
+    for col in ["Fg", "phot_g_mean_mag", "parallax", "parallax_error", "bp_rp", "srcID_NN", "FxFg"]:
+        print(col, indices2random, mapper)
+        arr[col][indices2random] = rarr[col][mapper]
+        
+    arr = train.from_array(arr, clean=True)    
+    return train
         
 
 
@@ -144,7 +219,8 @@ rfn = file4("random", cconfig=conf_file)
 print("Using ",mfn, " and ",rfn)
 
 tIDs = np.genfromtxt(training_ID_file, dtype=str)
-major = from_fits(mfn)
+major  = from_fits(mfn)
+random = from_fits(rfn)
 
 gi = np.in1d(major.srcIDs(), tIDs)
 training = copy.deepcopy(major)
@@ -153,7 +229,8 @@ print(len(training))
 filter_training(training)
 print(len(training))
 final = add_random(training, major, rnd_factor=12.5)
-final = randomize_match_distances(final)
+final = random_match_distances(final)
+final = random_props(final, random)
 to_fits(final, "train.fits", overwrite=True)
 
 
