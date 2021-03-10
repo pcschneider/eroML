@@ -3,6 +3,7 @@ from eroML.ensemble import from_fits, to_fits
 import numpy as np
 import copy
 from eroML.utils import activity_filter
+from eroML.utils.enrich import NN_Max
 from eroML.positions import random4dens, gen_real_pos_offset, add_random2real, calc_sigma_from_RADEC_ERR
 import matplotlib.pyplot as plt
 
@@ -24,10 +25,13 @@ def random_match_distances(ensemble, category_col="category", sigma=None, max_di
     randi = np.where(cat==2)[0]
     rIDs = srcIDs[reali]
     Nreal = len(reali)
+    
+    print("Radnomizing match distances of %i sources, of which are %i real." % (len(ensemble), Nreal))
+    
     RADEC_ERR = ensemble.to_array("RADEC_ERR", array_type="array")
     SIG = calc_sigma_from_RADEC_ERR(RADEC_ERR)
     sk = ensemble.to_array("eligible_sky_density", array_type="array")
-    
+    print("sigma: ",np.mean(SIG[reali]), np.median(SIG[reali]))
     real_offs = gen_real_pos_offset(sigma=SIG[reali])
     real_n_rand = add_random2real(real=real_offs, skd=sk[reali]* dens_scaling, max_dist=max_dist)
     # offs, dens, group, nth, class
@@ -76,7 +80,7 @@ def random_match_distances(ensemble, category_col="category", sigma=None, max_di
     rand.set_col("match_dist", rand_offs[0])
     rand.set_col("category", np.ones(len(n_srcID)).astype(int)*2)    
     rand.append(real)
-    
+    NN_Max(rand)
     return rand
         
         
@@ -186,11 +190,24 @@ def add_random(training, major, rnd_factor=1, max_dist=60, randomize=[]):
         Maximum considered match_dist (in arcsec)
     randomize : list
         Add "sky_density" or "RADEC_ERR" to assign randomized values
-        also for these two properties
+        also for these two properties for the objects in the training sample
     """
-    Nrnd = int(rnd_factor * len(training))
+    Nreal = len(training)
+    Nmajor = len(major)
+    Nrnd = int(rnd_factor * Nreal)
     training.add_col("category", np.zeros(len(training)).astype(int))
     print("Adding %i random sources." % Nrnd)
+    
+    if "RADEC_ERR" in randomize:
+        radec_err = np.random.choice(major.to_array("RADEC_ERR", array_type="array"), Nreal)
+        training.set_col("RADEC_ERR", radec_err)
+        print("Randomizing RADEC_ERR for training objects.")
+        
+    if "sky_density" in randomize:
+        sk = np.random.choice(major.to_array("eligible_sky_density", array_type="array"), Nreal)
+        training.set_col("eligible_sky_density", sk)
+        print("Randomizing sky_density for training objects.")
+    
     rsrcIDs = training.srcIDs()
     #msrcIDs = major.srcIDs()
     mdd = major.to_array(["srcID", "NN"], array_type="dict")
@@ -206,6 +223,9 @@ def add_random(training, major, rnd_factor=1, max_dist=60, randomize=[]):
     rnd.add_col("category", np.ones(len(rnd)).astype(int)*2)
     print(len(rnd), len(si))
     rnd.append(training)
+    
+    
+    
     return rnd
     
     
@@ -225,10 +245,17 @@ random = from_fits(rfn)
 gi = np.in1d(major.srcIDs(), tIDs)
 training = copy.deepcopy(major)
 training.keep(tIDs)
+sig = training.to_array("RADEC_ERR", array_type="array")
+print("sigma0: ",np.mean(sig), np.median(sig), len(sig))
+
+sig = major.to_array("RADEC_ERR", array_type="array")
+print("sigma1: ",np.mean(sig), np.median(sig), len(sig))
+
+
 print(len(training))
 filter_training(training)
 print(len(training))
-final = add_random(training, major, rnd_factor=12.5)
+final = add_random(training, major, rnd_factor=12.5, randomize=["RADEC_ERR","sky_density"])
 final = random_match_distances(final)
 final = random_props(final, random)
 to_fits(final, "train.fits", overwrite=True)
