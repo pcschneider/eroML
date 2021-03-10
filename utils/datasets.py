@@ -1,5 +1,6 @@
 from eroML.ensemble import Ensemble
 from eroML.ensemble import from_fits,to_fits,multi_fits_support, fits_support
+from eroML.ensemble.astro_ensemble import remove_fields
 from astropy.io import fits as pyfits
 import astropy.units as u
 from astropy.coordinates import SkyCoord
@@ -107,6 +108,7 @@ def major_set(ero, gaia, eligible_ero="eligible_X", eligible_gaia="eligible_Gaia
     gaia_e = gaia0.to_array(colnames=eligible_gaia, array_type="array")
     gaia_ids = np.array(gaia0.srcIDs())
     gi = np.where(gaia_e == 1)[0]
+    #gi = np.where(np.isfinite(gaia0.skyCoords(epoch=2020).ra.degree))[0]
     gaia0.keep(gaia_ids[gi])
     logger.debug("Keeping %i of % i as eligble Gaia sources." % (len(gi), len(gaia)))
     
@@ -136,7 +138,8 @@ def major_set(ero, gaia, eligible_ero="eligible_X", eligible_gaia="eligible_Gaia
     good_ids = srcIDs[gi]
     #print("Keeping: ",good_ids)
     ero1.keep(good_ids)
-    
+    arr = ero1.to_array(ero1.known_cols)
+    ero1.from_array(remove_fields(arr, "Dec"))
     NN_Max(ero1)
     return ero1
 
