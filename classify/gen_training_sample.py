@@ -144,7 +144,9 @@ def random_props(train, random, category_col="category", keepNN1=True):
     for srnd, n in zip(uoIDs, coIDs):
         i1 = i0+n
         gi = np.where(srnd == original_srcID)[0]
-        si = np.random.choice(gi, n, replace=False)
+        if n >= len(gi): rpl = True 
+        else: rpl=False
+        si = np.random.choice(gi, n, replace=rpl)
         mapper[i0:i1] = si
         
         #print(i0, i1, uoIDs[ioIDs[i0:i1]])
@@ -159,6 +161,8 @@ def random_props(train, random, category_col="category", keepNN1=True):
     for col in ["Fg", "phot_g_mean_mag", "parallax", "parallax_error", "bp_rp", "srcID_NN", "FxFg"]:
         print(col, indices2random, mapper)
         arr[col][indices2random] = rarr[col][mapper]
+    #arr["FxFg"][indices2random][arr["FxFg"][indices2random] < 1e-5] = 0.1
+    
         
     arr = train.from_array(arr, clean=True)    
     return train

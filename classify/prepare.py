@@ -1,6 +1,7 @@
 from astropy.io import fits as pyfits
 import numpy as np
 from eroML.positions import gen_random_pos_offset, gen_real_pos_offset
+from eroML.positions import calc_sigma_from_RADEC_ERR
 
 try:
     import matplotlib.pyplot as plt
@@ -253,3 +254,117 @@ def preprocess(ifn, extension=1, ofn=None, overwrite=False, verbose=1, display=F
             print("datasets::prep_classify - Written ",len(dst)," objects with ",len(cols)," properties to ",ofn)
     ff.close()            
     return hdul
+
+def prepare_training(ifn, ofn, overwrite=True, verbose=1):
+    """
+    """
+    ext = 1
+    ff = pyfits.open(ifn)
+    cols = []
+    column_formats = {col.name:col.format for col in ff[ext].columns}
+
+    Lx = 4*np.pi*ff[ext].data["Fx"]* (1000/ff[ext].data["parallax"] * 3.1e18)**2
+    gi = np.where((ff[ext].data["RADEC_ERR"] < 10) & (ff[ext].data["match_dist"]<25) &  (ff[ext].data["match_dist"]<4*ff[ext].data["RADEC_ERR"]) & (ff[ext].data['phot_g_mean_mag']>5.5))[0]
+
+    if "category" in ff[ext].data.columns.names:
+        cat = ff[ext].data["category"][gi]
+        tr = np.where(cat == 0)[0]
+        pi = np.where(((ff[ext].data['parallax'][gi]>1.2) & (Lx[gi] < 2e31)) | (cat>0))[0]
+        gi = gi[pi]
+        
+        
+    for colname in ["srcID", "srcID_NN", "original_srcID"]:        
+        arr = ff[ext].data[colname][gi]
+        col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+        cols.append(col)
+
+    colname = "match_dist"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+    cols.append(col)
+    
+    colname = "RADEC_ERR"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+    cols.append(col)
+    col = pyfits.Column(name="RADEC_sigma" , array=calc_sigma_from_RADEC_ERR(arr), format=column_formats[colname])    
+    cols.append(col)
+    
+    colname = "eligible_sky_density"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+    cols.append(col)
+
+    colname = "category"
+    if colname in ff[ext].data.columns.names:
+        arr = ff[ext].data[colname][gi]
+        print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+        col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+        cols.append(col)
+
+
+    colname = "bp_rp"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+    cols.append(col)
+    
+    colname = "Fx"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name=colname , array=np.log10(arr)+13, format=column_formats[colname])    
+    cols.append(col)
+    
+    colname = "Fg"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name=colname , array=np.log10(arr)+11, format=column_formats[colname])    
+    cols.append(col)
+    
+    colname = "FxFg"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    if "category" in ff[ext].data.columns.names:
+        cat = ff[ext].data["category"][gi]
+        ri = np.where((cat >0) & (arr < 1e-5))[0]
+        #arr[ri] = 0.01
+    col = pyfits.Column(name=colname , array=np.log10(arr), format=column_formats[colname])    
+    cols.append(col)
+    
+    colname = "parallax"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name=colname , array=np.log10(arr), format=column_formats[colname])    
+    cols.append(col)
+    
+    colname = "NN"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+    cols.append(col)
+    
+    
+    
+        
+    hdu = pyfits.PrimaryHDU()    
+    cc = pyfits.ColDefs(cols)    
+    xx = pyfits.BinTableHDU.from_columns(cc)
+    dst = len(xx.data[cc[0].name])
+    hdul = pyfits.HDUList([hdu, xx])
+    print("XXXXXX")
+    if ofn is not None:
+        hdul.writeto(ofn, overwrite=overwrite)        
+        if verbose>0:
+            print("datasets::prep_classify - Written ",dst," objects with ",len(cols)," properties to ",ofn)
+    ff.close()            
+    return hdul
+
+if __name__ == "__main__":
+    prepare_training("train.fits", "train_preprocessed.fits")
+    prepare_training("../ero_data/merged_random_eFEDS_EDR3.fits", "random4classify_eFEDS.fits")
+    prepare_training("../ero_data/merged_major_eFEDS_EDR3.fits", "major4classify_eFEDS.fits")
+    
+

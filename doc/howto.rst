@@ -160,11 +160,17 @@ Construction of the training sample is a multi-step process.
 
     p37 positions/select_geometric_training_objects.py
 
-5) Astrophysical screening (empirical Lx/Lbol screening, absolute Lx screening)::
+5) Astrophysical training sample::
 
-    p37 classify/select_training_objects.py
+    p37 classify/gen_training_sample.py
     
-6) Astrophysical training sample
+6) Astrophysical screening (empirical Lx/Lbol screening, absolute Lx screening)::
+
+    p37 classify/prepare.py
+    
+7) Train classifier::
+    
+    p37 classify/learn.py ; p37 classify/predict_n_check.py 
 
 
 A new training sample can be constructed by running::

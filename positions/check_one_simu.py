@@ -92,7 +92,13 @@ def sp(x, y, gi, refx=None, refy=None, xl="sigma", yl="match_dist"):
     #ax_histy.hist(ffd[mfn_ykey][gg], orientation='horizontal', density=True, range=(0,90), bins=ybins, label="Measured")
 
     ax_histy.hist(y, bins=ybins, orientation='horizontal', range=(ylim[0],ylim[1]), alpha=0.4, label="All simulated", density=True)
-    ax_histy.hist(y[gi], bins=ybins, orientation='horizontal', range=(ylim[0],ylim[1]), alpha=0.4, label="Real simulated", density=True)
+    h = np.histogram(y[gi], bins=ybins, range=(ylim[0],ylim[1]), density=True)
+    print(h)
+    ypos = (h[1][1:] + h[1][0:-1])/2
+    hscaling = len(gi)/len(x)
+    ax_histy.barh(ypos, h[0] * hscaling, label="Real simulated", alpha=0.4, color='g')
+    #ax_histy.hist(y[gi], bins=ybins, orientation='horizontal', range=(ylim[0],ylim[1]), alpha=0.4, label="Real simulated", density=True)
+    
     #ax_histy.hist(y[gi], bins=ybins, orientation='horizontal', range=(0,90), alpha=0.4, label="Real")
     xx = np.linspace(0,20,100)
     #ax_histx.plot(xx,65*xx**2)
@@ -139,23 +145,19 @@ fn = "../train.fits"
 ff = pyfits.open(fn)
 fd = ff[1].data
 giNN = np.where(fd["NN"] == 1)[0]
-print("Number of nearest neighbours: ",len(giNN))
+print("Number of nearest neighbours in training sample: ",len(giNN))
 x, y, xl, yl = calc_sigma_from_RADEC_ERR(fd["RADEC_ERR"][giNN]), fd["match_dist"][giNN], "Sigma", "Match Distance"
-#x, y, xl, yl = fd["eligible_sky_density"][giNN], fd["match_dist"][giNN], "Sky Density", "Match Distance"
+x, y, xl, yl = fd["eligible_sky_density"][giNN], fd["match_dist"][giNN], "Sky Density", "Match Distance"
 #x, y, xl, yl = np.log10(fd["Fx"][giNN]), np.log10(fd["Fg"][giNN]), "Fx", "Fg"
-x, y, xl, yl = fd["bp_rp"][giNN], np.log10(fd["FxFg"][giNN]), "bp_rp", "FxFg"
+#x, y, xl, yl = fd["bp_rp"][giNN], np.log10(fd["FxFg"][giNN]), "bp_rp", "FxFg"
 gi0 = np.where(fd["category"][giNN] == 0)[0]
-
-
-
-
 
 fn = "../../ero_data/merged_major_eFEDS_EDR3.fits"
 fn = "../../ero_data/merged_random_eFEDS_EDR3.fits"
 ff = pyfits.open(fn)
 fd = ff[1].data
 gi = np.where((fd["NN"] == 1) & (fd["match_dist"]<60))[0]
-print("Number of nearest neighbours within 60 arcsec:", len(gi))
+print("Number of nearest neighbours within 60 arcsec in %s: %i" % (fn, len(gi)))
 if xl=="Sigma":
     refx = calc_sigma_from_RADEC_ERR(fd["RADEC_ERR"][gi])
 elif xl=="Sky Density":
@@ -172,8 +174,6 @@ elif yl=="Fg":
     refy  = np.log10(fd["Fg"][gi])
 elif yl=="FxFg":
     refy  = np.log10(fd["FxFg"][gi])
-    
-
 
 ax = sp(x, y, gi0, refx=refx, refy=refy, xl=xl, yl=yl)
 if xl=="Sigma": ax.set_xlim(0.9,6.2)

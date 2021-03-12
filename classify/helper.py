@@ -3,6 +3,7 @@ from astropy.io import fits as pyfits
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import norm
+import copy 
 
 def my_custom_loss_func(y_true, y_pred):
     random_as_star = np.where((y_true==1) & (y_pred==0))[0]
@@ -26,10 +27,17 @@ def scaler(X, factor=1., axis=None):
     return X
 
 def rescale(X):
-    X["offset_sig"] = np.log10(1.-norm.cdf(X["offset_sig"]))
-    gi = np.where(-2*np.isfinite(X["offset_sig"])==False)[0]
-    X["offset_sig"][gi] = 100
-    return X
+    #X["offset_sig"] = np.log10(1.-norm.cdf(X["offset_sig"]))
+    #gi = np.where(-2*np.isfinite(X["offset_sig"])==False)[0]
+    #X["offset_sig"][gi] = 100
+    Y = copy.copy(X)
+    Y["Fx"] = np.log10(Y["Fx"]) + 13
+    Y["Fg"] = np.log10(Y["Fg"]) + 11
+    #print("AAA", np.shape(X["Fx"]))
+    #print(np.sum(np.isfinite(X["Fx"])), len(X["Fx"]))
+    #print(np.sum(np.isfinite(X["Fg"])), len(X["Fg"]))
+    #X["FxFg"] = np.log10(X["FxFg"])
+    return Y
 
 def recovery(y, b):
     print("Stars in training set: ",len(np.where(y==0)[0]))

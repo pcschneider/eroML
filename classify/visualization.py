@@ -201,6 +201,7 @@ def multidim_visualization(clf, X, y, names=None, dims=[0,1]):
         
     draw_contours()
 
+    plt.figtext(0.03,0.03,"yellow:random")
     
     #print(dir(sca))
     if N_props<2:

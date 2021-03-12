@@ -26,6 +26,7 @@ def fp(y_true, y_pred, pp = False):
     b = confusion_matrix(y_true, y_pred)[0, 1]
     c = confusion_matrix(y_true, y_pred)[1, 0]
     d = confusion_matrix(y_true, y_pred)[1, 1]
+    
     if pp: print(a,b,c,d)
     return a + d - (b + c) * (b-c)**2
 
@@ -45,9 +46,21 @@ if __name__ == "__main__":
     
     #props = ["bp_rp", "logFg", "logFxFg", "pos","log_plx","skd"]
     #props = ["pos","skd"]
+    
+    props = ["logFx","logFg","pos","log_plx","bp_rp"]
+    props = ["pos", "logFxFg","bp_rp","log_plx"]
+    fn = "train_preprocessed.fits"
+    props = ["RADEC_ERR", "match_dist", "bp_rp", "Fx", "Fg", "eligible_sky_density"]
+    props = ["bp_rp", "FxFg","RADEC_sigma", "match_dist", "eligible_sky_density", "parallax"]#, "NN"]
+    #props = ["bp_rp", "FxFg"]
+    #props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "Fx","Fg", "parallax"]
+    #props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
     #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
     #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
-    X, y = get_props("../../ero_data/training_eFEDS_clean.fits", prop_cols=props,category_column="category", pandas=True)
+    #X, y = get_props("../../ero_data/training_eFEDS_clean.fits", prop_cols=props,category_column="category", pandas=True)
+    
+    X, y = get_props(fn, prop_cols=props,category_column="category", pandas=True)
+    
     y[y>0] = 1
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -62,26 +75,6 @@ if __name__ == "__main__":
     #clf = MLPClassifier(solver='adam', alpha=1e-1, hidden_layer_sizes=(6, 4), random_state=1, max_iter=10000)
     
     
-<<<<<<< HEAD
-=======
-    i2 = len(np.where(np.logical_and(y>0, b==0))[0])
-    print("Others as stars recovered: ",i2)
-
-
-if __name__ == "__main__":
-
-    #props = ["bp_rp", "log_FxFg", "offset_sig", "log_distance"]
-    #props = ["log_FG", "log_FX", "bp_rp", "offset_sig", "log_distance"]
-    #X, y = get_props("../merged_training.fits", prop_cols=props)
-
-    props = ["logFx","logFg","pos","log_plx","bp_rp"]
-    props = ["pos", "logFxFg","bp_rp","log_plx"]
-    
-    #props = ["bp_rp", "logFg","logFx", "pos","log_plx"]
->>>>>>> pcs
-    
-    #clf = svm.SVC(class_weight={1: 3}, probability=True)
-<<<<<<< HEAD
     #clf = svm.SVC(C=30, kernel='rbf', probability=True, degree=3,class_weight={0: 0.24})
     #clf = svm.SVC(C=45, kernel='rbf', probability=True, degree=3,class_weight={0: 0.15})
     clf = svm.SVC(C=10, kernel='rbf', probability=True, degree=3,class_weight={0: 0.2})
@@ -90,16 +83,20 @@ if __name__ == "__main__":
     # Greater C: less missclassification
     # Smaller C: More missclassification         
     #
-=======
-    clf = svm.SVC(C=5, kernel='poly', probability=True, degree=1,class_weight={0: 2})
->>>>>>> pcs
+    #clf = svm.SVC(C=5, probability=True, degree=3,class_weight={0: 1.15}) # <- OKish
+    clf = svm.SVC(C=5, probability=True, degree=3,class_weight={0: 0.75}) # <- OKish
+    clf = svm.SVC(C=50, kernel='poly', probability=True, degree=4,class_weight={0: 1.3}) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "FxFg", "parallax"]
+    clf = svm.SVC(C=50, kernel='poly', probability=True, degree=3,class_weight={0: 0.61}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
+
+
+    ppl = clf
     #clf = PCA(n_components=2)
     #clf = tree.DecisionTreeClassifier()
     #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
     #clf = SGDClassifier(loss='hinge')
     
     #clf.fit(X_train, y_train)
-    ppl = Pipeline(steps=[( 'rescaler', FunctionTransformer(rescale)), ('svc', clf)])
+    #ppl = Pipeline(steps=[( 'rescaler', FunctionTransformer(rescale)), ('svc', clf)])
 
 
     ppl.fit(X,  y)
@@ -127,7 +124,9 @@ if __name__ == "__main__":
     b = ppl.predict(X)
     recovery(y, b)
     
-    dump(ppl, 'svm.joblib') 
+    ppl.filename = fn
+    ppl.props = props
+    dump(ppl, 'classify/svm.joblib') 
     exit()
     
     print()

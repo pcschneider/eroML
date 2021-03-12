@@ -6,10 +6,27 @@ from astropy.io import fits as pyfits
 
 
 if __name__ == "__main__":
-    props = ["offset_sig", "expected_rnd","bp_rp", "logFg","logFx", "log_plx"]
-    X, y = get_props("../../ero_data/training_eFEDS_clean.fits", prop_cols=props,category_column="category", pandas=True)
+    clf = load('classify/svm.joblib') 
+    props = clf.props
+    
+    rfn = "random4classify_eFEDS.fits"
+    Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)
+    c = clf.predict(Y)
+    print("random stars: ",len(np.where(c==0)[0]))
+    
+    rfn = "major4classify_eFEDS.fits"
+    Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)
+    c = clf.predict(Y)
+    print("real stars: ",len(np.where(c==0)[0]))
+ 
+    fn = clf.filename 
+    
+
+    #props = ["offset_sig", "expected_rnd","bp_rp", "logFg","logFx", "log_plx"]
+    #X, y = get_props("../../ero_data/training_eFEDS_clean.fits", prop_cols=props,category_column="category", pandas=True)
+    X, y = get_props(fn, prop_cols=props,category_column="category", pandas=True)
     y[y>0] = 1
-    clf = load('svm.joblib') 
+    
    #-------------------------------
     #-------------------------------
     multidim_visualization(clf, X, y, names={i:props[i] for i in range(len(props))})
@@ -20,6 +37,12 @@ if __name__ == "__main__":
     #plt.show()
 
     print(80*"=")
+
+    Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)
+    c = clf.predict(Y)
+    multidim_visualization(clf, Y, c, names={i:props[i] for i in range(len(props))})
+    
+    exit()
     #fn = "major_catalog.fits"
     #ofn = "major_proba.fits"
     
