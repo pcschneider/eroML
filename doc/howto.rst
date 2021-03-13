@@ -172,6 +172,14 @@ Construction of the training sample is a multi-step process.
     
     p37 classify/learn.py ; p37 classify/predict_n_check.py 
 
+8) Identify stars::
+    
+    p37 classify/write_stars.py
+    
+9) Compare with Sebastian::
+    
+    p37 classify/cmp.py
+    
 
 A new training sample can be constructed by running::
 

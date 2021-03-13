@@ -86,7 +86,7 @@ if __name__ == "__main__":
     #clf = svm.SVC(C=5, probability=True, degree=3,class_weight={0: 1.15}) # <- OKish
     clf = svm.SVC(C=5, probability=True, degree=3,class_weight={0: 0.75}) # <- OKish
     clf = svm.SVC(C=50, kernel='poly', probability=True, degree=4,class_weight={0: 1.3}) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "FxFg", "parallax"]
-    clf = svm.SVC(C=50, kernel='poly', probability=True, degree=3,class_weight={0: 0.61}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
+    clf = svm.SVC(C=50, kernel='poly', probability=True, degree=4,class_weight={0: 0.5}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
 
 
     ppl = clf

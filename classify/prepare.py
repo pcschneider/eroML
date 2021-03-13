@@ -339,14 +339,66 @@ def prepare_training(ifn, ofn, overwrite=True, verbose=1):
     print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
     col = pyfits.Column(name=colname , array=np.log10(arr), format=column_formats[colname])    
     cols.append(col)
-    
+
+    colname = "parallax"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="plx", array=arr, format=column_formats[colname])    
+    cols.append(col)
+
+    colname = "parallax_error"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="plx_error", array=arr, format=column_formats[colname])    
+    cols.append(col)
+
+    colname = "phot_g_mean_mag"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="Gmag", array=arr, format=column_formats[colname])    
+    cols.append(col)
+
+    #colname = "phot_g_mean_mag"
+    #arr = ff[ext].data[colname][gi]
+    #print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    #col = pyfits.Column(name="Gmag", array=arr, format=column_formats[colname])    
+    #cols.append(col)
+
     colname = "NN"
     arr = ff[ext].data[colname][gi]
     print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
     col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
     cols.append(col)
     
+    colname = "RA"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+    cols.append(col)
     
+    colname = "Dec"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+    cols.append(col)
+    
+    colname = "RA_NN"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="gaia_RA" , array=arr, format=column_formats[colname])    
+    cols.append(col)
+    
+    colname = "Dec_NN"
+    arr = ff[ext].data[colname][gi]
+    print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="gaia_Dec", array=arr, format=column_formats[colname])    
+    cols.append(col)
+    
+    #colname = "Dec_NN"
+    #arr = ff[ext].data[colname][gi]
+    #print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    #col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+    #cols.append(col)
     
         
     hdu = pyfits.PrimaryHDU()    
