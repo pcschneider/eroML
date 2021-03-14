@@ -32,7 +32,7 @@ ff0 = pyfits.open("ero_master.fits")
 ff = ff0[1].data
 
 #catalogs = list(fnames.keys())#[::-1]
-p_lim = {"SVM":0.01, "Bayes":0.57,"NWAY":0.01}
+p_lim = {"SVM":0.01, "Bayes":0.5625,"NWAY":0.28}
 
 
 
@@ -173,6 +173,8 @@ Fg = 10**(-0.4*ff["Gmag"])*3.660e-08*720
 y = np.log10(ff["Fx"] / Fg)
 c = ff["match_dist"]
 c = ff["Gmag"]
+gi = np.where((ff["Bayes"] > p_lim["Bayes"]) & (ff["Bayes_ij"] > 0.5))[0]
+print("sum: ",np.sum(1-ff["Bayes"][gi]))
 vmin, vmax= 8, 18
 c = np.log10(ff["plx"])
 vmin, vmax= -1, 1

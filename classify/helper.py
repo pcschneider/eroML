@@ -27,16 +27,25 @@ def scaler(X, factor=1., axis=None):
     return X
 
 def rescale(X):
-    #X["offset_sig"] = np.log10(1.-norm.cdf(X["offset_sig"]))
-    #gi = np.where(-2*np.isfinite(X["offset_sig"])==False)[0]
-    #X["offset_sig"][gi] = 100
+    
     Y = copy.copy(X)
-    Y["Fx"] = np.log10(Y["Fx"]) + 13
-    Y["Fg"] = np.log10(Y["Fg"]) + 11
-    #print("AAA", np.shape(X["Fx"]))
-    #print(np.sum(np.isfinite(X["Fx"])), len(X["Fx"]))
-    #print(np.sum(np.isfinite(X["Fg"])), len(X["Fg"]))
-    #X["FxFg"] = np.log10(X["FxFg"])
+    
+    if "FxFg" in list(Y.columns):
+        Y["FxFg"]*=12
+        
+    if "log_plx" in list(Y.columns):
+        Y["log_plx"]*=2.9
+        
+    if "log_skd" in list(Y.columns):
+        Y["log_skd"]*=20
+    
+    if "match_dist" in list(Y.columns):
+        Y["match_dist"]*=2.0
+    
+    
+    if "RADEC_sig" in list(Y.columns):
+        Y["RADEC_sig"]*=1.0
+    
     return Y
 
 def recovery(y, b):

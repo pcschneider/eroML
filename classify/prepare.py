@@ -49,17 +49,17 @@ def preprocess(ifn, extension=1, ofn=None, overwrite=False, verbose=1, display=F
     
     arr = np.log10(ff[extension].data["Fx"])+13
     print("log Fx",np.mean(arr), np.median(arr), np.std(arr))
-    col = pyfits.Column(name="logFx", array=arr, format=columns["Fx"])    
+    col = pyfits.Column(name="logFx", array=5*arr, format=columns["Fx"])    
     cols.append(col)
     
     arr = np.log10(ff[extension].data["Fg"])+12
     print("log Fg",np.mean(arr), np.median(arr), np.std(arr))
-    col = pyfits.Column(name="logFg", array=arr, format=columns["Fg"])    
+    col = pyfits.Column(name="logFg", array=5*arr, format=columns["Fg"])    
     cols.append(col)
     
     arr = np.log10(ff[extension].data["Fx"]) - np.log10(ff[extension].data["Fg"])+4
     print("log FxFg",np.mean(arr), np.median(arr), np.std(arr))   
-    col = pyfits.Column(name="logFxFg", array=arr, format=columns["Fg"])    
+    col = pyfits.Column(name="logFxFg", array=5*arr, format=columns["Fg"])    
     cols.append(col)
     
     
@@ -201,12 +201,12 @@ def preprocess(ifn, extension=1, ofn=None, overwrite=False, verbose=1, display=F
     gi = np.where(np.isnan(arr))[0]
     arr[gi] = -1
     print("plx",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name="log_plx", array=arr*5, format=columns["parallax"])    
+    col = pyfits.Column(name="log_plx", array=arr*15, format=columns["parallax"])    
     cols.append(col)
     
     arr = np.log10(ff[extension].data["eligible_sky_density"])
     print("log sky_density",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name="log_sk", array=arr, format=columns["eligible_sky_density"])    
+    col = pyfits.Column(name="log_skd", array=arr, format=columns["eligible_sky_density"])    
     cols.append(col)
 
     arr = ff[extension].data["eligible_sky_density"]
@@ -295,13 +295,21 @@ def prepare_training(ifn, ofn, overwrite=True, verbose=1):
     colname = "eligible_sky_density"
     arr = ff[ext].data[colname][gi]
     print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
+    col = pyfits.Column(name="skd" , array=arr, format=column_formats[colname])    
+    cols.append(col)
+    
+    arr = np.log10(ff[ext].data["eligible_sky_density"][gi])
+    print("log sky_density",np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+    col = pyfits.Column(name="log_skd", array=arr, format=column_formats["eligible_sky_density"])    
     cols.append(col)
 
     colname = "category"
     if colname in ff[ext].data.columns.names:
         arr = ff[ext].data[colname][gi]
-        print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
+        print("Category: ")
+        for cat in np.unique(arr):
+            ci = np.where(arr==cat)[0]
+            print("   #cat=",cat,":", len(ci))
         col = pyfits.Column(name=colname , array=arr, format=column_formats[colname])    
         cols.append(col)
 
@@ -331,13 +339,13 @@ def prepare_training(ifn, ofn, overwrite=True, verbose=1):
         cat = ff[ext].data["category"][gi]
         ri = np.where((cat >0) & (arr < 1e-5))[0]
         #arr[ri] = 0.01
-    col = pyfits.Column(name=colname , array=10*np.log10(arr), format=column_formats[colname])    
+    col = pyfits.Column(name=colname , array=np.log10(arr), format=column_formats[colname])    
     cols.append(col)
     
     colname = "parallax"
     arr = ff[ext].data[colname][gi]
     print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name=colname , array=2*np.log10(arr), format=column_formats[colname])    
+    col = pyfits.Column(name="log_plx" , array=np.log10(arr), format=column_formats[colname])    
     cols.append(col)
 
     colname = "parallax"
@@ -393,7 +401,7 @@ def prepare_training(ifn, ofn, overwrite=True, verbose=1):
     print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
     col = pyfits.Column(name="gaia_Dec", array=arr, format=column_formats[colname])    
     cols.append(col)
-    
+    print("len ",len(arr))
     #colname = "Dec_NN"
     #arr = ff[ext].data[colname][gi]
     #print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))

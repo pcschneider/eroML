@@ -51,7 +51,7 @@ if __name__ == "__main__":
     props = ["pos", "logFxFg","bp_rp","log_plx"]
     fn = "train_preprocessed.fits"
     props = ["RADEC_sigma", "match_dist", "bp_rp", "FxFg", "eligible_sky_density"]
-    props = ["bp_rp", "FxFg","RADEC_sigma", "match_dist", "eligible_sky_density", "parallax"]#, "NN"]
+    props = ["bp_rp", "FxFg","RADEC_sigma", "match_dist", "skd", "log_plx"]#, "NN"]
     #props = ["bp_rp", "FxFg"]
     #props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "Fx","Fg", "parallax"]
     #props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
@@ -59,21 +59,25 @@ if __name__ == "__main__":
     #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
     #X, y = get_props("../../ero_data/training_eFEDS_clean.fits", prop_cols=props,category_column="category", pandas=True)
     
-    X, y = get_props(fn, prop_cols=props,category_column="category", pandas=True)
+    X, y = get_props(fn, prop_cols=["bp_rp","FxFg"],category_column="category", pandas=True)
     
     sw_train = np.ones(len(y))
-    FxFg_scaling = 10
+    FxFg_scaling = 1
     gi = np.where((X["FxFg"]*FxFg_scaling < -3) & (y==0))[0]
-    sw_train[gi] = 2
+    #sw_train[gi] = 2
     gi = np.where((X["FxFg"]*FxFg_scaling < -4) & (y==0))[0]
-    sw_train[gi] = 3
+    #sw_train[gi] = 2
     gi = np.where((X["FxFg"]*FxFg_scaling > -2.5) & (y>0))[0]
-    sw_train[gi] = 3
+    #sw_train[gi] = 2
     gi = np.where((X["FxFg"]*FxFg_scaling > -3) & (y>0) & (X["bp_rp"] < 2))[0]
-    sw_train[gi] = 5
-    print("#weighted: ",len(gi))
+    #sw_train[gi] = 2
+    #print("#weighted: ",len(gi))
     #plt.scatter(X["bp_rp"][gi], X["FxFg"][gi])
     #plt.show()
+    
+    
+    X, y = get_props(fn, prop_cols=props,category_column="category", pandas=True)
+
     y[y>0] = 1
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -101,9 +105,13 @@ if __name__ == "__main__":
     clf = svm.SVC(C=50, kernel='poly', probability=True, degree=4,class_weight={0: 1.3}) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "FxFg", "parallax"]
     clf = svm.SVC(C=100, kernel='poly', probability=True, degree=3,class_weight={0:2.2}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
     
-    ppl = Pipeline(steps=[( 'rescaler', StandardScaler()), ('svc', clf)])
+    clf = svm.SVC(C=150, kernel='poly', probability=True, degree=3,class_weight={0:6.1}, tol=1e-7) # <- OKish
+    clf = svm.SVC(C=500, kernel='poly', probability=True, degree=3,class_weight={0:5.5}, tol=1e-7) # <- OKish
 
-    ppl = Pipeline(steps=[('svc', clf)])
+    
+    #ppl = Pipeline(steps=[( 'rescaler', StandardScaler()), ('svc', clf)])
+    ppl = Pipeline(steps=[( 'rescaler', FunctionTransformer(rescale)), ('svc', clf)])
+    #ppl = Pipeline(steps=[('svc', clf)])
 
     #ppl = clf
     #clf = PCA(n_components=2)
@@ -112,7 +120,7 @@ if __name__ == "__main__":
     #clf = SGDClassifier(loss='hinge')
     
     #clf.fit(X_train, y_train)
-    #ppl = Pipeline(steps=[( 'rescaler', FunctionTransformer(rescale)), ('svc', clf)])
+    #
 
 
     #ppl.fit(X,  y)
