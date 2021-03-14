@@ -52,8 +52,9 @@ if __name__ == "__main__":
     fn = "train_preprocessed.fits"
     props = ["RADEC_sigma", "match_dist", "bp_rp", "FxFg", "eligible_sky_density"]
     props = ["bp_rp", "FxFg","RADEC_sigma", "match_dist", "skd", "log_plx"]#, "NN"]
-    #props = ["bp_rp", "FxFg","offset_in_sigma", "expected_rnd", "skd", "log_plx"]#, "NN"]
+    props = ["bp_rp", "FxFg", "offset_in_sigma", "expected_rnd", "log_plx"]#, "NN"]
     #props = ["bp_rp", "FxFg"]
+    #props = ["offset_in_sigma", "expected_rnd"]
     #props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "Fx","Fg", "parallax"]
     #props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
     #X, y = get_props("../merged_training.fits", prop_cols=props,category_column="category")
@@ -63,14 +64,14 @@ if __name__ == "__main__":
     X, y = get_props(fn, prop_cols=["bp_rp","FxFg"],category_column="category", pandas=True)
     
     sw_train = np.ones(len(y))
-    FxFg_scaling = 1
-    gi = np.where((X["FxFg"]*FxFg_scaling < -3) & (y==0))[0]
+    #FxFg_scaling = 1
+    #gi = np.where((X["FxFg"]*FxFg_scaling < -4) & (y==0))[0]
+    #sw_train[gi] = 8
+    #gi = np.where((X["FxFg"]*FxFg_scaling < -4) & (y==0))[0]
+    ##sw_train[gi] = 2
+    #gi = np.where((X["FxFg"]*FxFg_scaling > -2.5) & (y>0))[0]
     #sw_train[gi] = 2
-    gi = np.where((X["FxFg"]*FxFg_scaling < -4) & (y==0))[0]
-    #sw_train[gi] = 2
-    gi = np.where((X["FxFg"]*FxFg_scaling > -2.5) & (y>0))[0]
-    #sw_train[gi] = 2
-    gi = np.where((X["FxFg"]*FxFg_scaling > -3) & (y>0) & (X["bp_rp"] < 2))[0]
+    #gi = np.where((X["FxFg"]*FxFg_scaling > -3) & (y>0) & (X["bp_rp"] < 2))[0]
     #sw_train[gi] = 2
     #print("#weighted: ",len(gi))
     #plt.scatter(X["bp_rp"][gi], X["FxFg"][gi])
@@ -106,8 +107,8 @@ if __name__ == "__main__":
     clf = svm.SVC(C=50, kernel='poly', probability=True, degree=4,class_weight={0: 1.3}) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "FxFg", "parallax"]
     clf = svm.SVC(C=100, kernel='poly', probability=True, degree=3,class_weight={0:2.2}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
     
-    clf = svm.SVC(C=150, kernel='poly', probability=True, degree=3,class_weight={0:6.1}, tol=1e-7) # <- OKish
-    clf = svm.SVC(C=500, kernel='poly', probability=True, degree=3,class_weight={0:7.06}, tol=1e-7) # <- OKish
+    clf = svm.SVC(C=150, kernel='poly', probability=True, degree=1,class_weight={0:8.0}, tol=1e-7) # <- OKish
+    #clf = svm.SVC(C=500, kernel='poly', probability=True, degree=3,class_weight={0:5.5}, tol=1e-7) # <- OKish
 
     
     #ppl = Pipeline(steps=[( 'rescaler', StandardScaler()), ('svc', clf)])

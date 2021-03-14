@@ -13,7 +13,10 @@ if __name__ == "__main__":
     Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)
     c = clf.predict(Y)
     Y = get_props(rfn, prop_cols=props+["NN"], category_column=None, pandas=True)
-    gi = np.where(Y["NN"] == 1)[0]
+    try:
+        gi = np.where((Y["NN"] == 1) & (Y["FxFg"]<-1))[0]
+    except:
+        gi = np.where(Y["NN"] == 1)[0]
         
     print("random stars: ",len(np.where(c==0)[0]), "(NN=1",len(np.where(c[gi]==0)[0]),")")
     

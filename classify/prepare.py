@@ -292,6 +292,17 @@ def prepare_training(ifn, ofn, overwrite=True, verbose=1):
     col = pyfits.Column(name="RADEC_sigma" , array=calc_sigma_from_RADEC_ERR(arr), format=column_formats[colname])    
     cols.append(col)
     
+    arr0 = ff[ext].data["match_dist"][gi]
+    arr1 = calc_sigma_from_RADEC_ERR(ff[ext].data["RADEC_ERR"][gi])
+    col = pyfits.Column(name="offset_in_sigma" , array=arr0/arr1, format=column_formats["match_dist"])    
+    cols.append(col)
+    
+    arr0 = ff[ext].data["match_dist"][gi]
+    arr1 = ff[ext].data["eligible_sky_density"][gi]
+    col = pyfits.Column(name="expected_rnd" , array=4*np.pi*arr0*arr1, format=column_formats["match_dist"])    
+    cols.append(col)
+    
+    
     colname = "eligible_sky_density"
     arr = ff[ext].data[colname][gi]
     print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))

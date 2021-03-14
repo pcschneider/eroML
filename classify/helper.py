@@ -31,17 +31,23 @@ def rescale(X):
     Y = copy.copy(X)
     
     if "FxFg" in list(Y.columns):
-        Y["FxFg"]*=12
+        Y["FxFg"]*=5
         
     if "log_plx" in list(Y.columns):
-        Y["log_plx"]*=2.9
+        Y["log_plx"]*=3
+        #Y["log_plx"]*=2
         
     if "log_skd" in list(Y.columns):
         Y["log_skd"]*=20
     
     if "match_dist" in list(Y.columns):
-        Y["match_dist"]*=2.0
+        Y["match_dist"]*=1.2
     
+    if "expected_rnd" in list(Y.columns):
+        Y["expected_rnd"]*=0.03
+        
+    if "offset_in_sigma" in list(Y.columns):
+        Y["offset_in_sigma"]*=3
     
     if "RADEC_sig" in list(Y.columns):
         Y["RADEC_sig"]*=1.0
