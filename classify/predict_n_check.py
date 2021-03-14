@@ -12,7 +12,10 @@ if __name__ == "__main__":
     rfn = "random4classify_eFEDS.fits"
     Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)
     c = clf.predict(Y)
-    print("random stars: ",len(np.where(c==0)[0]))
+    Y = get_props(rfn, prop_cols=props+["NN"], category_column=None, pandas=True)
+    gi = np.where(Y["NN"] == 1)[0]
+        
+    print("random stars: ",len(np.where(c==0)[0]), "(NN=1",len(np.where(c[gi]==0)[0]),")")
     
     rfn = "major4classify_eFEDS.fits"
     Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)

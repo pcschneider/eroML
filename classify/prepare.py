@@ -331,13 +331,13 @@ def prepare_training(ifn, ofn, overwrite=True, verbose=1):
         cat = ff[ext].data["category"][gi]
         ri = np.where((cat >0) & (arr < 1e-5))[0]
         #arr[ri] = 0.01
-    col = pyfits.Column(name=colname , array=5*np.log10(arr), format=column_formats[colname])    
+    col = pyfits.Column(name=colname , array=10*np.log10(arr), format=column_formats[colname])    
     cols.append(col)
     
     colname = "parallax"
     arr = ff[ext].data[colname][gi]
     print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name=colname , array=np.log10(arr), format=column_formats[colname])    
+    col = pyfits.Column(name=colname , array=2*np.log10(arr), format=column_formats[colname])    
     cols.append(col)
 
     colname = "parallax"

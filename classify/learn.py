@@ -62,7 +62,7 @@ if __name__ == "__main__":
     X, y = get_props(fn, prop_cols=props,category_column="category", pandas=True)
     
     sw_train = np.ones(len(y))
-    FxFg_scaling = 5
+    FxFg_scaling = 10
     gi = np.where((X["FxFg"]*FxFg_scaling < -3) & (y==0))[0]
     sw_train[gi] = 2
     gi = np.where((X["FxFg"]*FxFg_scaling < -4) & (y==0))[0]
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     #clf = svm.SVC(C=5, probability=True, degree=3,class_weight={0: 1.15}) # <- OKish
     clf = svm.SVC(C=5, probability=True, degree=3,class_weight={0: 0.75}) # <- OKish
     clf = svm.SVC(C=50, kernel='poly', probability=True, degree=4,class_weight={0: 1.3}) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "FxFg", "parallax"]
-    clf = svm.SVC(C=100, kernel='poly', probability=True, degree=3,class_weight={0:2.5}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
+    clf = svm.SVC(C=100, kernel='poly', probability=True, degree=3,class_weight={0:2.2}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
     
     ppl = Pipeline(steps=[( 'rescaler', StandardScaler()), ('svc', clf)])
 
