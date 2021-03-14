@@ -3,6 +3,7 @@ from astropy.io import fits as pyfits
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 import copy
+from eroML.positions import calc_sigma_from_RADEC_ERR
 
 def ero_names(coords, prefix):
     names=[]
@@ -41,8 +42,7 @@ mapper = {"match_dist":"match_dist",\
                  "gaia_RA":"gaia_RA", "gaia_Dec":"gaia_Dec",\
                  "ero_RA":"RA", "ero_Dec":"Dec",\
              "sigma_r":"RADEC_sigma","gaia_ID":"srcID_NN","ero_ID":"original_srcID",\
-                 "Fx":"Fx","BP_RP":"bp_rp", "plx":"plx", "plx_error":"plx_error",\
-            "p_stellar":"category"}
+                 "BP_RP":"bp_rp", "plx":"plx", "plx_error":"plx_error"}
 
 for colname in mapper.keys():
     print(colname)
@@ -50,12 +50,28 @@ for colname in mapper.keys():
     col = pyfits.Column(name=colname , array=arr, format=column_formats[mapper[colname]])    
     cols.append(col)
 
+
+col = pyfits.Column(name="Fx", array=10**(fd["Fx"]-13), format="D")    
+cols.append(col)
+
+
+#sigma_r = calc_sigma_from_RADEC_ERR(fd["RADEC_ERR"])
+#col = pyfits.Column(name="sigma_r", array=sigma_r, format="D")    
+#cols.append(col)
+
+
 # Dummy columns:
-for colname in ["p_ij", "rate","rate_error", "det_likeli", "Fx_error", "pm_RA", "pm_Dec"]:
+for colname in ["rate","rate_error", "det_likeli", "Fx_error", "pm_RA", "pm_Dec"]:
     col = pyfits.Column(name=colname , array=np.zeros(len(fd["srcID"])), format="D")    
     cols.append(col)
 
+col = pyfits.Column(name="p_stellar", array=1-fd["category"], format="D")    
+cols.append(col)
 
+col = pyfits.Column(name="p_ij", array=np.ones(len(fd["srcID"])), format="D")    
+cols.append(col)
+ 
+print(cols)
     
 hdu = pyfits.PrimaryHDU()    
 cc = pyfits.ColDefs(cols)    

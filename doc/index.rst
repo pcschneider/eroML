@@ -13,6 +13,7 @@ Welcome to eroML's documentation!
    howto.rst
    exploration.rst
    learning.rst
+   reconciliation.rst
    cheat_sheet.rst
    submodules.rst
    etc.rst

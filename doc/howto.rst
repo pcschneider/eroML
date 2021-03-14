@@ -175,6 +175,10 @@ Construction of the training sample is a multi-step process.
 8) Identify stars::
     
     p37 classify/write_stars.py
+
+9) Write HamStar-liek file::
+    
+    p37 tools/gen_HamStar_file.py
     
 9) Compare with Sebastian::
     
