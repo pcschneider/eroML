@@ -51,7 +51,7 @@ if __name__ == "__main__":
     props = ["pos", "logFxFg","bp_rp","log_plx"]
     fn = "train_preprocessed.fits"
     props = ["RADEC_sigma", "match_dist", "bp_rp", "FxFg", "eligible_sky_density"]
-    #props = ["bp_rp", "FxFg","RADEC_sigma", "match_dist", "eligible_sky_density", "parallax"]#, "NN"]
+    props = ["bp_rp", "FxFg","RADEC_sigma", "match_dist", "eligible_sky_density", "parallax"]#, "NN"]
     #props = ["bp_rp", "FxFg"]
     #props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "Fx","Fg", "parallax"]
     #props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     #clf = svm.SVC(C=5, probability=True, degree=3,class_weight={0: 1.15}) # <- OKish
     clf = svm.SVC(C=5, probability=True, degree=3,class_weight={0: 0.75}) # <- OKish
     clf = svm.SVC(C=50, kernel='poly', probability=True, degree=4,class_weight={0: 1.3}) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "FxFg", "parallax"]
-    clf = svm.SVC(C=50, kernel='poly', probability=True, degree=4,class_weight={0: 0.5}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
+    clf = svm.SVC(C=100, kernel='poly', probability=True, degree=4,class_weight={0: 0.9}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
 
 
     ppl = clf

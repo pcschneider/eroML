@@ -337,7 +337,7 @@ def prepare_training(ifn, ofn, overwrite=True, verbose=1):
     colname = "parallax"
     arr = ff[ext].data[colname][gi]
     print(colname ,np.nanmean(arr), np.nanmedian(arr), np.nanstd(arr))
-    col = pyfits.Column(name=colname , array=np.log10(arr), format=column_formats[colname])    
+    col = pyfits.Column(name=colname , array=5*np.log10(arr), format=column_formats[colname])    
     cols.append(col)
 
     colname = "parallax"
