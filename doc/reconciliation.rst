@@ -31,7 +31,7 @@ Generate master table (attention: filenames are hardcoded)::
   fits2sqlite ero_master.fits ero_master.db
   
 Comparison plot
---------------
+----------------
 
 Run::
 

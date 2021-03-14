@@ -32,7 +32,7 @@ ff0 = pyfits.open("ero_master.fits")
 ff = ff0[1].data
 
 #catalogs = list(fnames.keys())#[::-1]
-p_lim = {"SVM":0.01, "Bayes":0.60,"NWAY":0.01}
+p_lim = {"SVM":0.01, "Bayes":0.59,"NWAY":0.01}
 
 
 
@@ -108,7 +108,7 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     ax11 = fig.add_subplot(gs[1, 0])
     cond0 = (ff["SVM"] > p_lim["SVM"]) & (ff["SVM_ij"] > 0.5)
     cond1 = (ff["Bayes"] > p_lim["Bayes"]) & (ff["Bayes_ij"] > 0.5)
-    cond2 = (ff["NWAY"] > p_lim["NWAY"]) & (ff["NWAY_ij"] > 0.5) 
+    cond2 = (ff["NWAY"] < p_lim["NWAY"]) | ((ff["NWAY"]>p_lim["NWAY"]) & (ff["NWAY_ij"] <= 0.5))
     gi = np.where(cond0 & cond1 & cond2)[0]
     sc = one_panel(x[gi], y[gi], bg_points=(x_all, y_all), ax=ax11, anno="SVM, Bayes, !NWAY (%i)" % len(gi), color=color[gi], **kwargs)
 
