@@ -18,6 +18,8 @@ if __name__ == "__main__":
     Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)
     c = clf.predict(Y)
     print("real stars: ",len(np.where(c==0)[0]))
+    #multidim_visualization(clf, Y, c, names={i:props[i] for i in range(len(props))})
+
  
     fn = clf.filename 
     

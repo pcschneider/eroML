@@ -7,6 +7,7 @@ from eroML.positions import calc_sigma_from_RADEC_ERR
 
 def ero_names(coords, prefix):
     names=[]
+    return len(coords)*[prefix]
     for c in coords:
         #print(c.to_string("hmsdms"))
         ra = str("%02i%02i%05.2f " % (c.ra.hms.h, c.ra.hms.m, c.ra.hms.s))

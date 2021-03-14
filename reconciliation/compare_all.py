@@ -32,7 +32,7 @@ ff0 = pyfits.open("ero_master.fits")
 ff = ff0[1].data
 
 #catalogs = list(fnames.keys())#[::-1]
-p_lim = {"SVM":0.01, "Bayes":0.59,"NWAY":0.01}
+p_lim = {"SVM":0.01, "Bayes":0.57,"NWAY":0.01}
 
 
 
@@ -111,7 +111,7 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     cond2 = (ff["NWAY"] < p_lim["NWAY"]) | ((ff["NWAY"]>p_lim["NWAY"]) & (ff["NWAY_ij"] <= 0.5))
     gi = np.where(cond0 & cond1 & cond2)[0]
     sc = one_panel(x[gi], y[gi], bg_points=(x_all, y_all), ax=ax11, anno="SVM, Bayes, !NWAY (%i)" % len(gi), color=color[gi], **kwargs)
-
+    if ylabel=="log Fx/Fg": ax11.plot([0, 2.9], [-3.8, -1], color='r')
     shrinked_fits(gi, ofn="missing.fits")
 
     if y[0]!=None:
@@ -138,6 +138,7 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     cond2 = (ff["NWAY"] <= p_lim["NWAY"]) | ((ff["NWAY"]>p_lim["NWAY"]) & (ff["NWAY_ij"] <= 0.5) )
     gi = np.where(cond0 & cond1 & cond2)[0]
     sc = one_panel(x[gi], y[gi], bg_points=(x_all, y_all), ax=ax21, anno="SVM, !Bayes, !NWAY (%i)" % len(gi), color=color[gi], **kwargs)
+    if ylabel=="log Fx/Fg": ax21.plot([0, 2.9], [-3.8, -1], color='r')
 
     ax22 = fig.add_subplot(gs[2, 1])
     cond0 = (ff["SVM"] <= p_lim["SVM"]) | ((ff["SVM"]>p_lim["SVM"]) & (ff["SVM_ij"] <= 0.5) )

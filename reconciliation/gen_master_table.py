@@ -78,7 +78,7 @@ if __name__== "__main__":
         required[setti] = False
         idx = np.arange(len(ass))[setti]
         xy, x_ind, y_ind = np.intersect1d(ass[setti], a, return_indices=True)
-        print(len(xy), x_ind, y_ind)
+        #print(len(xy), x_ind, y_ind)
         print(ass[idx][x_ind[10]], props[j]["ero_ID"][y_ind[10]])
         for col in cf.keys():    
             dct[col][idx[x_ind]] = props[j][col][y_ind]
@@ -114,18 +114,3 @@ if __name__== "__main__":
         if verbose>0:
             print("datasets::prep_classify - Written ",dst," objects with ",len(cols)," properties to ",ofn)
     #ff.close()  
-    
-    #print(dct)
-    exit()
-    #for a in 
-    
-    print(len(ass0),    len(ass1), len(np.intersect1d(ass0, ass1)))
-    ii = np.in1d(ass0, ass1)
-    print(len(ii)) # ass0 in ass1
-    print(np.array(ass0)[~ii])
-    #print(ass0[1], ass1[5])
-    exit()
-    dct = props2asso("../../eroML/major_eFEDS_classified.fits", assocs=ass0, props=["srcID", "srcID_NN"])
-    print(len(ass0))
-    print(dct)
-

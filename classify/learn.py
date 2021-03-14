@@ -19,7 +19,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import Pipeline
 from eroML.classify import get_props, multidim_visualization, recovery, rescale
 from joblib import dump, load
-from sklearn.preprocessing import FunctionTransformer
+from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
 def fp(y_true, y_pred, pp = False): 
     a = confusion_matrix(y_true, y_pred)[0, 0]
@@ -61,6 +61,19 @@ if __name__ == "__main__":
     
     X, y = get_props(fn, prop_cols=props,category_column="category", pandas=True)
     
+    sw_train = np.ones(len(y))
+    FxFg_scaling = 5
+    gi = np.where((X["FxFg"]*FxFg_scaling < -3) & (y==0))[0]
+    sw_train[gi] = 2
+    gi = np.where((X["FxFg"]*FxFg_scaling < -4) & (y==0))[0]
+    sw_train[gi] = 3
+    gi = np.where((X["FxFg"]*FxFg_scaling > -2.5) & (y>0))[0]
+    sw_train[gi] = 3
+    gi = np.where((X["FxFg"]*FxFg_scaling > -3) & (y>0) & (X["bp_rp"] < 2))[0]
+    sw_train[gi] = 5
+    print("#weighted: ",len(gi))
+    #plt.scatter(X["bp_rp"][gi], X["FxFg"][gi])
+    #plt.show()
     y[y>0] = 1
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -86,10 +99,13 @@ if __name__ == "__main__":
     #clf = svm.SVC(C=5, probability=True, degree=3,class_weight={0: 1.15}) # <- OKish
     clf = svm.SVC(C=5, probability=True, degree=3,class_weight={0: 0.75}) # <- OKish
     clf = svm.SVC(C=50, kernel='poly', probability=True, degree=4,class_weight={0: 1.3}) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "FxFg", "parallax"]
-    clf = svm.SVC(C=100, kernel='poly', probability=True, degree=4,class_weight={0: 0.9}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
+    clf = svm.SVC(C=100, kernel='poly', probability=True, degree=3,class_weight={0:2.5}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
+    
+    ppl = Pipeline(steps=[( 'rescaler', StandardScaler()), ('svc', clf)])
 
+    ppl = Pipeline(steps=[('svc', clf)])
 
-    ppl = clf
+    #ppl = clf
     #clf = PCA(n_components=2)
     #clf = tree.DecisionTreeClassifier()
     #clf = svm.SVC(kernel='linear', probability=True,class_weight={1: 3})
@@ -99,8 +115,8 @@ if __name__ == "__main__":
     #ppl = Pipeline(steps=[( 'rescaler', FunctionTransformer(rescale)), ('svc', clf)])
 
 
-    ppl.fit(X,  y)
-
+    #ppl.fit(X,  y)
+    ppl.fit(X,  y, svc__sample_weight=sw_train)
     #scoring = {'AUC': 'roc_auc', 'Accuracy': make_scorer(accuracy_score),\
         #"hinge":make_scorer(hinge_loss, greater_is_better=False),\
         #"balanced": make_scorer(balanced_accuracy_score), 'fp': make_scorer(fp)}
