@@ -50,8 +50,8 @@ if __name__ == "__main__":
     props = ["logFx","logFg","pos","log_plx","bp_rp"]
     props = ["pos", "logFxFg","bp_rp","log_plx"]
     fn = "train_preprocessed.fits"
-    props = ["RADEC_ERR", "match_dist", "bp_rp", "Fx", "Fg", "eligible_sky_density"]
-    props = ["bp_rp", "FxFg","RADEC_sigma", "match_dist", "eligible_sky_density", "parallax"]#, "NN"]
+    props = ["RADEC_sigma", "match_dist", "bp_rp", "FxFg", "eligible_sky_density"]
+    #props = ["bp_rp", "FxFg","RADEC_sigma", "match_dist", "eligible_sky_density", "parallax"]#, "NN"]
     #props = ["bp_rp", "FxFg"]
     #props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "Fx","Fg", "parallax"]
     #props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]

@@ -180,10 +180,6 @@ Construction of the training sample is a multi-step process.
     
     p37 tools/gen_HamStar_file.py
     
-9) Compare with Sebastian::
-    
-    p37 classify/cmp.py
-    
 
 A new training sample can be constructed by running::
 
@@ -193,4 +189,10 @@ A new training sample can be constructed by running::
   p37 learn.py
   p37 predict_n_check.py
   
-  
+New classifier and comparison::
+
+    p37 classify/learn.py ; p37 classify/predict_n_check.py # -> classify/svm.joblib
+    p37 classify/write_stars.py # -> major_eFEDS_classified.fits
+    p37 tools/gen_HamStar_file.py # -> eFEDS_HamStar.fits
+    p37 reconciliation/gen_master_table.py # -> ero_master.fits
+    p37 reconciliation/compare_all.py
