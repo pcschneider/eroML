@@ -25,6 +25,7 @@ props = ["match_dist","RADEC_ERR","eligible_sky_density"]
 
 
 fn = "../../ero_data/merged_major_eFEDS_EDR3.fits"
+#fn = "../../ero_data/merged_major_eFEDS_EDR3_HamStar.fits"
 #fn = "../../ero_data/merged_random_eFEDS_EDR3.fits"
 ff = pyfits.open(fn)
 fd = ff[1].data
@@ -41,10 +42,10 @@ gi = np.where(y==0)[0]
 #print(fd["srcID"][gi])
 print("SVM: ",len(gi))
 
-np.savetxt("training_IDs2.txt", fd["srcID"][gi], fmt="%s")
+np.savetxt("training_IDs4.txt", fd["srcID"][gi], fmt="%s")
 
 dd = np.genfromtxt("../eFEDS_good_pos.txt")
-dd = np.genfromtxt("../eFEDS_final_training_set.txt")
+#dd = np.genfromtxt("../eFEDS_final_training_set.txt")
 print("Sebastian",len(dd))
 
 a = fd["srcID"][gi]

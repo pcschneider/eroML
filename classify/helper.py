@@ -31,7 +31,7 @@ def rescale(X):
     Y = copy.copy(X)
     
     if "FxFg" in list(Y.columns):
-        Y["FxFg"]*=5
+        Y["FxFg"]*=7
         
     if "log_plx" in list(Y.columns):
         Y["log_plx"]*=3

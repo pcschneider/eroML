@@ -11,7 +11,7 @@ mfn = file4("major", cconfig="eFEDS_EDR3.ini")
 e = from_fits(mfn)
 print("Using merged file ",mfn," with ",len(e), " entries")
 tfn0 = "svm_training_IDs.txt"
-tfn0 = "positions/training_IDs2.txt"
+tfn0 = "positions/training_IDs4.txt"
 tfn1 = "eFEDS_final_training_set.txt"
 tfn1 = "eFEDS_good_pos.txt"
 
@@ -23,6 +23,10 @@ print("and training IDs ",tfn0, tfn1, " with ", len(t0), len(t1), " entries.")
 md0 = e.to_array("match_dist", array_type="array", srcIDs=t0)[0]
 md1 = e.to_array("match_dist", array_type="array", srcIDs=t1)[0]
 #print(len(md0), len(md1))
+
+tmp = calc_sigma_from_RADEC_ERR(pp0["RADEC_ERR"])
+gi = np.where(tmp<=3)[0]
+print("SVM with sigma<=3: ",len(gi), " shared of those: ", len(np.intersect1d(t0[gi], t1)))
 
 pp = e.to_array(["match_dist", "eligible_sky_density", "RADEC_ERR"], array_type="dict")
 pp0 = e.to_array(["match_dist", "eligible_sky_density", "RADEC_ERR"], array_type="dict", srcIDs=t0)
@@ -44,14 +48,16 @@ plt.ylabel("N")
 plt.show()
 plt.subplots_adjust(left=0.15, bottom=0.15, right=0.98, top=0.96, wspace=0, hspace=0)
 
-plt.hist(pp0["match_dist"]/calc_sigma_from_RADEC_ERR(pp0["RADEC_ERR"]), label="md0", range=(0,2), bins=30, density=True, alpha=0.5)
-plt.hist(pp1["match_dist"]/calc_sigma_from_RADEC_ERR(pp1["RADEC_ERR"]), label="md1", range=(0,2), bins=30, density=True, alpha=0.5)
+plt.hist(pp0["match_dist"]/calc_sigma_from_RADEC_ERR(pp0["RADEC_ERR"]), label="SVM", range=(0,2), bins=30, density=True, alpha=0.5)
+plt.hist(pp1["match_dist"]/calc_sigma_from_RADEC_ERR(pp1["RADEC_ERR"]), label="Bayes", range=(0,2), bins=30, density=True, alpha=0.5)
 plt.xlabel(r"r($\sigma$)")
 plt.ylabel("N")
 plt.legend()
 plt.show()
 plt.subplots_adjust(left=0.15, bottom=0.15, right=0.98, top=0.96, wspace=0, hspace=0)
 
+tmp = calc_sigma_from_RADEC_ERR(pp0["RADEC_ERR"])
+gi = np.where(tmp<=3)[0]
 plt.scatter(calc_sigma_from_RADEC_ERR(pp0["RADEC_ERR"]), pp0["match_dist"], label="SVM", alpha=0.5)
 plt.scatter(calc_sigma_from_RADEC_ERR(pp1["RADEC_ERR"]), pp1["match_dist"], label="Bayes", alpha=0.5)
 plt.legend()
@@ -60,3 +66,15 @@ plt.ylabel("Match distance (arcsec)")
 plt.ylim(0,3.5)
 plt.xlim(0.9,6.2)
 plt.show()
+
+
+
+plt.scatter(pp0["match_dist"]/calc_sigma_from_RADEC_ERR(pp0["RADEC_ERR"]), pp0["eligible_sky_density"], label="SVM", alpha=0.5)
+plt.scatter(pp1["match_dist"]/calc_sigma_from_RADEC_ERR(pp1["RADEC_ERR"]), pp1["eligible_sky_density"], label="Bayes", alpha=0.5)
+plt.legend()
+plt.xlabel("Match distance  / $\sigma$ ")
+plt.ylabel("Sky density")
+#plt.ylim(0,3.5)
+#plt.xlim(0.9,6.2)
+plt.show()
+

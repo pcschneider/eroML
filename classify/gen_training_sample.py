@@ -235,7 +235,7 @@ def add_random(training, major, rnd_factor=1, max_dist=60, randomize=[]):
     
     
 
-conf_file = "eFEDS_EDR3.ini"
+conf_file = "eFEDS_EDR3_HamStar.ini"
 training_ID_file = "svm_training_IDs.txt"
 
 mfn = file4("major", cconfig=conf_file)
