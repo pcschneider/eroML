@@ -3,6 +3,7 @@ from eroML.ensemble import from_fits, to_fits
 import numpy as np
 import copy
 from eroML.utils import activity_filter
+from eroML.classify import training_filter as tf
 from eroML.utils.enrich import NN_Max
 from eroML.positions import random4dens, gen_real_pos_offset, add_random2real, calc_sigma_from_RADEC_ERR
 import matplotlib.pyplot as plt
@@ -174,8 +175,9 @@ def filter_training(ensemble):
     KEEP only those objects in ensemble that have stellar like properties
     """
     dd = ensemble.to_array(["bp_rp", "FxFg", "phot_g_mean_mag","match_dist", "NN"], array_type="dict")
-    af = activity_filter(dd["bp_rp"], dd["FxFg"])
+    #af = activity_filter(dd["bp_rp"], dd["FxFg"])
     
+    af = tf(ensemble)
     
     gi = np.where((af==0) & (dd["phot_g_mean_mag"] > 5.5) & (dd["match_dist"] < 10) & (dd["NN"] == 1))[0]
     srcIDs = np.array(ensemble.srcIDs())
