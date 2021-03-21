@@ -269,7 +269,7 @@ def prepare_training(ifn, ofn, overwrite=True, verbose=1):
     if "category" in ff[ext].data.columns.names:
         cat = ff[ext].data["category"][gi]
         tr = np.where(cat == 0)[0]
-        pi = np.where(((ff[ext].data['parallax'][gi]>1.2) & (Lx[gi] < 2e31)) | (cat>0))[0]
+        pi = np.where(((ff[ext].data['parallax'][gi]>1.2) & (Lx[gi] < 2e31) & (ff[ext].data["RADEC_ERR"][gi]<6.5)) | (cat>0))[0]
         gi = gi[pi]
         
         
@@ -434,8 +434,11 @@ def prepare_training(ifn, ofn, overwrite=True, verbose=1):
     return hdul
 
 if __name__ == "__main__":
-    prepare_training("train.fits", "train_preprocessed.fits")
-    prepare_training("../ero_data/merged_random_eFEDS_EDR3.fits", "random4classify_eFEDS.fits")
-    prepare_training("../ero_data/merged_major_eFEDS_EDR3.fits", "major4classify_eFEDS.fits")
+    #prepare_training("train.fits", "train_preprocessed.fits")
+    #prepare_training("train2.fits", "train_preprocessed2.fits")
+    #prepare_training("../ero_data/merged_random_eFEDS_EDR3.fits", "random4classify_eFEDS.fits")
+    #prepare_training("../ero_data/merged_major_eFEDS_EDR3.fits", "major4classify_eFEDS.fits")
+    prepare_training("../ero_data/merged_random_eFEDS_EDR3_HamStar.fits", "random4classify_eFEDS_HamStar.fits")
+    prepare_training("../ero_data/merged_major_eFEDS_EDR3_HamStar.fits", "major4classify_eFEDS_HamStar.fits")
     
 

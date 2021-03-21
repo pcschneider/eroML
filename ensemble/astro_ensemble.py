@@ -266,6 +266,7 @@ class Ensemble():
         dt.append((colname, array.dtype))
         tmp_arr = np.zeros(len(self), dtype=dt)
         for j, c in enumerate(self.array.dtype.names):
+            #print(c, len(tmp_arr[c]), len(self.array[c]))
             tmp_arr[c] = self.array[c]
         tmp_arr[colname] = array
         self.array = tmp_arr
@@ -480,6 +481,7 @@ class Ensemble():
         if clean: 
             self.array = array
             self.known_cols = list(names)
+            self.row_mapper = {}
             for i, srcID in enumerate(self.array["srcID"]):
                 sid = str(srcID).strip()
                 #self.mapper[sid] = i

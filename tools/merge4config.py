@@ -5,6 +5,7 @@ import numpy as np
 
 conf_fn = "eRASS1_datasets_only.ini"
 conf_fn = "eFEDS_EDR3.ini"
+conf_fn = "eFEDS_EDR3_HamStar.ini"
 
 def prep_one_tile(e):
     ra, dec = e.to_array("RA", array_type="array"), e.to_array("Dec", array_type="array")
@@ -35,7 +36,7 @@ for i, fn in enumerate(fnames[1:]):
     print()
 
 to_fits(e0, ofn="x.fits", overwrite=True)
-
+exit()
 
 import matplotlib.pyplot as plt
 from eroML.ensemble import from_fits, to_fits

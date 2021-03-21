@@ -180,7 +180,7 @@ def filter_training(ensemble):
     gi = np.where((af==0) & (dd["phot_g_mean_mag"] > 5.5) & (dd["match_dist"] < 10) & (dd["NN"] == 1))[0]
     srcIDs = np.array(ensemble.srcIDs())
     #print(srcIDs[gi])
-    training.keep(srcIDs[gi])
+    ensemble.keep(srcIDs[gi])
     
 def add_random(training, major, rnd_factor=1, max_dist=60, randomize=[]):
     """
@@ -232,38 +232,53 @@ def add_random(training, major, rnd_factor=1, max_dist=60, randomize=[]):
     
     return rnd
     
+
+def one_training_sample():
+        
+        
+
+    conf_file = "eFEDS_EDR3.ini"
+    training_ID_file = "svm_training_IDs.txt"
+
+    mfn = file4("major", cconfig=conf_file)
+    rfn = file4("random", cconfig=conf_file)
+    print("Using ",mfn, " and ",rfn)
+
+    tIDs = np.genfromtxt(training_ID_file, dtype=str)
+    major  = from_fits(mfn)
+    random = from_fits(rfn)
+
+    gi = np.in1d(major.srcIDs(), tIDs)
+    training = copy.deepcopy(major)
+    training.keep(tIDs)
+    sig = training.to_array("RADEC_ERR", array_type="array")
+    print("sigma0: ",np.mean(sig), np.median(sig), len(sig))
+
+    sig = major.to_array("RADEC_ERR", array_type="array")
+    print("sigma1: ",np.mean(sig), np.median(sig), len(sig))
+
+
+    print("len(training)", len(training))
+    filter_training(training)
+    print(len(training))
+    #final = add_random(training, major, rnd_factor=12.5, randomize=["RADEC_ERR","sky_density"])
+    final = add_random(training, major, rnd_factor=35, randomize=["RADEC_ERR","sky_density"])
+    final = random_match_distances(final)
+    final = random_props(final, random)
     
-    
+    return final
 
-conf_file = "eFEDS_EDR3.ini"
-training_ID_file = "svm_training_IDs.txt"
+final = one_training_sample()
+print("Original sample: ", len(final))
 
-mfn = file4("major", cconfig=conf_file)
-rfn = file4("random", cconfig=conf_file)
-print("Using ",mfn, " and ",rfn)
+for i in range(2,5):
+        
+    print("Generating training sample, iteration: ",i)
+    final1 = one_training_sample()
+    final.append(final1, postfix="_"+str(i))
+    print("Final sample: ", len(final))
 
-tIDs = np.genfromtxt(training_ID_file, dtype=str)
-major  = from_fits(mfn)
-random = from_fits(rfn)
-
-gi = np.in1d(major.srcIDs(), tIDs)
-training = copy.deepcopy(major)
-training.keep(tIDs)
-sig = training.to_array("RADEC_ERR", array_type="array")
-print("sigma0: ",np.mean(sig), np.median(sig), len(sig))
-
-sig = major.to_array("RADEC_ERR", array_type="array")
-print("sigma1: ",np.mean(sig), np.median(sig), len(sig))
-
-
-print(len(training))
-filter_training(training)
-print(len(training))
-#final = add_random(training, major, rnd_factor=12.5, randomize=["RADEC_ERR","sky_density"])
-final = add_random(training, major, rnd_factor=35, randomize=["RADEC_ERR","sky_density"])
-final = random_match_distances(final)
-final = random_props(final, random)
-to_fits(final, "train.fits", overwrite=True)
+to_fits(final, "train2.fits", overwrite=True)
 
 
 

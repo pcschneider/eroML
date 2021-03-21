@@ -32,9 +32,11 @@ if __name__== "__main__":
     ass0 = gen_assocs("eFEDS_HamStar.fits", "ero_ID", "gaia_ID")
     cf = get_cols("../ero_data/efeds_c001_V3_main_HamStar_internal2.fits")
     ass1 = gen_assocs("../ero_data/efeds_c001_V3_main_HamStar_internal2.fits", "ero_ID", "gaia_ID")
-    ass2 = gen_assocs("../ero_data/nway2.fits", "ero_ID", "gaia_ID")    
+    #ass2 = gen_assocs("../ero_data/nway2.fits", "ero_ID", "gaia_ID")    
+    ass2 = gen_assocs("rx.fits", "ero_ID", "gaia_ID")    
     props = []
-    for fn in ["eFEDS_HamStar.fits", "../ero_data/efeds_c001_V3_main_HamStar_internal2.fits", "../ero_data/nway2.fits"]:
+    #for fn in ["eFEDS_HamStar.fits", "../ero_data/efeds_c001_V3_main_HamStar_internal2.fits", "../ero_data/nway2.fits"]:
+    for fn in ["eFEDS_HamStar.fits", "../ero_data/efeds_c001_V3_main_HamStar_internal2.fits", "rx.fits"]:        
         props.append(get_props(fn))
     
     mapper = {0:"SVM", 1:"Bayes", 2:"NWAY"}
@@ -94,6 +96,14 @@ if __name__== "__main__":
     for col in cf.keys():
         c = pyfits.Column(name=col, array=dct[col], format=cf[col])    
         cols.append(c)
+        
+    print(dct["Gmag"])
+    fi = np.where(dct["Gmag"] > 0.)[0]
+    Fg = np.zeros(len(dct["Gmag"]))
+    Fg[fi] = 10**(-0.4*dct["Gmag"][fi])*1.01324e-5
+    print(Fg)
+    cols.append(pyfits.Column(name="log_FxFg", array=np.log10(dct["Fx"]/Fg), format=cf["Fx"]))
+                
     for col in mapper.values():
         c = pyfits.Column(name=col, array=dct[col], format="D")    
         cols.append(c)

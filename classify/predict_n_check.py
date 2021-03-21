@@ -6,19 +6,27 @@ from astropy.io import fits as pyfits
 
 
 if __name__ == "__main__":
-    clf = load('classify/svm.joblib') 
+    clf = load('classify/svm2.joblib') 
     props = clf.props
     
     rfn = "random4classify_eFEDS.fits"
     Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)
     c = clf.predict(Y)
     Y = get_props(rfn, prop_cols=props+["NN"], category_column=None, pandas=True)
+    
+    ff = pyfits.open(rfn)
+    fd = ff[1].data
+    srcID = [x[0:7] for x in fd["srcID"]]
+    #print(srcID)
     try:
         gi = np.where((Y["NN"] == 1) & (Y["FxFg"]<-1))[0]
     except:
         gi = np.where(Y["NN"] == 1)[0]
         
-    print("random stars: ",len(np.where(c==0)[0]), "(NN=1",len(np.where(c[gi]==0)[0]),")")
+    
+    si = np.where(c==0)[0]
+    ui = np.unique(fd["original_srcID"][si])
+    print("random stars: ",len(si), "(NN=1",len(np.where(c[gi]==0)[0]),",", len(ui),")")
     
     rfn = "major4classify_eFEDS.fits"
     Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)

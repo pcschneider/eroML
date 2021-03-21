@@ -385,6 +385,15 @@ def quality_filter(ff, filter_Nr=4, ruwe_lim=1.4):
                      (d["phot_rp_mean_flux_over_error"]>10) &\
                      (d["phot_bp_mean_flux_over_error"]>10))[0]
         
+    elif filter_Nr==7:
+       gi = np.where((d["parallax"]/d["parallax_error"] > 3) &\
+                     (d["phot_g_mean_mag"]<19) &\
+                     (d["phot_g_mean_flux_over_error"]>0.1) &\
+                     (d["phot_rp_mean_flux_over_error"]>0.1) &\
+                     (d["phot_bp_mean_flux_over_error"]>0.1))[0]
+        
+ 
+
         
     q = np.zeros(N)
     q[gi] = 1

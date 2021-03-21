@@ -107,7 +107,7 @@ if __name__ == "__main__":
     clf = svm.SVC(C=100, kernel='poly', probability=True, degree=3,class_weight={0:2.2}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
     
     clf = svm.SVC(C=150, kernel='poly', probability=True, degree=3,class_weight={0:6.1}, tol=1e-7) # <- OKish
-    clf = svm.SVC(C=500, kernel='poly', probability=True, degree=3,class_weight={0:7.06}, tol=1e-7) # <- OKish
+    clf = svm.SVC(C=500, kernel='poly', probability=True, degree=3,class_weight={0:5.2}, tol=1e-7) # <- OKish
 
     
     #ppl = Pipeline(steps=[( 'rescaler', StandardScaler()), ('svc', clf)])

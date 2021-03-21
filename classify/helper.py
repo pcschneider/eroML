@@ -26,12 +26,17 @@ def scaler(X, factor=1., axis=None):
     #print("XXX1", factor, np.shape(X))
     return X
 
-def rescale(X):
+def adjustable_rescaler(**kwargs):
+    def rescaler(X):
+        return rescale(X, **kwargs)
+    return rescaler
     
+    
+def rescale(X, **kwargs):
     Y = copy.copy(X)
     
     if "FxFg" in list(Y.columns):
-        Y["FxFg"]*=5
+        Y["FxFg"]*=7
         
     if "log_plx" in list(Y.columns):
         Y["log_plx"]*=3
@@ -41,7 +46,7 @@ def rescale(X):
         Y["log_skd"]*=20
     
     if "match_dist" in list(Y.columns):
-        Y["match_dist"]*=1.2
+        Y["match_dist"]*=3.2
     
     if "expected_rnd" in list(Y.columns):
         Y["expected_rnd"]*=0.03
@@ -51,8 +56,13 @@ def rescale(X):
     
     if "RADEC_sig" in list(Y.columns):
         Y["RADEC_sig"]*=1.0
-    
+        
+    for kw in kwargs:
+        Y[kw] *= kwargs[kw]
+        
     return Y
+
+
 
 def recovery(y, b):
     print("Stars in training set: ",len(np.where(y==0)[0]))

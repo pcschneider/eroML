@@ -43,6 +43,6 @@ def write_one(clf, fn, ofn=None):
 
 
 
-clf = load('classify/svm.joblib') 
+clf = load('classify/svm2.joblib') 
 write_one(clf, "major4classify_eFEDS.fits",     ofn = "major_eFEDS_classified.fits")
 write_one(clf, "random4classify_eFEDS.fits",     ofn = "random_eFEDS_classified.fits")

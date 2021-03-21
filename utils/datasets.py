@@ -120,12 +120,11 @@ def major_set(ero, gaia, eligible_ero="eligible_X", eligible_gaia="eligible_Gaia
         ero1.add_col("NN", np.array(len(ero1)*[i+1]))
         ero1.add_col("original_srcID", np.array(ero1.srcIDs()))
         eros.append(ero1)
-        
+    
     ero1 = eros[0]
     for i, e in enumerate(eros[1::]):
-        ero1.append(e, postfix="_NN"+str(i+2))
+        ero1.append(e, postfix="_NN"+str(i+2))    
     enrich_merged(ero1)    
-    
     #print("len 1: ", len(eros[0]))
     #gi2 = np.where(d2d2.arcsec < 5*err)[0]
     #gi3 = np.where(d2d3.arcsec < 5*err)[0]
@@ -139,17 +138,18 @@ def major_set(ero, gaia, eligible_ero="eligible_X", eligible_gaia="eligible_Gaia
     #print("Keeping: ",good_ids)
     ero1.keep(good_ids)
     arr = ero1.to_array(ero1.known_cols)
-    ero1.from_array(remove_fields(arr, "Dec"))
+    tmp = remove_fields(arr, "DEC")
+    ero1.from_array(tmp, clean=True)
     NN_Max(ero1)
     return ero1
 
 
-@multi_fits_support(3)
-def training_set(geo, **kwargs):
-    return
+#@multi_fits_support(3)
+#def training_set(geo, **kwargs):
+    #return
 
 @multi_fits_support(3)
-def training_set_old(major0, random0, abs_dist=3, rel_dist=2):
+def training_set(major0, random0, abs_dist=3, rel_dist=2):
     """
     Construct a training set 
     """

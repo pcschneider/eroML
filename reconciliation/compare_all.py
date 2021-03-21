@@ -94,6 +94,8 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
         
     print("all: ",len(gi_all))
     one_panel(x_all, y_all, color=color[gi_all], ax=ax0, annox=0.8, anno="SVM, Bayes, NWAY (%i)" % len(gi_all), **kwargs)
+    if ylabel=="log Fx/Fg": 
+        ax0.plot([0, 4.0], [-3.5, -1.6], color='r')
     
     #plt.scatter(x[gi_all], y[gi_all], c=color[gi_all], s=10, vmin=vmin, vmax=vmax)
     #plt.annotate("JS, SF, pcs (%i)" % len(gi_all), xy=(0.8, 0.1), xycoords="axes fraction")
@@ -111,7 +113,9 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     cond2 = (ff["NWAY"] < p_lim["NWAY"]) | ((ff["NWAY"]>p_lim["NWAY"]) & (ff["NWAY_ij"] <= 0.5))
     gi = np.where(cond0 & cond1 & cond2)[0]
     sc = one_panel(x[gi], y[gi], bg_points=(x_all, y_all), ax=ax11, anno="SVM, Bayes, !NWAY (%i)" % len(gi), color=color[gi], **kwargs)
-    if ylabel=="log Fx/Fg": ax11.plot([0, 2.9], [-3.8, -1], color='r')
+    if ylabel=="log Fx/Fg": 
+        ax11.plot([0, 4.0], [-3.5, -1.6], color='r')
+        ax11.plot([0, 2.9], [-3.8, -1], color='b')
     shrinked_fits(gi, ofn="missing.fits")
 
     if y[0]!=None:
@@ -138,7 +142,9 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     cond2 = (ff["NWAY"] <= p_lim["NWAY"]) | ((ff["NWAY"]>p_lim["NWAY"]) & (ff["NWAY_ij"] <= 0.5) )
     gi = np.where(cond0 & cond1 & cond2)[0]
     sc = one_panel(x[gi], y[gi], bg_points=(x_all, y_all), ax=ax21, anno="SVM, !Bayes, !NWAY (%i)" % len(gi), color=color[gi], **kwargs)
-    if ylabel=="log Fx/Fg": ax21.plot([0, 2.9], [-3.8, -1], color='r')
+    if ylabel=="log Fx/Fg": 
+        ax21.plot([0, 4.0], [-3.5, -1.6], color='r')
+        ax21.plot([0, 2.9], [-3.8, -1], color='b')
 
     ax22 = fig.add_subplot(gs[2, 1])
     cond0 = (ff["SVM"] <= p_lim["SVM"]) | ((ff["SVM"]>p_lim["SVM"]) & (ff["SVM_ij"] <= 0.5) )
@@ -154,7 +160,10 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     cond2 = (ff["NWAY"] <= p_lim["NWAY"]) | ((ff["NWAY"]>p_lim["NWAY"]) & (ff["NWAY_ij"] <= 0.5) )
     gi = np.where(cond0 & cond1 & cond2)[0]
     sc = one_panel(x[gi], y[gi], bg_points=(x_all, y_all), ax=ax23, anno="!SVM, Bayes, !NWAY (%i)" % len(gi), color=color[gi], **kwargs)
-
+    if ylabel=="log Fx/Fg": 
+        ax23.plot([0, 4.0], [-3.5, -1.6], color='r')
+        ax23.plot([0, 2.9], [-3.8, -1], color='b')
+        
     ax0.set_ylabel(ylabel)
     ax11.set_ylabel(ylabel)
     ax21.set_ylabel(ylabel)
