@@ -236,7 +236,7 @@ def add_random(training, major, rnd_factor=1, max_dist=60, randomize=[]):
     
 
 conf_file = "eFEDS_EDR3_HamStar.ini"
-training_ID_file = "svm_training_IDs.txt"
+training_ID_file = "svm_training_IDs_HamStar.txt"
 
 mfn = file4("major", cconfig=conf_file)
 rfn = file4("random", cconfig=conf_file)
@@ -263,7 +263,7 @@ print(len(training))
 final = add_random(training, major, rnd_factor=35, randomize=["RADEC_ERR","sky_density"])
 final = random_match_distances(final)
 final = random_props(final, random)
-to_fits(final, "train.fits", overwrite=True)
+to_fits(final, "train_HamStar.fits", overwrite=True)
 
 
 
