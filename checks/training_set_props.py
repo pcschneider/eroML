@@ -4,19 +4,20 @@ from eroML.tile import file4
 from eroML.ensemble import from_fits, to_fits
 from eroML.positions import analytic_probability, calc_sigma_from_RADEC_ERR
 from eroML.utils import activity_filter
-from eroML.positions import analytic_probability, calc_sigma_from_RADEC_ERR
+
 plt.rcParams.update({'font.size': 16})
 plt.subplots_adjust(left=0.15, bottom=0.15, right=0.96, top=0.96, wspace=0, hspace=0)
 
 activity_poly = [-3.22, 3.6/5.5]
 
-mfn = file4("major", cconfig="eFEDS_EDR3.ini")
+mfn = file4("major", cconfig="eFEDS_EDR3_HamStar.ini")
 major = from_fits(mfn)
 print("Using merged file ",mfn," with ",len(major), " entries")
 
 tfn0 = "svm_training_IDs.txt"
-tfn1 = "eFEDS_good_pos.txt"
-tfn1 = "eFEDS_final_training_set.txt"
+tfn0 = "positions/training_IDs4.txt"
+tfn1 = "Bayes_eFEDS_good_pos.txt"
+tfn1 = "Bayes_eFEDS_final_training_set.txt"
 t0 = np.genfromtxt(tfn0, dtype=str)
 t1tmp = np.genfromtxt(tfn1)
 t1 = np.array([str("ML%05i" % d) for d in t1tmp])
@@ -29,13 +30,21 @@ well_above = activity_filter(color, FxFg, log_margin=0.5).astype(bool)
 cl = np.ones(len(major)).astype(int) *2
 cl[below] = 0
 cl[well_above] = 1
-gi2 = np.where(cl < 2)[0]
+gi2 = np.where(cl < 1)[0]
 
+#plt.scatter(color, FxFg, label="all ("+str(len(color))+")")
+#plt.scatter(color[gi2], FxFg[gi2], label="bona fide stars ("+str(len(gi2))+")")
+#plt.xlabel("BP - RP")
+#plt.ylabel("FxFg")
+#plt.yscale("log")
+#plt.ylim(1e-7,1)
+#plt.legend()
+#plt.show()
 
 dist = 1000/major.to_array("parallax", array_type="array")
 Fx = major.to_array("Fx", array_type="array")
-Lx = 4*np.pi*(3.1e-2*dist)**2 * Fx * 1e40
-gi = np.where((Lx > 2e31) & (cl==0))[0]
+Lx = 4*np.pi*(3.18e-2*dist)**2 * Fx * 1e40
+gi = np.where(((Lx > 2e31) & (cl==0)) | (dist>1500))[0]
 print("Below saturation limit, but too high Lx", len(gi))
 cl[gi] = 2
 print("Leaving ",len(np.where(cl==0)[0]), " bona fide stars.")
@@ -75,27 +84,29 @@ pp1 = e.to_array(["match_dist", "eligible_sky_density", "RADEC_ERR"], array_type
 ap = analytic_probability(pp["match_dist"], sigma=calc_sigma_from_RADEC_ERR(pp["RADEC_ERR"]), sky_density=pp["eligible_sky_density"], ps=0.07)
 ap0 = analytic_probability(pp0["match_dist"], sigma=calc_sigma_from_RADEC_ERR(pp0["RADEC_ERR"]), sky_density=pp0["eligible_sky_density"], ps=0.07)
 ap1 = analytic_probability(pp1["match_dist"], sigma=calc_sigma_from_RADEC_ERR(pp1["RADEC_ERR"]), sky_density=pp1["eligible_sky_density"], ps=0.07)
-si = np.argsort(ap0)[::-1][0:497]
-print(ap0[si[0]], ap0[si[-1]])
-print(max(ap1), np.quantile(ap1, 0.01))
+
+#print(ap0[si[0]], ap0[si[-1]])
+#print(max(ap1), np.quantile(ap1, 0.01))
 x = np.linspace(0,4, 100)
 ys = activity_poly[1]
 y = x*ys + activity_poly[0]
 plt.plot(x, 10**y, color='k')
 
-srcIDs = major.to_array("srcID", array_type="array")
-print(srcIDs)
-svm = np.zeros(len(cl))
+#srcIDs = major.to_array("srcID", array_type="array")
+print("Merged training set size:",len(srcIDs))
+svm = np.zeros(len(srcIDs))
 svm[np.in1d(srcIDs, srcIDs0)] = 1
-major.add_col("svm_training", svm)
-seb = np.zeros(len(cl))
+#major.add_col("svm_training", svm)
+seb = np.zeros(len(srcIDs))
 seb[np.in1d(srcIDs, srcIDs1)] = 1
-major.add_col("bayes_training", seb)
-to_fits(major,"x.fits", overwrite=True)
+#major.add_col("bayes_training", seb)
+#to_fits(major,"x.fits", overwrite=True)
 
+si = np.where((svm == 1) & (seb == 0))[0]
+bi = np.where((svm == 0) & (seb == 1))[0]
 plt.scatter(color, FxFg, label="All", c=ap, vmin=0.6, vmax=1.)
-plt.scatter(color0[si], FxFg0[si], label="SVM", fc="None", ec="k", s=22)
-plt.scatter(color1, FxFg1, label="Bayesian", fc="None", ec="r", s=24)
+plt.scatter(color[si], FxFg[si], label="SVM", fc="None", ec="k", s=28)
+plt.scatter(color[bi], FxFg[bi], label="Bayesian", fc="None", ec="r", s=24)
 cb = plt.colorbar()
 cb.set_label("Analytic probability")
 plt.yscale("log")

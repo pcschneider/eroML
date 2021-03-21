@@ -3,6 +3,7 @@ from astropy.io import fits as pyfits
 import matplotlib.pyplot as plt
 import numpy as np
 import PyAstronomy.funcFit as fuf
+from eroML.positions import calc_sigma_from_RADEC_ERR
 
 class Dist_model2(fuf.OneDFit):
     """
@@ -102,7 +103,8 @@ fig = plt.figure()
 ax0 = fig.add_subplot(N_plot, 1,1)
 fn = "../../ero_data/major_eFEDS.fits"   
 #fn = '../../ero_data/training_eFEDS.fits'
-fn = "../../ero_data/major_eFEDS_EDR3.fits"   
+fn = "../../ero_data/major_eFEDS_EDR3.fits"
+fn = "../../ero_data/merged_major_eFEDS_EDR3_HamStar.fits"   
 #../../ero_data/major_eFEDS_EDR3.fits
 #fn = fn_r
 Nsig = 1000
@@ -117,13 +119,14 @@ gi = np.where(ff[ext].data["NN"] == 1)[0]
 md = ff[ext].data[fkey][gi]
 N = len(md)
 print("Found %i sources in file." % N)
-mn_skd = np.mean(ff[ext].data["skd"][gi])
+#mn_skd = np.mean(ff[ext].data["skd"][gi])
+mn_skd = np.mean(ff[ext].data["eligible_sky_density"][gi])
 print("Mean sky density: ",mn_skd)
 Nrnd = np.zeros(N)
 x = np.linspace(0.5, 150.5, 151).repeat(N).reshape((151,N))
 #y = np.zeros((N, len(x)))
 #print(np.shape(x))
-skd = ff[ext].data["skd"][gi] / 3600 / 10 * 1.07
+skd = ff[ext].data["eligible_sky_density"][gi] / 3600 / 10 * 1.07
 #skd = np.ones(len(gi))
 y = np.transpose(skd[:,None] * x.T *2* np.pi)
 print(np.shape(y))
@@ -133,7 +136,8 @@ xs = np.linspace(0,100,200)
 yy = x/sigma**2*np.exp(-x**2/(2*sigma**2))
 print(np.shape(yy))
 
-sigma = ffd["sigma_r"][gi]*0.6
+#sigma = ffd["sigma_r"][gi]*0.6
+sigma = calc_sigma_from_RADEC_ERR(ffd["RADEC_ERR"][gi])
 zz = x/sigma**2*np.exp(-x**2/(2*sigma**2))
 
 
@@ -163,9 +167,9 @@ print("N stars: ",frac*np.trapz(mm, x=x[:,0]))
 
 mdl = Dist_model()
 mdl.N = len(gi)
-mdl.sigs = ffd["sigma_r"][gi]
-mdl.dens = ffd["skd"][gi] / 3600 / 10 
-mdl["sig_scale"] = 0.615
+mdl.sigs = calc_sigma_from_RADEC_ERR(ffd["RADEC_ERR"][gi])
+mdl.dens = ffd["eligible_sky_density"][gi] / 3600 
+mdl["sig_scale"] = 1
 mdl["dens_scale"] = 1.5
 xs = x[:,0]
 mdl.thaw(["fraction"])

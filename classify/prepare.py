@@ -74,12 +74,19 @@ def preprocess(ifn, extension=1, ofn=None, overwrite=False, verbose=1, display=F
     
     
     if "category" in ff[extension].data.columns.names:
-        dist = 1000/ff[extension].data["parallax"] 
-        Lx = 4*np.pi*(3.1e18*dist)**2  * ff[extension].data["Fx"]      
-        ci = np.where(ff[extension].data["category"] == 0)[0]
-        gi = np.where(Lx[ci] > 2e31)[0]
-        print("all: ",len(ci)," Lx filter: ",len(gi), "(max Lx: ",max(Lx[ci]),")")
-        ff[extension].data["category"][ci[gi]] = 1
+        #dist = 1000/ff[extension].data["parallax"] 
+        #Lx = 4*np.pi*(3.1e18*dist)**2  * ff[extension].data["Fx"]      
+        #ci = np.where(ff[extension].data["category"] == 0)[0]
+        #gi = np.where(Lx[ci] > 2e31)[0]
+        #print("all: ",len(ci)," Lx filter: ",len(gi), "(max Lx: ",max(Lx[ci]),")")
+        #good = training_filter(
+        dct = {}
+        for kw in ["parallax","Fx", "FxFg", "bp_rp"]:
+            dct[kw] = ff[extension].data[kw]
+        ai = training_filter(dct)    
+        gi = np.where(ai==1)[0]
+        ff[extension].data["category"][gi] = 1
+    
     
     dens = ff[extension].data['eligible_sky_density'] / 3600
     
@@ -267,11 +274,16 @@ def prepare_training(ifn, ofn, overwrite=True, verbose=1):
     gi = np.where((ff[ext].data["RADEC_ERR"] < 10) & (ff[ext].data["match_dist"]<25) &  (ff[ext].data["match_dist"]<4*ff[ext].data["RADEC_ERR"]) & (ff[ext].data['phot_g_mean_mag']>5.5))[0]
 
     if "category" in ff[ext].data.columns.names:
-        cat = ff[ext].data["category"][gi]
-        tr = np.where(cat == 0)[0]
-        pi = np.where(((ff[ext].data['parallax'][gi]>1.2) & (Lx[gi] < 2e31) & (ff[ext].data["RADEC_ERR"][gi]<6.5)) | (cat>0))[0]
+        print("Before'training_filter': ",len(gi))
+
+        dct = {}
+        for kw in ["parallax","Fx", "FxFg", "bp_rp"]:
+            dct[kw] = ff[extension].data[kw][gi]
+        ai = training_filter(dct)    
+        pi = np.where(ai==0)[0]
         gi = gi[pi]
-        
+        print("After 'training_filter': ",len(gi))
+        #ff[extension].data["category"][gi] = 1
         
     for colname in ["srcID", "srcID_NN", "original_srcID"]:        
         arr = ff[ext].data[colname][gi]
@@ -438,7 +450,11 @@ if __name__ == "__main__":
     #prepare_training("train2.fits", "train_preprocessed2.fits")
     #prepare_training("../ero_data/merged_random_eFEDS_EDR3.fits", "random4classify_eFEDS.fits")
     #prepare_training("../ero_data/merged_major_eFEDS_EDR3.fits", "major4classify_eFEDS.fits")
-    prepare_training("../ero_data/merged_random_eFEDS_EDR3_HamStar.fits", "random4classify_eFEDS_HamStar.fits")
-    prepare_training("../ero_data/merged_major_eFEDS_EDR3_HamStar.fits", "major4classify_eFEDS_HamStar.fits")
+    #prepare_training("../ero_data/merged_random_eFEDS_EDR3_HamStar.fits", "random4classify_eFEDS_HamStar.fits")
+    #prepare_training("../ero_data/merged_major_eFEDS_EDR3_HamStar.fits", "major4classify_eFEDS_HamStar.fits")
+    prepare_training("train_HamStar.fits", "train_HamStar_preprocessed.fits")
+    #prepare_training("train.fits", "train_preprocessed.fits")
+    #prepare_training("../ero_data/merged_random_eFEDS_EDR3.fits", "random4classify_eFEDS.fits")
+    #prepare_training("../ero_data/merged_major_eFEDS_EDR3.fits", "major4classify_eFEDS.fits")
     
 

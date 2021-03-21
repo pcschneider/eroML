@@ -68,7 +68,7 @@ train_index = np.random.choice(np.arange(N), N, replace=False)
 clf = Pipeline(steps=[('scale',  FunctionTransformer(func=scaler, kw_args={"factor":1, "axis":1})), ('clf', svm.SVC(C=1, class_weight={0: 0.3}, probability=True, tol=1e-5, cache_size=2000))])
 #weight: 1.15
 
-clf = Pipeline(steps=[('poly', PolynomialFeatures(3)), ('clf', svm.LinearSVC(C=1,class_weight={0: 0.23}, tol=1e-5, max_iter=10000, dual=False))])
+clf = Pipeline(steps=[('poly', PolynomialFeatures(3)), ('clf', svm.LinearSVC(C=1,class_weight={0: 0.22}, tol=1e-5, max_iter=10000, dual=False))])
 #clf = LogisticRegression(C=1, penalty='l2', solver='saga', multi_class='multinomial', max_iter=10000,class_weight={0: 1.5})
 
 print("start, Ntrain=",len(train_index))       

@@ -196,3 +196,46 @@ New classifier and comparison::
     p37 tools/gen_HamStar_file.py # -> eFEDS_HamStar.fits
     p37 reconciliation/gen_master_table.py # -> ero_master.fits
     p37 reconciliation/compare_all.py
+
+eFEDS for paper
+-------------------
+
+
+1) Estimate catalog fraction. This is done by running::
+    
+    p37 tools/estimate_catalog_N.py 
+  
+2) Generate a training sample for the geometric classifier via::
+
+    p37 positions/simu4major.py 2060 --conf eFEDS_EDR3_HamStar.ini --ofn offs_HamStar.dat -o --rnd_factor=12.6
+
+3) Train the SVM classifier based on the generated positions::
+
+    p37 positions/generate_classifier.py # -> positions/svc.joblib
+
+4) Classify real associations::
+
+    p37 positions/select_geometric_training_objects.py # -> positions/training_IDs4.txt
+    cp positions/training_IDs4.txt svm_training_IDs_HamStar.txt
+
+5) Astrophysical training sample::
+
+    p37 classify/gen_training_sample.py # -> train_HamStar.fits
+    
+6) Astrophysical screening (empirical Lx/Lbol screening, absolute Lx screening)::
+
+    p37 classify/prepare.py
+    
+7) Train classifier::
+    
+    p37 classify/learn.py ; p37 classify/predict_n_check.py 
+
+8) Identify stars::
+    
+    p37 classify/write_stars.py
+
+9) Write HamStar-liek file::
+    
+    p37 tools/gen_HamStar_file.py
+    
+

@@ -237,8 +237,10 @@ def one_training_sample():
         
         
 
-    conf_file = "eFEDS_EDR3.ini"
-    training_ID_file = "svm_training_IDs.txt"
+    #conf_file = "eFEDS_EDR3.ini"
+    #training_ID_file = "svm_training_IDs.txt"
+    conf_file = "eFEDS_EDR3_HamStar.ini"
+    training_ID_file = "svm_training_IDs_HamStar.txt"
 
     mfn = file4("major", cconfig=conf_file)
     rfn = file4("random", cconfig=conf_file)
@@ -278,7 +280,17 @@ for i in range(2,5):
     final.append(final1, postfix="_"+str(i))
     print("Final sample: ", len(final))
 
-to_fits(final, "train2.fits", overwrite=True)
+to_fits(final, "train_HamStar.fits", overwrite=True)
+#=======
+#print(len(training))
+#filter_training(training)
+#print(len(training))
+##final = add_random(training, major, rnd_factor=12.5, randomize=["RADEC_ERR","sky_density"])
+#final = add_random(training, major, rnd_factor=35, randomize=["RADEC_ERR","sky_density"])
+#final = random_match_distances(final)
+#final = random_props(final, random)
+#to_fits(final, "train_HamStar.fits", overwrite=True)
+#>>>>>>> eFEDS_pcs
 
 
 
