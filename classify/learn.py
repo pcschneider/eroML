@@ -49,7 +49,7 @@ if __name__ == "__main__":
     
     props = ["logFx","logFg","pos","log_plx","bp_rp"]
     props = ["pos", "logFxFg","bp_rp","log_plx"]
-    fn = "train_preprocessed.fits"
+    fn = "train_HamStar_preprocessed.fits"
     props = ["RADEC_sigma", "match_dist", "bp_rp", "FxFg", "eligible_sky_density"]
     props = ["bp_rp", "FxFg","RADEC_sigma", "match_dist", "skd", "log_plx"]#, "NN"]
     #props = ["bp_rp", "FxFg","offset_in_sigma", "expected_rnd", "skd", "log_plx"]#, "NN"]
@@ -106,8 +106,10 @@ if __name__ == "__main__":
     clf = svm.SVC(C=50, kernel='poly', probability=True, degree=4,class_weight={0: 1.3}) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density", "bp_rp", "FxFg", "parallax"]
     clf = svm.SVC(C=100, kernel='poly', probability=True, degree=3,class_weight={0:2.2}, tol=1e-6) # <- OKish for     props = ["RADEC_sigma", "match_dist", "eligible_sky_density"]
     
-    clf = svm.SVC(C=150, kernel='poly', probability=True, degree=3,class_weight={0:6.1}, tol=1e-7) # <- OKish
-    clf = svm.SVC(C=500, kernel='poly', probability=True, degree=3,class_weight={0:5.2}, tol=1e-7) # <- OKish
+    #clf = svm.SVC(C=150, kernel='poly', probability=True, degree=3,class_weight={0:6.1}, tol=1e-7) # <- OKish
+    #clf = svm.SVC(C=15, kernel='poly', probability=True, degree=3,class_weight={0:1.88}, tol=1e-7) # <- OKish
+    #clf = svm.SVC(C=12, kernel='poly', probability=True, degree=3,class_weight={0:3.35}, tol=1e-7) # <- OKish
+    clf = svm.SVC(C=40, kernel='poly', probability=True, degree=3,class_weight={0:3.77}, tol=1e-7) # <- OKish
 
     
     #ppl = Pipeline(steps=[( 'rescaler', StandardScaler()), ('svc', clf)])
@@ -151,7 +153,7 @@ if __name__ == "__main__":
     
     ppl.filename = fn
     ppl.props = props
-    dump(ppl, 'classify/svm.joblib') 
+    dump(ppl, 'classify/svm_tmp.joblib') 
     exit()
     
     print()

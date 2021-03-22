@@ -24,7 +24,13 @@ def write_one(clf, fn, ofn=None):
         col = pyfits.Column(name=colname , array=fd.data[colname], format=column_formats[colname])    
         cols.append(col)
 
+    print(len(c))
     col = pyfits.Column(name="category", array=c, format="I")    
+    cols.append(col)
+
+    pp = clf.predict_proba(Y)
+    print("shape: ",np.shape(pp))
+    col = pyfits.Column(name="svm_prob", array=pp[::,0], format="D")    
     cols.append(col)
 
 
@@ -43,6 +49,7 @@ def write_one(clf, fn, ofn=None):
 
 
 
-clf = load('classify/svm2.joblib') 
-write_one(clf, "major4classify_eFEDS.fits",     ofn = "major_eFEDS_classified.fits")
-write_one(clf, "random4classify_eFEDS.fits",     ofn = "random_eFEDS_classified.fits")
+clf = load('classify/svm2.joblib')
+clf = load('classify/svm_tmp.joblib') 
+write_one(clf, "major4classify_eFEDS_HamStar.fits",     ofn = "major_eFEDS_classified_HamStar.fits")
+write_one(clf, "random4classify_eFEDS_HamStar.fits",     ofn = "random_eFEDS_classified_HamStar.fits")

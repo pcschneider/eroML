@@ -21,7 +21,7 @@ def ero_names(coords, prefix):
     return names
 
 
-fn = "major_eFEDS_classified.fits"
+fn = "major_eFEDS_classified_HamStar.fits"
 ofn = "eFEDS_HamStar.fits"
 overwrite=True
 verbose=1

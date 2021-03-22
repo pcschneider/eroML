@@ -109,11 +109,27 @@ plt.scatter(color[si], FxFg[si], label="SVM", fc="None", ec="k", s=28)
 plt.scatter(color[bi], FxFg[bi], label="Bayesian", fc="None", ec="r", s=24)
 cb = plt.colorbar()
 cb.set_label("Analytic probability")
+
+from astropy.io import fits as pyfits
+fn = "train_HamStar_preprocessed.fits"
+ff = pyfits.open(fn)
+fd = ff[1].data
+gi = np.where(fd["category"]==0)[0]
+print(" #Stellar training objects in ",fn,":",len(gi))
+a, b = fd["bp_rp"][gi], 10**fd["FxFg"][gi]
+plt.scatter(a, b, s=15, marker='x', color='g', label=fn+" stars")
+gi = np.where(fd["category"]>0)[0]
+a, b = fd["bp_rp"][gi], 10**fd["FxFg"][gi]
+plt.scatter(a, b, s=15, marker='x', color='r', label=fn +" random")
+
+
 plt.yscale("log")
 plt.ylim(2e-7, 1e-1)
 plt.legend()
 plt.xlabel("BP-RP (mag)")
 plt.ylabel("Fx/Fbol")
+
+
 plt.show()
 exit()
 

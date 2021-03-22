@@ -6,10 +6,10 @@ from astropy.io import fits as pyfits
 
 
 if __name__ == "__main__":
-    clf = load('classify/svm2.joblib') 
+    clf = load('classify/svm_tmp.joblib') 
     props = clf.props
     
-    rfn = "random4classify_eFEDS.fits"
+    rfn = "random4classify_eFEDS_HamStar.fits"
     Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)
     c = clf.predict(Y)
     Y = get_props(rfn, prop_cols=props+["NN"], category_column=None, pandas=True)
@@ -28,10 +28,16 @@ if __name__ == "__main__":
     ui = np.unique(fd["original_srcID"][si])
     print("random stars: ",len(si), "(NN=1",len(np.where(c[gi]==0)[0]),",", len(ui),")")
     
-    rfn = "major4classify_eFEDS.fits"
+    rfn = "major4classify_eFEDS_HamStar.fits"
     Y = get_props(rfn, prop_cols=props, category_column=None, pandas=True)
     c = clf.predict(Y)
-    print("real stars: ",len(np.where(c==0)[0]))
+    Y = get_props(rfn, prop_cols=props+["NN"], category_column=None, pandas=True)
+
+    ff = pyfits.open(rfn)
+    fd = ff[1].data
+
+    si = fd["original_srcID"][np.where(c==0)[0]]
+    print("real stars: ",len(np.where(c==0)[0]), "(",len(np.unique(si)),")")
     #multidim_visualization(clf, Y, c, names={i:props[i] for i in range(len(props))})
 
  

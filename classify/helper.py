@@ -36,10 +36,10 @@ def rescale(X, **kwargs):
     Y = copy.copy(X)
     
     if "FxFg" in list(Y.columns):
-        Y["FxFg"]*=7
+        Y["FxFg"]*=20
         
     if "log_plx" in list(Y.columns):
-        Y["log_plx"]*=3
+        Y["log_plx"]*=6
         #Y["log_plx"]*=2
         
     if "log_skd" in list(Y.columns):

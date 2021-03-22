@@ -30,7 +30,7 @@ def training_filter(e, max_dist=1500, max_Lx=2e31 , verbose=1):
         if verbose>0: print("Populating dictionary from Ensemble")
         dct = e.to_array(["parallax", "bp_rp", "FxFg", "Fx"])
     else:
-        dct = x
+        dct = e
     
     below = (1-activity_filter(dct["bp_rp"], dct["FxFg"])).astype(bool)
     cl = np.ones(len(dct["Fx"]))

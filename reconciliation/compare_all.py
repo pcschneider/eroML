@@ -5,6 +5,7 @@ import warnings
 warnings.filterwarnings("ignore")
 from itertools import combinations
 import copy
+plt.rcParams.update({'font.size': 14})
 
 
 def shrinked_fits(gi, ofn):
@@ -36,11 +37,11 @@ p_lim = {"SVM":0.01, "Bayes":0.5625,"NWAY":0.28}
 
 
 
-def one_panel(x,y=None, bg_points=None, ax=None, anno="", color="r",annox=0.5, **kwargs):
+def one_panel(x,y=None, bg_points=None, ax=None, anno="", color="r",annox=0.035, annoy=0.08, **kwargs):
     if y is not None and y[0] is not None:
-        return one_panel_scatter(x, y, bg_points=bg_points, ax=ax, anno=anno, color=color, annox=annox, **kwargs)
+        return one_panel_scatter(x, y, bg_points=bg_points, ax=ax, anno=anno, color=color, annox=annox, annoy=annoy, **kwargs)
     else:
-        return one_panel_hist(x, bg_points=bg_points, ax=ax, anno=anno, color=color, annox=annox, **kwargs)
+        return one_panel_hist(x, bg_points=bg_points, ax=ax, anno=anno, color=color, annox=annox, annoy=annoy, **kwargs)
     #if bg_points is not None: ax.scatter(bg_points[0], bg_points[1], color='0.8', s=3)
     #sc = ax.scatter(x, y, c=color, s=10, vmin=vmin, vmax=vmax)
     #ax.annotate(anno, xy=(annox, 0.1), xycoords="axes fraction")
@@ -49,19 +50,19 @@ def one_panel(x,y=None, bg_points=None, ax=None, anno="", color="r",annox=0.5, *
     #return sc
 
 
-def one_panel_hist(x,bg_points=None, ax=None, anno="", color="r",annox=0.2, range=(0,1), bins=10, **kwargs):
+def one_panel_hist(x,bg_points=None, ax=None, anno="", color="r",annox=0.1, annoy=0.9, range=(0,1), bins=10, **kwargs):
     if bg_points is not None: ax.hist(bg_points[0], density=True, bins=bins, range=range)#, color='0.8', **kwargs)
     sc = ax.hist(x, density=True, bins=bins, range=range, alpha=0.5)#, color=color)
-    ax.annotate(anno, xy=(annox, 0.1), xycoords="axes fraction")
+    ax.annotate(anno, xy=(annox, annoy), xycoords="axes fraction")
     print("XXX")
     #ax.set_xlim(0,4.7)
     #ax.set_ylim(-8,-1)
     return sc
 
-def one_panel_scatter(x,y=None, bg_points=None, ax=None, anno="", color="r",annox=0.2, xlim=(0,1), ylim=(0,1), **kwargs):
+def one_panel_scatter(x,y=None, bg_points=None, ax=None, anno="", color="r",annox=0.2, annoy=0.05, xlim=(0,1), ylim=(0,1), **kwargs):
     if bg_points is not None: ax.scatter(bg_points[0], bg_points[1], color='0.8', s=3)
     sc = ax.scatter(x, y, c=color, s=10, vmin=vmin, vmax=vmax)
-    ax.annotate(anno, xy=(annox, 0.1), xycoords="axes fraction")
+    ax.annotate(anno, xy=(annox, annoy), xycoords="axes fraction")
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
     return sc
@@ -93,7 +94,7 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
         y_all = None
         
     print("all: ",len(gi_all))
-    one_panel(x_all, y_all, color=color[gi_all], ax=ax0, annox=0.8, anno="SVM, Bayes, NWAY (%i)" % len(gi_all), **kwargs)
+    one_panel(x_all, y_all, color=color[gi_all], ax=ax0, anno="SVM, Bayes, NWAY (%i)" % len(gi_all), **kwargs)
     if ylabel=="log Fx/Fg": 
         ax0.plot([0, 4.0], [-3.5, -1.6], color='r')
     
@@ -102,7 +103,7 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     for k, cat in enumerate(["SVM", "Bayes", "NWAY"]):
         ll = len(np.where((ff[cat] > p_lim[cat]) & (ff[cat+"_ij"] > 0.5))[0])
         print(cat,ll)
-        plt.annotate(cat+ ": %i" % ll, xy=(0.8, 0.18+k*.05), xycoords="axes fraction")
+        plt.annotate(cat+ ": %i" % ll, xy=(0.7, 0.4+k*.07), xycoords="axes fraction")
         
     #plt.xlim(0,4.7)
     #plt.ylim(-8,-1)
@@ -115,13 +116,14 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     sc = one_panel(x[gi], y[gi], bg_points=(x_all, y_all), ax=ax11, anno="SVM, Bayes, !NWAY (%i)" % len(gi), color=color[gi], **kwargs)
     if ylabel=="log Fx/Fg": 
         ax11.plot([0, 4.0], [-3.5, -1.6], color='r')
-        ax11.plot([0, 2.9], [-3.8, -1], color='b')
+        ax11.plot([0, 4.0], [-3.0, -1.1], color='r', ls=':')
     shrinked_fits(gi, ofn="missing.fits")
 
     if y[0]!=None:
-        cax = plt.axes([0.91, 0.08, 0.03, 0.9])
-        plt.colorbar(sc, cax=cax)
-
+        cax = plt.axes([0.87, 0.08, 0.03, 0.9])
+        cb = plt.colorbar(sc, cax=cax)
+        cb.set_label("log plx")
+        
     ax12 = fig.add_subplot(gs[1, 1])
     cond0 = (ff["SVM"] > p_lim["SVM"]) & (ff["SVM_ij"] > 0.5)
     cond1 = (ff["Bayes"] <= p_lim["Bayes"]) | ((ff["Bayes"]>p_lim["Bayes"]) & (ff["Bayes_ij"] <= 0.5) )
@@ -144,7 +146,7 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     sc = one_panel(x[gi], y[gi], bg_points=(x_all, y_all), ax=ax21, anno="SVM, !Bayes, !NWAY (%i)" % len(gi), color=color[gi], **kwargs)
     if ylabel=="log Fx/Fg": 
         ax21.plot([0, 4.0], [-3.5, -1.6], color='r')
-        ax21.plot([0, 2.9], [-3.8, -1], color='b')
+        ax21.plot([0, 4.0], [-3.0, -1.1], color='r', ls=':')
 
     ax22 = fig.add_subplot(gs[2, 1])
     cond0 = (ff["SVM"] <= p_lim["SVM"]) | ((ff["SVM"]>p_lim["SVM"]) & (ff["SVM_ij"] <= 0.5) )
@@ -152,6 +154,9 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     cond2 = ff["NWAY"]>p_lim["NWAY"]
     gi = np.where(cond0 & cond1 & cond2)[0]
     sc = one_panel(x[gi], y[gi], bg_points=(x_all, y_all), ax=ax22, anno="!SVM, !Bayes, NWAY (%i)" % len(gi), color=color[gi], **kwargs)
+    if ylabel=="log Fx/Fg": 
+        ax22.plot([0, 4.0], [-3.5, -1.6], color='r')
+        ax22.plot([0, 4.0], [-3.0, -1.1], color='r', ls=':')
     #shrinked_fits(gi, ofn="pcs_only.fits")
  
     ax23 = fig.add_subplot(gs[2, 2])
@@ -162,7 +167,8 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     sc = one_panel(x[gi], y[gi], bg_points=(x_all, y_all), ax=ax23, anno="!SVM, Bayes, !NWAY (%i)" % len(gi), color=color[gi], **kwargs)
     if ylabel=="log Fx/Fg": 
         ax23.plot([0, 4.0], [-3.5, -1.6], color='r')
-        ax23.plot([0, 2.9], [-3.8, -1], color='b')
+        ax23.plot([0, 4.0], [-3.0, -1.1], color='r', ls=':')
+        
         
     ax0.set_ylabel(ylabel)
     ax11.set_ylabel(ylabel)
@@ -172,9 +178,11 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
     ax22.set_xlabel(xlabel)
     ax23.set_xlabel(xlabel)
 
+    for ax in [ax0, ax11, ax12, ax13, ax21, ax22, ax23]:
+        if ylabel=="log Fx/Fg": ax.set_ylim(-7,-1)
 
 fig = plt.figure(figsize=(12,10))#constrained_layout=True)
-fig.subplots_adjust(top=0.98, right=0.90, left=0.08, bottom=0.08)
+fig.subplots_adjust(top=0.98, right=0.85, left=0.08, bottom=0.08)
 
 
 x = ff["BP_RP"]
@@ -202,17 +210,25 @@ plt.show()
 
 
 fig = plt.figure(figsize=(12,10))#constrained_layout=True)
-fig.subplots_adjust(top=0.98, right=0.90, left=0.08, bottom=0.08)
+fig.subplots_adjust(top=0.98, right=0.98, left=0.08, bottom=0.08)
 x = ff["match_dist"]
-one_page(x, xlabel="match_dist", ylabel="N", bins=30, range=(0,30))
+one_page(x, xlabel="match_dist", ylabel="Density", annox=0.16, annoy=0.9, bins=30, range=(0,22))
 plt.show()
 
 
-
 fig = plt.figure(figsize=(12,10))#constrained_layout=True)
-fig.subplots_adjust(top=0.98, right=0.90, left=0.08, bottom=0.08)
-x = ff["plx"]
-one_page(x, xlabel="plx", ylabel="N", bins=30, range=(0,50))
+fig.subplots_adjust(top=0.98, right=0.98, left=0.08, bottom=0.08)
+x = ff["match_dist"]
+y = ff["sigma_r"]
+one_page(x/y, xlabel="match_dist/sigma", ylabel="Density", annox=0.16, annoy=0.9, bins=30, range=(0,5))
+plt.show()
+
+
+plt.rcParams.update({'font.size': 16})
+fig = plt.figure(figsize=(12,10))#constrained_layout=True)
+fig.subplots_adjust(top=0.98, right=0.98, left=0.08, bottom=0.08)
+x = np.log10(ff["plx"])
+one_page(x, xlabel="log plx", ylabel="Density", bins=30, range=(-1,2), annoy=0.9)
 
 
 plt.show()

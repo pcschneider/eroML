@@ -224,7 +224,7 @@ eFEDS for paper
     
 6) Astrophysical screening (empirical Lx/Lbol screening, absolute Lx screening)::
 
-    p37 classify/prepare.py
+    p37 classify/prepare.py # -> train_HamStar_preprocessed.fits
     
 7) Train classifier::
     
