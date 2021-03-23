@@ -42,7 +42,7 @@ plt.show()
 si0 = np.argsort(fd0["svm_prob"][i0])[::-1]#[0:100]
 si00 = np.argsort(svm)[::-1]#[0:100]
 si1 = np.argsort(fd1["p_ij"][i1])[::-1]#[0:100]
-plt.scatter(np.cumsum(1-fd0["svm_prob"][i0][si0]), np.nancumsum(1-fd1["p_ij"][i1][si1]), label="1")
+plt.scatter(np.cumsum(1-fd0["svm_prob"][i0][si0]), np.nancumsum(1-fd1["p_stellar"][i1][si1]), label="1")
 plt.scatter(np.cumsum(1-svm[si00]), np.nancumsum(1-fd1["p_stellar"][i1][si1]), label="2")
 plt.legend()
 plt.show()
