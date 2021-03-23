@@ -69,7 +69,7 @@ for colname in ["rate","rate_error", "det_likeli", "Fx_error", "pm_RA", "pm_Dec"
 col = pyfits.Column(name="p_stellar", array=1-fd["category"], format="D")    
 cols.append(col)
 
-col = pyfits.Column(name="p_ij", array=np.ones(len(fd["srcID"])), format="D")    
+col = pyfits.Column(name="p_ij", array=np.ones(len(fd["svm_prob"])), format="D")    
 cols.append(col)
  
 print(cols)

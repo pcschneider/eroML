@@ -29,14 +29,6 @@ def activity_plot(hdu, gi, ax=None, ec='r', ll="", ps=2):
     
 
 
-ff0 = pyfits.open("ero_master.fits")
-ff = ff0[1].data
-
-#catalogs = list(fnames.keys())#[::-1]
-p_lim = {"SVM":0.01, "Bayes":0.5625,"NWAY":0.28}
-
-
-
 def one_panel(x,y=None, bg_points=None, ax=None, anno="", color="r",annox=0.035, annoy=0.08, **kwargs):
     if y is not None and y[0] is not None:
         return one_panel_scatter(x, y, bg_points=bg_points, ax=ax, anno=anno, color=color, annox=annox, annoy=annoy, **kwargs)
@@ -180,6 +172,16 @@ def one_page(x, y=None, color=None, xlabel="BP-RP", ylabel="log Fx/Fg", **kwargs
 
     for ax in [ax0, ax11, ax12, ax13, ax21, ax22, ax23]:
         if ylabel=="log Fx/Fg": ax.set_ylim(-7,-1)
+
+
+ff0 = pyfits.open("ero_master.fits")
+ff = ff0[1].data
+
+#catalogs = list(fnames.keys())#[::-1]
+p_lim = {"SVM":0.01, "Bayes":0.5625,"NWAY":0.28}
+
+
+
 
 fig = plt.figure(figsize=(12,10))#constrained_layout=True)
 fig.subplots_adjust(top=0.98, right=0.85, left=0.08, bottom=0.08)

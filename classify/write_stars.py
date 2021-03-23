@@ -11,7 +11,7 @@ def write_one(clf, fn, ofn=None):
     #mfn = "random4classify_eFEDS.fits"
     Y = get_props(fn, prop_cols=props, category_column=None, pandas=True)
     c = clf.predict(Y)
-
+    #p = clf.predict_proba(Y)
 
     ff = pyfits.open(fn)
     fd = ff[1]
